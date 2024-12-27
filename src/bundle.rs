@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::{s_idx::SIdx, transient::Transient};
+use crate::transient::Transient;
 use serde::de::Visitor;
 
 // A bundle.
@@ -66,7 +66,7 @@ impl Bundle {
 #[derive(Clone, Debug)]
 enum Secret {
     New(String),
-    Ref(SIdx),
+    Ref(u64),
 }
 impl Secret {
     fn resolve(&self, transient: &Transient) -> String {

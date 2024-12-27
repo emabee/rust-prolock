@@ -1,8 +1,7 @@
-use crate::{
-    bundle::Bundle, bundles::Bundles, secrets::Secrets, sequence::Sequence, transient::Transient,
-};
+use crate::{bundle::Bundle, bundles::Bundles, secrets::Secrets, transient::Transient};
 use anyhow::{anyhow, Context, Result};
 use fd_lock::RwLock;
+use sequential::Sequence;
 use std::{
     collections::btree_map::Iter,
     fs::{create_dir_all, File, OpenOptions},
@@ -28,9 +27,9 @@ const PREFACE: &str = "\
 
 // Describes the status and content of the prolock file
 #[derive(Clone, Debug)]
-pub(crate) struct PrvFile {
-    o_transient: Option<Transient>,
+pub(crate) struct PlFile {
     stored: Stored,
+    o_transient: Option<Transient>,
 }
 
 // This is the structure that is serialized to the file (after the preface);
@@ -51,10 +50,10 @@ pub(crate) struct Readable {
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub(crate) struct FileHeader {
     format_version: u8,
-    update_counter: Sequence,
+    update_counter: Sequence<usize>,
 }
 
-impl PrvFile {
+impl PlFile {
     fn new() -> Self {
         Self {
             o_transient: None,
@@ -218,7 +217,7 @@ mod test {
         }
 
         // test open then save
-        let mut f = super::PrvFile::open().context("open").unwrap();
+        let mut f = super::PlFile::open().context("open").unwrap();
         f.set_password("password".to_string()).unwrap();
 
         let key = format!("dummy{}", f.len());
@@ -230,7 +229,7 @@ mod test {
         assert!(file.exists());
 
         // test open then check creds
-        let mut f = super::PrvFile::open().context("open").unwrap();
+        let mut f = super::PlFile::open().context("open").unwrap();
         f.set_password("password".to_string()).unwrap();
         let transient = f.o_transient.as_ref().unwrap();
 

@@ -1,9 +1,8 @@
-use crate::s_idx::SIdx;
 use std::collections::{hash_map::Keys, HashMap};
 
 // A map from SIdx to String
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Secrets(HashMap<SIdx, String>);
+pub struct Secrets(HashMap<u64, String>);
 
 impl Secrets {
     #[must_use]
@@ -16,7 +15,7 @@ impl Secrets {
     }
 
     #[must_use]
-    pub fn get(&self, idx: SIdx) -> Option<&String> {
+    pub fn get(&self, idx: u64) -> Option<&String> {
         self.0.get(&idx)
     }
 }

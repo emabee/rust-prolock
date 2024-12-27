@@ -1,21 +1,22 @@
-use crate::{prv_file::Readable, secrets::Secrets, sequence::Sequence};
+use crate::{pl_file::Readable, secrets::Secrets};
 use anyhow::{Context, Result};
 use pwsec::{ChachaB64, CipherB64};
 use secstr::SecUtf8;
+use sequential::Sequence;
 
 const PBKDF2_ROUNDS: u32 = 91_232;
 
 #[derive(Clone, Debug)]
 pub(crate) struct Transient {
     storage_password: SecUtf8,
-    seq_for_secret_refs: Sequence,
+    seq_for_secret_refs: Sequence<u64>,
     secrets: Secrets,
 }
 impl Transient {
     pub(crate) fn new(password: String, secret: Secrets) -> Self {
         Self {
             storage_password: SecUtf8::from(password),
-            seq_for_secret_refs: Sequence::from_highest(&mut secret.keys()),
+            seq_for_secret_refs: Sequence::start_after_highest(&mut secret.keys()),
             secrets: secret,
         }
     }
@@ -35,7 +36,7 @@ impl Transient {
     }
 
     pub(crate) fn add_secret_value(&mut self, s: String) -> u64 {
-        let idx = self.seq_for_secret_refs.next();
+        let idx = self.seq_for_secret_refs.next().unwrap(/* TODO */);
         self.secrets.add(idx, s);
         idx
     }

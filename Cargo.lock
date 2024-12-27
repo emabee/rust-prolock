@@ -356,6 +356,7 @@ dependencies = [
  "fd-lock",
  "pwsec",
  "secstr",
+ "sequential",
  "serde",
  "serde_json",
 ]
@@ -452,6 +453,15 @@ name = "semver"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
+
+[[package]]
+name = "sequential"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3d8aab998a880db2ef6a03f39936f523a60eea510c27f43ff7cfc35afbe742d"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "serde"

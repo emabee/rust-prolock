@@ -27,6 +27,13 @@ impl Bundles {
         self.0.len()
     }
 
+    pub fn count_secrets(&self) -> usize {
+        self.0
+            .values()
+            .map(|bundle| bundle.named_secrets.len())
+            .sum()
+    }
+
     pub fn contains_key(&self, key: &str) -> bool {
         self.0.contains_key(key)
     }

@@ -10,15 +10,29 @@ use serde::de::Visitor;
 // A bundle can only be serialized (i.e., written to the file)
 // if each Secret it contains has Variant Ref.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub struct Bundle {
-    description: String,
-    named_secrets: BTreeMap<String, Secret>,
+pub(crate) struct Bundle {
+    pub description: String,
+    pub named_secrets: BTreeMap<String, Secret>,
 }
 impl Bundle {
     pub fn new<S: AsRef<str>>(description: S) -> Self {
         Self {
             description: description.as_ref().to_string(),
             named_secrets: BTreeMap::new(),
+        }
+    }
+
+    pub fn new_with_creds<S: AsRef<str> + Ord>(description: S, creds: &[(S, S)]) -> Self {
+        let mut named_secrets: BTreeMap<String, Secret> = BTreeMap::new();
+        for (name, secret) in creds {
+            named_secrets.insert(
+                name.as_ref().to_string(),
+                Secret::New(secret.as_ref().to_string()),
+            );
+        }
+        Self {
+            description: description.as_ref().to_string(),
+            named_secrets,
         }
     }
 
@@ -64,12 +78,12 @@ impl Bundle {
 }
 
 #[derive(Clone, Debug)]
-enum Secret {
+pub(crate) enum Secret {
     New(String),
     Ref(u64),
 }
 impl Secret {
-    fn resolve(&self, transient: &Transient) -> String {
+    pub fn resolve(&self, transient: &Transient) -> String {
         match self {
             Secret::New(s) => s.clone(),
             Secret::Ref(i) => transient

@@ -28,34 +28,36 @@ const PREFACE: &str = "\
 // Describes the status and content of the prolock file
 #[derive(Clone, Debug)]
 pub(crate) struct PlFile {
-    stored: Stored,
-    o_transient: Option<Transient>,
+    pub(crate) file_path: PathBuf,
+    pub(crate) stored: Stored,
+    pub(crate) o_transient: Option<Transient>,
 }
 
 // This is the structure that is serialized to the file (after the preface);
 // it consists of a readable section and an encrypted section
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct Stored {
-    readable: Readable,
-    cipher: String,
+pub(crate) struct Stored {
+    pub(crate) readable: Readable,
+    pub(crate) cipher: String,
 }
 
 // The readable section is written in clear and also used as auth-tag for the encrypted section
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub(crate) struct Readable {
-    header: FileHeader,
-    bundles: Bundles,
+    pub(crate) header: FileHeader,
+    pub(crate) bundles: Bundles,
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub(crate) struct FileHeader {
-    format_version: u8,
-    update_counter: Sequence<usize>,
+    pub(crate) format_version: u8,
+    pub(crate) update_counter: Sequence<usize>,
 }
 
 impl PlFile {
-    fn new() -> Self {
+    fn new(file_path: PathBuf) -> Self {
         Self {
+            file_path,
             o_transient: None,
             stored: Stored {
                 readable: Readable {
@@ -78,18 +80,18 @@ impl PlFile {
         self.stored.readable.bundles.into_iter()
     }
     // read without decrypt
-    pub(crate) fn open() -> Result<Self> {
+    pub(crate) fn read_or_create() -> Result<Self> {
         let file_path = document_path()?;
         if file_path.exists() {
             // read file content
-            let mut f = RwLock::new(File::open(file_path).context("opening file")?);
-
+            let mut f = RwLock::new(File::open(file_path.clone()).context("opening file")?);
             let mut file_content = String::with_capacity(1024);
             (*f.write().context("locking")?)
                 .read_to_string(&mut file_content)
                 .context("reading")?;
             let semantic_content = skip_over_comments_and_empty_lines(&file_content);
             Ok(Self {
+                file_path,
                 o_transient: None,
                 stored: serde_json::from_str(semantic_content).context("parsing")?,
             })
@@ -100,7 +102,7 @@ impl PlFile {
                     .parent()
                     .context("cannot determine folder for storage")?,
             )?;
-            Ok(Self::new())
+            Ok(Self::new(file_path))
         }
     }
 
@@ -217,11 +219,18 @@ mod test {
         }
 
         // test open then save
-        let mut f = super::PlFile::open().context("open").unwrap();
+        let mut f = super::PlFile::read_or_create().context("open").unwrap();
         f.set_password("password".to_string()).unwrap();
 
         let key = format!("dummy{}", f.len());
-        let mut bundle = Bundle::new("some longer description\nsome longer description\nsome longer description\nsome longer description\nsome longer description\nsome longer description\n".to_string());
+        let mut bundle = Bundle::new(
+            "some longer description\n\
+        some longer description\n\
+        some longer description\n\
+        some longer description\n\
+        some longer description\nsome longer description\n"
+                .to_string(),
+        );
         bundle.add_cred("user1".to_string(), "SeCreT1".to_string());
         bundle.add_cred("user2".to_string(), "SeCreT2".to_string());
         f.add_bundle(&key, bundle).unwrap();
@@ -229,7 +238,7 @@ mod test {
         assert!(file.exists());
 
         // test open then check creds
-        let mut f = super::PlFile::open().context("open").unwrap();
+        let mut f = super::PlFile::read_or_create().context("open").unwrap();
         f.set_password("password".to_string()).unwrap();
         let transient = f.o_transient.as_ref().unwrap();
 

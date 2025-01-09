@@ -1,6 +1,7 @@
 use eframe::{App, Frame};
 use egui::{
-    Button, Color32, Context, FontFamily, FontId, Image, RichText, TextEdit, Theme, TopBottomPanel,
+    include_image, Button, CentralPanel, Color32, Context, FontFamily, FontId, Id, Image, Modal,
+    RichText, ScrollArea, TextEdit, Theme, TopBottomPanel, Widget,
 };
 
 use crate::{
@@ -75,6 +76,8 @@ impl UiApp {
             .map(|(name, bundle)| VBundle {
                 name: name.to_string(),
                 description: bundle.description.clone(),
+                save_progress: None,
+                save_modal_open: false,
                 named_secrets: bundle
                     .named_secrets
                     .iter()
@@ -105,7 +108,7 @@ impl App for UiApp {
                 ui.colored_label(
                     Color32::LIGHT_GRAY,
                     RichText::new(self.pl_file.file_path.display().to_string())
-                        .family(egui::FontFamily::Monospace),
+                        .family(FontFamily::Monospace),
                 );
                 ui.add_space(10.);
                 ui.label("  –—  ");
@@ -127,17 +130,15 @@ impl App for UiApp {
                 ui.add_space(250.);
 
                 // TODO: Drei-Punkt Menu rechts oben
-                ui.add(egui::Image::new(egui::include_image!(
-                    "assets/three_dots.png"
-                )));
+                ui.add(Image::new(include_image!("assets/three_dots.png")));
             });
 
             ui.add_space(10.);
         });
 
         // bundles
-        egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ScrollArea::both().show(ui, |ui| {
+        CentralPanel::default().show(ctx, |ui| {
+            ScrollArea::both().show(ui, |ui| {
                 for v_bundle in &mut self.v_bundles {
                     ui.add_enabled_ui(true, |ui| {
                         ui.horizontal(|ui| {
@@ -145,17 +146,16 @@ impl App for UiApp {
                                 ui.button("save");
                             });
                             ui.vertical(|ui| {
-                                ui.horizontal(|ui| {
-                                    ui.add(
-                                        TextEdit::singleline(&mut v_bundle.name.as_str())
-                                            .desired_width(300.)
-                                            .font(FontId {
-                                                size: 16.,
-                                                family: FontFamily::Proportional,
-                                            })
-                                            .interactive(true),
-                                    );
-                                });
+                                ui.add(
+                                    TextEdit::singleline(&mut v_bundle.name.as_str())
+                                        .desired_width(380.)
+                                        .clip_text(true)
+                                        .font(FontId {
+                                            size: 16.,
+                                            family: FontFamily::Proportional,
+                                        })
+                                        .interactive(true),
+                                );
                                 ui.add(
                                     TextEdit::multiline(&mut v_bundle.description.as_str())
                                         .desired_width(400.)
@@ -173,27 +173,32 @@ impl App for UiApp {
                                             TextEdit::singleline(description)
                                                 .desired_width(200.)
                                                 // .min_size((100., 5.).into())
+                                                .clip_text(true)
                                                 .text_color(color_user)
                                                 .interactive(true),
                                         );
                                         ui.add(
                                             TextEdit::singleline(&mut secret.as_str())
                                                 .desired_width(160.)
+                                                .clip_text(true)
                                                 .text_color(color_secret)
                                                 .password(!*show_secret)
                                                 .interactive(true),
                                         );
 
                                         if ui
-                                            .add(Button::image(Image::new(egui::include_image!(
-                                                "assets/copy.png"
-                                            ))))
+                                            .add(Button::new("Copy"))
+                                            // .add(Button::image(Image::new(include_image!(
+                                            //     "assets/copy.png"
+                                            // ))))
                                             .on_hover_ui(|ui| {
                                                 ui.label("Copy the secret");
                                             })
                                             .clicked()
                                         {
                                             ctx.copy_text(secret.to_string());
+                                            v_bundle.save_modal_open = true;
+                                            v_bundle.save_progress = Some(0.);
                                         }
                                         // 📋 = \u{1F4CB}
                                         // 👓 = \u{1F453}
@@ -228,6 +233,25 @@ impl App for UiApp {
                     });
                     // ui.add_space(10.);
                     ui.separator();
+
+                    if v_bundle.save_modal_open {
+                        if let Some(progress) = v_bundle.save_progress {
+                            Modal::new(Id::new("Modal C")).show(ui.ctx(), |ui| {
+                                ui.set_width(160.0);
+                                ui.label("Secret copied to clipboard");
+
+                                // ProgressBar::new(progress.clone()).ui(ui);
+
+                                if progress >= 1.0 {
+                                    v_bundle.save_progress = None;
+                                    v_bundle.save_modal_open = false;
+                                } else {
+                                    v_bundle.save_progress = Some(progress + 0.01);
+                                    ui.ctx().request_repaint();
+                                }
+                            });
+                        }
+                    }
                 }
             });
         });

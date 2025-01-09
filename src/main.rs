@@ -61,15 +61,46 @@ fn run() -> Result<()> {
         Bundle::new_with_creds("aaa_dscr", &[("aaa_cn", "aaa_cs")]),
     )?;
     pl_file.add_bundle(
-        "Commerzbank",
+        "Some Bank with a very very very very very very long name",
         Bundle::new_with_creds(
-            "http://commerzbank.de",
+            "http://commerzbank.de\n\
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! ",
             &[
                 (
-                    "martina.block-hd@t-online.de",
+                    "someveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
                     "bbb_cs_adawdeewqfdf-rgrdt-xyz-123",
                 ),
-                ("meinolf.block-hd@t-online.de", "bbb_cs erw rtrz werert"),
+                (
+                    "someotherveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
+                    "bbb_cs erw rtrz werert",
+                ),
+            ],
+        ),
+    )?;
+    pl_file.add_bundle(
+        "Some Bank with a pretty long long name",
+        Bundle::new_with_creds(
+            "http://commerzbank.de\n\
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+            Hello world! Hello world! ",
+            &[
+                (
+                    "someveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
+                    "bbb_cs_adawdeewqfdf-rgrdt-xyz-123",
+                ),
+                (
+                    "someotherveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
+                    "bbb_cs erw rtrz werert",
+                ),
             ],
         ),
     )?;

@@ -57,60 +57,91 @@ fn run() -> Result<()> {
     }
 
     pl_file.add_bundle(
-        "Bank of America",
+        "Bank of North America",
         Bundle::new_with_creds("aaa_dscr", &[("aaa_cn", "aaa_cs")]),
     )?;
     pl_file.add_bundle(
-        "Some Bank with a very very very very very very long name",
+        "Bank of South America",
         Bundle::new_with_creds(
-            "http://commerzbank.de\n\
+            "http://one_bank.de\n\n\
             Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
             Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
             Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
             Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
             Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
             Hello world! Hello world! ",
-            &[
-                (
-                    "someveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
-                    "bbb_cs_adawdeewqfdf-rgrdt-xyz-123",
-                ),
-                (
-                    "someotherveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
-                    "bbb_cs erw rtrz werert",
-                ),
-            ],
+            &[("aaa_cn", "aaa_cs"), ("asdaqweqweqwe", "rtzrtzfhfghgfh")],
         ),
     )?;
-    pl_file.add_bundle(
-        "Some Bank with a pretty long long name",
-        Bundle::new_with_creds(
-            "http://commerzbank.de\n\
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! ",
-            &[
-                (
-                    "someveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
-                    "bbb_cs_adawdeewqfdf-rgrdt-xyz-123",
-                ),
-                (
-                    "someotherveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
-                    "bbb_cs erw rtrz werert",
-                ),
-            ],
-        ),
-    )?;
+    // pl_file.add_bundle(
+    //     "Some Bank with a very very very very very very long name",
+    //     Bundle::new_with_creds(
+    //         "http://some_bank.de\n\n\
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! ",
+    //         &[
+    //             (
+    //                 "some.pretty.long.name@t-online.de",
+    //                 "bbb_cs_adawdeewqfdf-rgrdt-xyz-123",
+    //             ),
+    //             (
+    //                 "someotherveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
+    //                 "bbb_cs erw rtrz werert",
+    //             ),
+    //         ],
+    //     ),
+    // )?;
+    // pl_file.add_bundle(
+    //     "Some Bank with a pretty long long name",
+    //     Bundle::new_with_creds(
+    //         "http://some_other_bank.de\n\n\
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
+    //         Hello world! Hello world! ",
+    //         &[
+    //             (
+    //                 "some.pretty.long.name@t-online.de",
+    //                 "bbb_cs_adawdeewqfdf-rgrdt-xyz-123",
+    //             ),
+    //             (
+    //                 "someotherveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
+    //                 "bbb_cs erw rtrz werert",
+    //             ),
+    //         ],
+    //     ),
+    // )?;
     pl_file.add_bundle(
         "ccc",
-        Bundle::new_with_creds("ccc_dscr", &[("ccc_cn", "ccc_cs")]),
+        Bundle::new_with_creds(
+            "ccc_dscr1\n\
+            ccc_dscr2\n\
+            ccc_dscr3\n\
+            ccc_dscr4\n\
+            ccc_dscr5",
+            &[
+                ("ccc_cn1", "ccc_cs"),
+                ("ccc_cn2", "ccc_cs"),
+                ("ccc_cn3", "ccc_cs"),
+            ],
+        ),
     )?;
     pl_file.add_bundle(
         "ddd",
-        Bundle::new_with_creds("ddd_dscr", &[("ddd_cn", "ddd_cs")]),
+        Bundle::new_with_creds(
+            "ddd_dscr",
+            &[
+                ("ddd_cn1", "ddd_cs"),
+                ("ddd_cn2", "ddd_cs"),
+                ("ddd_cn3", "ddd_cs"),
+            ],
+        ),
     )?;
     pl_file.add_bundle(
         "eee",
@@ -137,7 +168,7 @@ pub(crate) fn go(pl_file: PlFile) -> Result<()> {
         NativeOptions {
             // viewport = native OS window
             viewport: ViewportBuilder::default()
-                .with_inner_size([1000.0, 700.0])
+                .with_inner_size([925.0, 700.0])
                 .with_min_inner_size([925.0, 200.0]),
             // .with_icon(
             //     load_icon_from_path(&PathBuf::from("./assets/logo.png")).unwrap(),

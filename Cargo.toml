@@ -7,17 +7,13 @@ edition = "2021"
 ansi_term = "0.12"
 anyhow = "1.0.93"
 dirs = "5.0.1"
+egui = { version = "0.30" }
+egui_extras = { version = "0.30", features = ["file", "image"] }
+eframe = { version = "0.30" }
 fd-lock = "4.0.2"
+image = { version = "0.25", features = ["png"] }
 pwsec = "0.5.1"
 secstr = "0.5.1"
 sequential = { version = "0.5", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-
-egui = { version = "0.30" }
-egui_extras = { version = "0.30", features = [
-    "file",
-    "image",
-] }
-eframe = { version = "0.30" }
-image = { version = "0.25", features = ["png"] }

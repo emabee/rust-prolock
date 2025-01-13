@@ -1,13 +1,14 @@
-use eframe::{App, Frame};
-use egui::{
-    include_image, Button, CentralPanel, Color32, Context, FontFamily, FontId, Id, Image, Modal,
-    RichText, ScrollArea, TextEdit, Theme, TopBottomPanel, Widget,
-};
-
 use crate::{
     pl_file::PlFile,
     v_bundles::{VBundle, VBundles},
 };
+use core::f32;
+use eframe::{App, Frame};
+use egui::{
+    include_image, scroll_area::ScrollBarVisibility, Button, CentralPanel, Color32, Context,
+    FontFamily, FontId, Image, Rgba, RichText, ScrollArea, TextEdit, Theme, TopBottomPanel,
+};
+use egui_extras::{Size, StripBuilder};
 
 /* TODOs *************************************
 
@@ -68,6 +69,8 @@ pub struct UiApp {
     v_bundles: VBundles,
     //    edit_v_bundle: VBundle,
     pl_file: PlFile,
+    save_modal_open: bool,
+    save_progress: Option<f32>,
 }
 impl UiApp {
     pub fn new(pl_file: PlFile) -> Self {
@@ -76,8 +79,6 @@ impl UiApp {
             .map(|(name, bundle)| VBundle {
                 name: name.to_string(),
                 description: bundle.description.clone(),
-                save_progress: None,
-                save_modal_open: false,
                 named_secrets: bundle
                     .named_secrets
                     .iter()
@@ -91,7 +92,12 @@ impl UiApp {
                     .collect(),
             })
             .collect();
-        UiApp { v_bundles, pl_file }
+        UiApp {
+            v_bundles,
+            pl_file,
+            save_progress: None,
+            save_modal_open: false,
+        }
     }
 }
 
@@ -138,122 +144,268 @@ impl App for UiApp {
 
         // bundles
         CentralPanel::default().show(ctx, |ui| {
-            ScrollArea::both().show(ui, |ui| {
-                for v_bundle in &mut self.v_bundles {
-                    ui.add_enabled_ui(true, |ui| {
-                        ui.horizontal(|ui| {
-                            ui.vertical(|ui| {
-                                ui.button("save");
-                            });
-                            ui.vertical(|ui| {
-                                ui.add(
-                                    TextEdit::singleline(&mut v_bundle.name.as_str())
-                                        .desired_width(380.)
-                                        .clip_text(true)
-                                        .font(FontId {
-                                            size: 16.,
-                                            family: FontFamily::Proportional,
-                                        })
-                                        .interactive(true),
-                                );
-                                ui.add(
-                                    TextEdit::multiline(&mut v_bundle.description.as_str())
-                                        .desired_width(400.)
-                                        .interactive(true),
-                                );
-                            });
-                            ui.add_space(10.);
-                            ui.vertical(|ui| {
-                                // secrets
-                                for (description, show_secret, secret) in
-                                    &mut v_bundle.named_secrets
-                                {
-                                    ui.horizontal(|ui| {
-                                        ui.add(
-                                            TextEdit::singleline(description)
-                                                .desired_width(200.)
-                                                // .min_size((100., 5.).into())
-                                                .clip_text(true)
-                                                .text_color(color_user)
-                                                .interactive(true),
-                                        );
-                                        ui.add(
-                                            TextEdit::singleline(&mut secret.as_str())
-                                                .desired_width(160.)
-                                                .clip_text(true)
-                                                .text_color(color_secret)
-                                                .password(!*show_secret)
-                                                .interactive(true),
-                                        );
-
-                                        if ui
-                                            .add(Button::new("Copy"))
-                                            // .add(Button::image(Image::new(include_image!(
-                                            //     "assets/copy.png"
-                                            // ))))
-                                            .on_hover_ui(|ui| {
-                                                ui.label("Copy the secret");
-                                            })
-                                            .clicked()
-                                        {
-                                            ctx.copy_text(secret.to_string());
-                                            v_bundle.save_modal_open = true;
-                                            v_bundle.save_progress = Some(0.);
-                                        }
-                                        // 📋 = \u{1F4CB}
-                                        // 👓 = \u{1F453}
-                                        // 👁 = \u{1F441}
-                                        // 🤫, 🔐
-                                        if ui
-                                            .add(Button::new(
-                                                RichText::new(if *show_secret {
-                                                    "🔐"
-                                                } else {
-                                                    "👁"
-                                                })
-                                                .color(color_secret)
-                                                .strong(),
-                                            ))
-                                            .on_hover_ui(|ui| {
-                                                ui.label(if *show_secret {
-                                                    "Hide the secret"
-                                                } else {
-                                                    "Reveal the secret"
-                                                });
-                                            })
-                                            .clicked()
-                                        {
-                                            *show_secret = !*show_secret;
-                                        }
-                                    });
-                                    ui.add_space(3.);
-                                }
-                            });
+            ScrollArea::vertical()
+                .scroll_bar_visibility(ScrollBarVisibility::AlwaysVisible)
+                .show(ui, |ui| {
+                    StripBuilder::new(ui)
+                        .sizes(Size::exact(100.), self.v_bundles.len())
+                        .vertical(|mut bundle_strip| {
+                            for (index, v_bundle) in &mut self.v_bundles.iter_mut().enumerate() {
+                                bundle_strip.strip(|bundle_builder| {
+                                    show_bundle(
+                                        ctx,
+                                        color_user,
+                                        color_secret,
+                                        bundle_builder,
+                                        index,
+                                        v_bundle,
+                                    );
+                                });
+                            }
                         });
-                    });
-                    // ui.add_space(10.);
-                    ui.separator();
 
-                    if v_bundle.save_modal_open {
-                        if let Some(progress) = v_bundle.save_progress {
-                            Modal::new(Id::new("Modal C")).show(ui.ctx(), |ui| {
-                                ui.set_width(160.0);
-                                ui.label("Secret copied to clipboard");
+                    // if self.save_modal_open {
+                    //     if let Some(progress) = self.save_progress {
+                    //         Modal::new(Id::new("Modal C")).show(ui.ctx(), |ui| {
+                    //             ui.set_width(160.0);
+                    //             ui.label("Secret copied to clipboard");
 
-                                // ProgressBar::new(progress.clone()).ui(ui);
+                    //             // ProgressBar::new(progress.clone()).ui(ui);
 
-                                if progress >= 1.0 {
-                                    v_bundle.save_progress = None;
-                                    v_bundle.save_modal_open = false;
-                                } else {
-                                    v_bundle.save_progress = Some(progress + 0.01);
-                                    ui.ctx().request_repaint();
-                                }
-                            });
-                        }
-                    }
-                }
-            });
+                    //             if progress >= 1.0 {
+                    //                 self.save_progress = None;
+                    //                 self.save_modal_open = false;
+                    //             } else {
+                    //                 self.save_progress = Some(progress + 0.01);
+                    //                 ui.ctx().request_repaint();
+                    //             }
+                    //         });
+                    //     }
+                    // }
+                })
         });
     }
+}
+
+fn show_bundle(
+    ctx: &Context,
+    color_user: Color32,
+    color_secret: Color32,
+    bundle_builder: StripBuilder<'_>,
+    index: usize,
+    v_bundle: &mut VBundle,
+) {
+    bundle_builder
+        .size(Size::exact(400.))
+        .size(Size::exact(500.))
+        .horizontal(|mut inner_bundle_strip| {
+            inner_bundle_strip.strip(|left_builder| {
+                show_left_bundle_part(index, v_bundle, left_builder);
+            });
+            inner_bundle_strip.strip(|right_builder| {
+                show_right_bundle_part(
+                    ctx,
+                    color_user,
+                    color_secret,
+                    index,
+                    v_bundle,
+                    right_builder,
+                );
+            });
+        });
+}
+
+fn show_right_bundle_part(
+    ctx: &Context,
+    color_user: Color32,
+    color_secret: Color32,
+    index: usize,
+    v_bundle: &mut VBundle,
+    right_builder: StripBuilder<'_>,
+) {
+    right_builder
+        .sizes(Size::exact(20.), v_bundle.named_secrets.len())
+        .vertical(|mut right_strip| {
+            for (description, show_secret, secret) in &mut v_bundle.named_secrets {
+                right_strip.strip(|cred_builder| {
+                    cred_builder
+                        .size(Size::exact(210.))
+                        .size(Size::exact(170.))
+                        .size(Size::exact(120.))
+                        .horizontal(|mut cred_strip| {
+                            cred_strip.cell(|ui| {
+                                set_faded_bg_color(ui, 20., index);
+                                ui.add(
+                                    TextEdit::singleline(&mut description.as_str())
+                                        .desired_width(200.)
+                                        .clip_text(true)
+                                        .text_color(color_user)
+                                        .interactive(true),
+                                );
+                            });
+                            cred_strip.cell(|ui| {
+                                set_faded_bg_color(ui, 20., index);
+                                ui.add(
+                                    TextEdit::singleline(&mut secret.as_str())
+                                        .desired_width(160.)
+                                        .clip_text(true)
+                                        .text_color(color_secret)
+                                        .password(!*show_secret)
+                                        .interactive(true),
+                                );
+                            });
+                            cred_strip.cell(|ui| {
+                                //buttons
+                                ui.horizontal(|ui| {
+                                    if ui
+                                        .add(Button::image(Image::new(include_image!(
+                                            "assets/copy.png"
+                                        ))))
+                                        .on_hover_ui(|ui| {
+                                            ui.label("Copy the secret");
+                                        })
+                                        .clicked()
+                                    {
+                                        ctx.copy_text(secret.to_string());
+                                    }
+                                    // 📋 = \u{1F4CB}
+                                    // 👓 = \u{1F453}
+                                    // 👁 = \u{1F441}
+                                    // 🤫, 🔐
+                                    if ui
+                                        .add(Button::new(
+                                            RichText::new(if *show_secret {
+                                                "🔐"
+                                            } else {
+                                                "👁"
+                                            })
+                                            .color(color_secret)
+                                            .strong(),
+                                        ))
+                                        .on_hover_ui(|ui| {
+                                            ui.label(if *show_secret {
+                                                "Hide the secret"
+                                            } else {
+                                                "Reveal the secret"
+                                            });
+                                        })
+                                        .clicked()
+                                    {
+                                        *show_secret = !*show_secret;
+                                    }
+                                });
+                            });
+                        });
+                });
+            }
+        });
+
+    //                                         if ui
+    //                                             .add(Button::new("Copy"))
+    //                                             // .add(Button::image(Image::new(include_image!(
+    //                                             //     "assets/copy.png"
+    //                                             // ))))
+    //                                             .on_hover_ui(|ui| {
+    //                                                 ui.label("Copy the secret");
+    //                                             })
+    //                                             .clicked()
+    //                                         {
+    //                                             ctx.copy_text(secret.to_string());
+    //                                             self.save_modal_open = true;
+    //                                             self.save_progress = Some(0.);
+    //                                         }
+    //                                         // 📋 = \u{1F4CB}
+    //                                         // 👓 = \u{1F453}
+    //                                         // 👁 = \u{1F441}
+    //                                         // 🤫, 🔐
+    //                                         if ui
+    //                                             .add(Button::new(
+    //                                                 RichText::new(if *show_secret {
+    //                                                     "🔐"
+    //                                                 } else {
+    //                                                     "👁"
+    //                                                 })
+    //                                                 .color(color_secret)
+    //                                                 .strong(),
+    //                                             ))
+    //                                             .on_hover_ui(|ui| {
+    //                                                 ui.label(if *show_secret {
+    //                                                     "Hide the secret"
+    //                                                 } else {
+    //                                                     "Reveal the secret"
+    //                                                 });
+    //                                             })
+    //                                             .clicked()
+    //                                         {
+    //                                             *show_secret = !*show_secret;
+    //                                         }
+    //                                     });
+    //                                     ui.add_space(3.);
+    //                                 }
+    //                             });
+    //                         });
+    //                         // }
+    //                     });
+    //             });
+    //         });
+}
+
+fn show_left_bundle_part(index: usize, v_bundle: &mut VBundle, left_builder: StripBuilder<'_>) {
+    left_builder
+        .size(Size::exact(15.))
+        .size(Size::exact(40.))
+        .size(Size::exact(10.))
+        .vertical(|mut left_strip| {
+            //name
+            left_strip.cell(|ui| {
+                set_faded_bg_color(ui, 20., index);
+                ui.add(
+                    TextEdit::singleline(&mut v_bundle.name.as_str())
+                        .desired_width(330.)
+                        .clip_text(true)
+                        .font(FontId {
+                            size: 16.,
+                            family: FontFamily::Proportional,
+                        })
+                        .interactive(true),
+                );
+            });
+
+            // description
+            left_strip.cell(|ui| {
+                ScrollArea::vertical().show(ui, |ui| {
+                    set_faded_bg_color(ui, f32::INFINITY, index);
+                    ui.add_sized(
+                        [380., 80.],
+                        TextEdit::multiline(&mut v_bundle.description.as_str()).interactive(true),
+                    );
+                });
+            });
+        });
+}
+
+fn set_faded_bg_color(ui: &mut egui::Ui, height: f32, index: usize) {
+    let dark_mode = ui.visuals().dark_mode;
+    let bg_color = ui.visuals().window_fill();
+    let t = if index % 2 == 0 {
+        if dark_mode {
+            0.95
+        } else {
+            0.91
+        }
+    } else {
+        if dark_mode {
+            0.95
+        } else {
+            0.8
+        }
+    };
+
+    let mut rect = ui.available_rect_before_wrap();
+    rect.set_height(height);
+    ui.painter().rect_filled(
+        rect,
+        0.0,
+        egui::lerp(Rgba::from(Color32::GRAY)..=Rgba::from(bg_color), t),
+    );
 }

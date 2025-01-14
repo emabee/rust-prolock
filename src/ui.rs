@@ -1,5 +1,9 @@
 use crate::{
     pl_file::PlFile,
+    sizes::{
+        BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
+        EGUI_DEFAULT_SPACE, SEARCH_TEXT_WIDTH, WIN_WIDTH,
+    },
     v_bundles::{NamedSecret, VBundle, VBundles},
 };
 use core::f32;
@@ -59,7 +63,6 @@ Backlog:
     - Bestehenden Eintrag ändern
     - Bestehenden Eintrag löschen
 
-- Icon entwerfen
 - About + Hilfe
 - Mehrsprachigkeit?
 
@@ -69,8 +72,7 @@ pub struct UiApp {
     v_bundles: VBundles,
     //    edit_v_bundle: VBundle,
     pl_file: PlFile,
-    save_modal_open: bool,
-    save_progress: Option<f32>,
+    search: String,
 }
 impl UiApp {
     pub fn new(pl_file: PlFile) -> Self {
@@ -94,8 +96,7 @@ impl UiApp {
         UiApp {
             v_bundles,
             pl_file,
-            save_progress: None,
-            save_modal_open: false,
+            search: String::new(),
         }
     }
 }
@@ -124,15 +125,8 @@ impl App for UiApp {
                     self.pl_file.stored.readable.bundles.len(),
                     self.pl_file.stored.readable.bundles.count_secrets(),
                 ));
-                ui.add_space(10.);
-                ui.label("  –—  ");
-                ui.add_space(10.);
 
-                ui.label("stored/edited");
-
-                ui.add_space(10.);
-                ui.label("  –—  ");
-                ui.add_space(250.);
+                ui.add_space(ui.available_width() - 80.);
 
                 // TODO: Drei-Punkt Menu rechts oben
                 ui.add(Image::new(include_image!("assets/burger.png")));
@@ -141,13 +135,60 @@ impl App for UiApp {
             ui.add_space(10.);
         });
 
+        TopBottomPanel::top("buttons").show(ctx, |ui| {
+            ui.add_space(4.);
+            ui.horizontal(|ui| {
+                if ui
+                    .add(
+                        Button::image(
+                            Image::new(include_image!("./assets/add_entry.png"))
+                                .maintain_aspect_ratio(true)
+                                .fit_to_original_size(0.22),
+                        )
+                        .fill(Color32::WHITE),
+                    )
+                    .on_hover_ui(|ui| {
+                        ui.label("New entry");
+                    })
+                    .clicked()
+                {
+                    //
+                }
+
+                ui.add_space(
+                    WIN_WIDTH
+                        - 4.
+                        - SEARCH_TEXT_WIDTH
+                        - 16.
+                        - (2. * EGUI_DEFAULT_SPACE)
+                        - (2. * 26.)
+                        - 58.,
+                );
+                ui.add(TextEdit::singleline(&mut self.search).desired_width(SEARCH_TEXT_WIDTH));
+                if ui
+                    .add(
+                        Button::image(
+                            Image::new(include_image!("./assets/search.png"))
+                                .maintain_aspect_ratio(true)
+                                .fit_to_original_size(0.22),
+                        )
+                        .fill(Color32::WHITE),
+                    )
+                    .clicked()
+                {
+                    //
+                }
+            });
+            ui.add_space(4.);
+        });
+
         // bundles
         CentralPanel::default().show(ctx, |ui| {
             ScrollArea::vertical()
                 .scroll_bar_visibility(ScrollBarVisibility::AlwaysVisible)
                 .show(ui, |ui| {
                     StripBuilder::new(ui)
-                        .sizes(Size::exact(100.), self.v_bundles.len())
+                        .sizes(Size::exact(BUNDLE_HEIGHT), self.v_bundles.len())
                         .vertical(|mut bundle_strip| {
                             for (index, v_bundle) in &mut self.v_bundles.iter_mut().enumerate() {
                                 bundle_strip.strip(|bundle_builder| {
@@ -176,19 +217,44 @@ fn show_bundle(
     v_bundle: &mut VBundle,
 ) {
     bundle_builder
-        .size(Size::exact(20.))
-        .size(Size::exact(400.))
-        .size(Size::exact(500.))
+        .size(Size::exact(BUNDLE_WIDTH_BUTTONS))
+        .size(Size::exact(BUNDLE_WIDTH_LEFT))
+        .size(Size::exact(BUNDLE_WIDTH_RIGHT))
         .horizontal(|mut inner_bundle_strip| {
             inner_bundle_strip.cell(|ui| {
-                ui.add(
-                    Button::image(
-                        Image::new(include_image!("./assets/edit.png"))
-                            .maintain_aspect_ratio(true)
-                            .fit_to_original_size(0.5),
+                if ui
+                    .add(
+                        Button::image(
+                            Image::new(include_image!("./assets/edit.png"))
+                                .maintain_aspect_ratio(true)
+                                .fit_to_original_size(0.44),
+                        )
+                        .fill(Color32::WHITE),
                     )
-                    .fill(Color32::WHITE),
-                );
+                    .on_hover_ui(|ui| {
+                        ui.label("Edit entry");
+                    })
+                    .clicked()
+                {
+                    //
+                };
+                ui.add_space(5.);
+                if ui
+                    .add(
+                        Button::image(
+                            Image::new(include_image!("./assets/delete.png"))
+                                .maintain_aspect_ratio(true)
+                                .fit_to_original_size(0.22),
+                        )
+                        .fill(Color32::WHITE),
+                    )
+                    .on_hover_ui(|ui| {
+                        ui.label("Delete entry");
+                    })
+                    .clicked()
+                {
+                    //
+                };
             });
             inner_bundle_strip.strip(|left_builder| {
                 show_left_bundle_part(index, v_bundle, left_builder);

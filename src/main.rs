@@ -12,6 +12,7 @@ mod bundles;
 mod colors;
 mod pl_file;
 mod secrets;
+mod sizes;
 mod transient;
 mod ui;
 mod v_bundles;
@@ -23,6 +24,7 @@ use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
 use image::{ImageError, ImageReader};
 use pl_file::PlFile;
+use sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use ui::UiApp;
@@ -168,8 +170,8 @@ pub(crate) fn go(pl_file: PlFile) -> Result<()> {
         NativeOptions {
             // viewport = native OS window
             viewport: ViewportBuilder::default()
-                .with_inner_size([925.0, 700.0])
-                .with_min_inner_size([925.0, 200.0])
+                .with_inner_size([WIN_WIDTH, WIN_HEIGHT])
+                .with_min_inner_size([WIN_WIDTH, WIN_MIN_HEIGHT])
                 .with_app_id("ProLock")
                 .with_icon(load_icon_from_path(&PathBuf::from("./src/assets/logo.png")).unwrap()),
             ..Default::default()

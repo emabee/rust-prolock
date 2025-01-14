@@ -1,44 +1,23 @@
-use crate::{
-    pl_file::PlFile,
-    sizes::{
-        BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
-        EGUI_DEFAULT_SPACE, SEARCH_TEXT_WIDTH, WIN_WIDTH,
-    },
-    v_bundles::{NamedSecret, VBundle, VBundles},
+mod active_bundle;
+mod buttons;
+mod inactive_bundle;
+mod v;
+
+use super::PlFile;
+use crate::sizes::{
+    BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT, EGUI_DEFAULT_SPACE,
+    SEARCH_TEXT_WIDTH, WIN_WIDTH,
 };
-use core::f32;
+use v::{NamedSecret, VBundle, V};
+
 use eframe::{App, Frame};
 use egui::{
     include_image, scroll_area::ScrollBarVisibility, Button, CentralPanel, Color32, Context,
-    FontFamily, FontId, Image, Rgba, RichText, ScrollArea, TextEdit, Theme, TopBottomPanel,
+    FontFamily, Image, RichText, ScrollArea, TextEdit, Theme, TopBottomPanel,
 };
 use egui_extras::{Size, StripBuilder};
 
 /* TODOs *************************************
-
-Änderungen
-    Änderungen wie
-    - Entry hinzufügen
-    - Entry-Text ändern
-    - Entry umbenennen
-    - Entry löschen
-    - Cred hinzufügen
-    - Cred-Text ändern
-    - Cred umbenennen
-    - Cred löschen
-    jederzeit zulassen, aber explizite Bestätigung einfordern:
-    - bearbeitetes Entry farblich hervorheben, Verwerfen und Save Buttons einblenden
-    - expliziter Lösch-Dialog
-
-    -> wie detektiert man eine Änderung in einem Textfeld?
-
-    action: Action;
-    None => Normaler Modus
-    Modified(n) => if n==current {
-    in Arbeit
-    } else {
-    nicht änderbar
-    }
 
 Backlog:
 - Header visuell abheben
@@ -69,35 +48,33 @@ Backlog:
 ******************************************* */
 
 pub struct UiApp {
-    v_bundles: VBundles,
-    //    edit_v_bundle: VBundle,
+    v: V,
     pl_file: PlFile,
-    search: String,
 }
 impl UiApp {
     pub fn new(pl_file: PlFile) -> Self {
-        let v_bundles = pl_file
-            .bundles()
-            .map(|(name, bundle)| VBundle {
-                name: name.to_string(),
-                description: bundle.description.clone(),
-                named_secrets: bundle
-                    .named_secrets
-                    .iter()
-                    .map(|(name, secret)| NamedSecret {
-                        name: name.clone(),
-                        secret: secret.resolve(pl_file.o_transient.as_ref().unwrap()),
-                        show_secret: false,
-                        copied_at: None,
-                    })
-                    .collect(),
-            })
-            .collect();
-        UiApp {
-            v_bundles,
-            pl_file,
+        let v = V {
             search: String::new(),
-        }
+            edit_idx: None,
+            bundles: pl_file
+                .bundles()
+                .map(|(name, bundle)| VBundle {
+                    name: name.to_string(),
+                    description: bundle.description.clone(),
+                    named_secrets: bundle
+                        .named_secrets
+                        .iter()
+                        .map(|(name, secret)| NamedSecret {
+                            name: name.clone(),
+                            secret: secret.resolve(pl_file.o_transient.as_ref().unwrap()),
+                            show_secret: false,
+                            copied_at: None,
+                        })
+                        .collect(),
+                })
+                .collect(),
+        };
+        UiApp { v, pl_file }
     }
 }
 
@@ -139,11 +116,16 @@ impl App for UiApp {
             ui.add_space(4.);
             ui.horizontal(|ui| {
                 if ui
-                    .add(
+                    .add_enabled(
+                        self.v.edit_idx.is_none(),
                         Button::image(
-                            Image::new(include_image!("./assets/add_entry.png"))
-                                .maintain_aspect_ratio(true)
-                                .fit_to_original_size(0.22),
+                            Image::new(if self.v.edit_idx.is_none() {
+                                include_image!("./assets/add_entry.png")
+                            } else {
+                                include_image!("./assets/add_entry inactive.png")
+                            })
+                            .maintain_aspect_ratio(true)
+                            .fit_to_original_size(0.22),
                         )
                         .fill(Color32::WHITE),
                     )
@@ -164,11 +146,11 @@ impl App for UiApp {
                         - (2. * 26.)
                         - 58.,
                 );
-                ui.add(TextEdit::singleline(&mut self.search).desired_width(SEARCH_TEXT_WIDTH));
+                ui.add(TextEdit::singleline(&mut self.v.search).desired_width(SEARCH_TEXT_WIDTH));
                 if ui
                     .add(
                         Button::image(
-                            Image::new(include_image!("./assets/search.png"))
+                            Image::new(include_image!("assets/search.png"))
                                 .maintain_aspect_ratio(true)
                                 .fit_to_original_size(0.22),
                         )
@@ -188,17 +170,18 @@ impl App for UiApp {
                 .scroll_bar_visibility(ScrollBarVisibility::AlwaysVisible)
                 .show(ui, |ui| {
                     StripBuilder::new(ui)
-                        .sizes(Size::exact(BUNDLE_HEIGHT), self.v_bundles.len())
+                        .sizes(Size::exact(BUNDLE_HEIGHT), self.v.bundles.len())
                         .vertical(|mut bundle_strip| {
-                            for (index, v_bundle) in &mut self.v_bundles.iter_mut().enumerate() {
+                            for (index, v_bundle) in &mut self.v.bundles.iter_mut().enumerate() {
                                 bundle_strip.strip(|bundle_builder| {
-                                    show_bundle(
+                                    visualize_bundle(
                                         ctx,
                                         color_user,
                                         color_secret,
                                         bundle_builder,
                                         index,
                                         v_bundle,
+                                        &mut self.v.edit_idx,
                                     );
                                 });
                             }
@@ -208,13 +191,14 @@ impl App for UiApp {
     }
 }
 
-fn show_bundle(
+fn visualize_bundle(
     ctx: &Context,
     color_user: Color32,
     color_secret: Color32,
     bundle_builder: StripBuilder<'_>,
     index: usize,
     v_bundle: &mut VBundle,
+    edit_idx: &mut Option<usize>,
 ) {
     bundle_builder
         .size(Size::exact(BUNDLE_WIDTH_BUTTONS))
@@ -222,202 +206,27 @@ fn show_bundle(
         .size(Size::exact(BUNDLE_WIDTH_RIGHT))
         .horizontal(|mut inner_bundle_strip| {
             inner_bundle_strip.cell(|ui| {
-                if ui
-                    .add(
-                        Button::image(
-                            Image::new(include_image!("./assets/edit.png"))
-                                .maintain_aspect_ratio(true)
-                                .fit_to_original_size(0.44),
-                        )
-                        .fill(Color32::WHITE),
-                    )
-                    .on_hover_ui(|ui| {
-                        ui.label("Edit entry");
-                    })
-                    .clicked()
-                {
-                    //
-                };
-                ui.add_space(5.);
-                if ui
-                    .add(
-                        Button::image(
-                            Image::new(include_image!("./assets/delete.png"))
-                                .maintain_aspect_ratio(true)
-                                .fit_to_original_size(0.22),
-                        )
-                        .fill(Color32::WHITE),
-                    )
-                    .on_hover_ui(|ui| {
-                        ui.label("Delete entry");
-                    })
-                    .clicked()
-                {
-                    //
-                };
+                buttons::show_bundle_buttons(index, edit_idx, ui);
             });
-            inner_bundle_strip.strip(|left_builder| {
-                show_left_bundle_part(index, v_bundle, left_builder);
-            });
-            inner_bundle_strip.strip(|right_builder| {
-                show_right_bundle_part(
+
+            if Some(index) == *edit_idx {
+                active_bundle::show(
                     ctx,
                     color_user,
                     color_secret,
                     index,
                     v_bundle,
-                    right_builder,
+                    inner_bundle_strip,
                 );
-            });
-        });
-}
-
-fn show_right_bundle_part(
-    ctx: &Context,
-    color_user: Color32,
-    color_secret: Color32,
-    index: usize,
-    v_bundle: &mut VBundle,
-    right_builder: StripBuilder<'_>,
-) {
-    right_builder
-        .sizes(Size::exact(20.), v_bundle.named_secrets.len())
-        .vertical(|mut right_strip| {
-            for named_secret in &mut v_bundle.named_secrets {
-                right_strip.strip(|cred_builder| {
-                    show_cred(
-                        ctx,
-                        color_user,
-                        color_secret,
-                        index,
-                        named_secret,
-                        cred_builder,
-                    );
-                });
+            } else {
+                inactive_bundle::show(
+                    ctx,
+                    color_user,
+                    color_secret,
+                    index,
+                    v_bundle,
+                    inner_bundle_strip,
+                );
             }
         });
-}
-
-fn show_cred(
-    ctx: &Context,
-    color_user: Color32,
-    color_secret: Color32,
-    index: usize,
-    named_secret: &mut NamedSecret,
-    cred_builder: StripBuilder<'_>,
-) {
-    cred_builder
-        .size(Size::exact(210.))
-        .size(Size::exact(170.))
-        .horizontal(|mut cred_strip| {
-            cred_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20., index);
-                ui.add(
-                    TextEdit::singleline(&mut named_secret.name.as_str())
-                        .desired_width(200.)
-                        .clip_text(true)
-                        .text_color(color_user)
-                        .interactive(true),
-                );
-            });
-            cred_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20., index);
-                let response = ui
-                    .add(
-                        TextEdit::singleline(&mut named_secret.secret.as_str())
-                            .desired_width(160.)
-                            .clip_text(true)
-                            .text_color(color_secret)
-                            .password(!named_secret.show_secret)
-                            .interactive(true),
-                    )
-                    .on_hover_ui(|ui| {
-                        ui.style_mut().interaction.selectable_labels = true;
-                        match named_secret.copied_at {
-                            None => {
-                                if ui
-                                    .add(Button::new("  Copy").min_size([60., 10.].into()))
-                                    .clicked()
-                                {
-                                    ctx.copy_text(named_secret.secret.clone());
-                                    named_secret.copied_at = Some(std::time::Instant::now());
-                                }
-                            }
-                            Some(instant) => {
-                                ui.label("✔ Copied");
-                                if std::time::Instant::now() - instant
-                                    > std::time::Duration::from_millis(800)
-                                {
-                                    named_secret.copied_at = None;
-                                }
-                            }
-                        }
-                    });
-                if response.hovered() {
-                    named_secret.show_secret = true;
-                } else {
-                    named_secret.show_secret = false;
-                };
-            });
-        });
-}
-
-fn show_left_bundle_part(index: usize, v_bundle: &mut VBundle, left_builder: StripBuilder<'_>) {
-    left_builder
-        .size(Size::exact(15.))
-        .size(Size::exact(40.))
-        .size(Size::exact(10.))
-        .vertical(|mut left_strip| {
-            //name
-            left_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20., index);
-                ui.add(
-                    TextEdit::singleline(&mut v_bundle.name.as_str())
-                        .desired_width(330.)
-                        .clip_text(true)
-                        .font(FontId {
-                            size: 16.,
-                            family: FontFamily::Proportional,
-                        })
-                        .interactive(true),
-                );
-            });
-
-            // description
-            left_strip.cell(|ui| {
-                ScrollArea::vertical().show(ui, |ui| {
-                    set_faded_bg_color(ui, f32::INFINITY, index);
-                    ui.add_sized(
-                        [380., 80.],
-                        TextEdit::multiline(&mut v_bundle.description.as_str()).interactive(true),
-                    );
-                });
-            });
-        });
-}
-
-fn set_faded_bg_color(ui: &mut egui::Ui, height: f32, index: usize) {
-    let dark_mode = ui.visuals().dark_mode;
-    let bg_color = ui.visuals().window_fill();
-    let t = if index % 2 == 0 {
-        if dark_mode {
-            0.95
-        } else {
-            0.91
-        }
-    } else {
-        if dark_mode {
-            0.95
-        } else {
-            0.8
-        }
-    };
-
-    let mut rect = ui.available_rect_before_wrap();
-    rect.set_height(height);
-    ui.painter().rect_filled(
-        rect,
-        0.0,
-        egui::lerp(Rgba::from(Color32::DARK_BLUE)..=Rgba::from(bg_color), t),
-    );
 }

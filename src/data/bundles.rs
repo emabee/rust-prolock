@@ -1,4 +1,4 @@
-use crate::{bundle::Bundle, transient::Transient};
+use super::{Bundle, Transient};
 use anyhow::{anyhow, Result};
 use std::collections::{btree_map::Entry, BTreeMap};
 
@@ -8,10 +8,10 @@ use std::collections::{btree_map::Entry, BTreeMap};
 // How do we do inserts, updates, deletes, and keep the sequence and the secret up-to-date?
 //
 // When doing the desired modifications to `bundles`, we
-// - always make sure that `bundles` only contains Passwords in variant Ref and that the
+// - always make sure that `bundles` only contain Passwords in variant Ref and that the
 //   referenced value in Secret exists and is up-to-date
 // - when converting a Password::New to Password::Ref, the ref-value is taken from the sequence
-// - before storing the content: garbage-collect the Secret
+// - before storing the content: garbage-collect the Secret:
 //     - retrieve a list of ref-values from `bundles`
 //     - remove all bundles from secret that do not appear in the list
 

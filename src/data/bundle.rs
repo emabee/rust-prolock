@@ -1,7 +1,6 @@
-use std::collections::BTreeMap;
-
-use crate::transient::Transient;
+use super::Transient;
 use serde::de::Visitor;
+use std::collections::BTreeMap;
 
 // A bundle.
 //

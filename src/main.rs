@@ -6,27 +6,22 @@
 #[macro_use]
 extern crate serde;
 
-mod action;
-mod bundle;
-mod bundles;
-mod colors;
-mod pl_file;
-mod secrets;
+mod data;
+
 mod sizes;
-mod transient;
 mod ui;
-mod v_bundles;
 
 use anyhow::{anyhow, Context, Result};
-use bundle::Bundle;
+use data::{Bundle, PlFile};
 use eframe::{run_native, NativeOptions};
 use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
 use image::{ImageError, ImageReader};
-use pl_file::PlFile;
 use sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH};
-use std::path::{Path, PathBuf};
-use std::process::ExitCode;
+use std::{
+    path::{Path, PathBuf},
+    process::ExitCode,
+};
 use ui::UiApp;
 
 fn main() -> ExitCode {
@@ -36,7 +31,7 @@ fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
-            println!("{}", colors::StdOutColored::red(format!("{e:?}")));
+            println!("Error occured: {e:?}");
             ExitCode::FAILURE
         }
     }

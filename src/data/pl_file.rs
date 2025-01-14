@@ -1,4 +1,4 @@
-use crate::{bundle::Bundle, bundles::Bundles, secrets::Secrets, transient::Transient};
+use super::{Bundle, Bundles, Secrets, Transient};
 use anyhow::{anyhow, Context, Result};
 use fd_lock::RwLock;
 use sequential::Sequence;
@@ -199,7 +199,7 @@ fn skip_over_comments_and_empty_lines(file_content: &str) -> &str {
 
 #[cfg(test)]
 mod test {
-    use crate::bundle::Bundle;
+    use crate::data::bundle::Bundle;
 
     use super::DOC_FOLDER;
     use anyhow::Context;

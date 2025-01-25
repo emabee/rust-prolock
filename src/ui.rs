@@ -8,7 +8,7 @@ use crate::sizes::{
     BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT, EGUI_DEFAULT_SPACE,
     SEARCH_TEXT_WIDTH, WIN_WIDTH,
 };
-use v::{NamedSecret, VBundle, V};
+use v::{VBundle, VEditBundle, VNamedSecret, V};
 
 use eframe::{App, Frame};
 use egui::{
@@ -61,18 +61,19 @@ impl UiApp {
                 .map(|(name, bundle)| VBundle {
                     name: name.to_string(),
                     description: bundle.description.clone(),
-                    named_secrets: bundle
+                    v_named_secrets: bundle
                         .named_secrets
                         .iter()
-                        .map(|(name, secret)| NamedSecret {
+                        .map(|(name, secret)| VNamedSecret {
                             name: name.clone(),
-                            secret: secret.resolve(pl_file.o_transient.as_ref().unwrap()),
+                            secret: secret.disclose(pl_file.o_transient.as_ref().unwrap()),
                             show_secret: false,
                             copied_at: None,
                         })
                         .collect(),
                 })
                 .collect(),
+            edit_bundle: VEditBundle::default(),
         };
         UiApp { v, pl_file }
     }
@@ -175,6 +176,8 @@ impl App for UiApp {
                             for (index, v_bundle) in &mut self.v.bundles.iter_mut().enumerate() {
                                 bundle_strip.strip(|bundle_builder| {
                                     visualize_bundle(
+                                        &mut self.pl_file,
+                                        &mut self.v.edit_bundle,
                                         ctx,
                                         color_user,
                                         color_secret,
@@ -192,6 +195,8 @@ impl App for UiApp {
 }
 
 fn visualize_bundle(
+    pl_file: &mut PlFile,
+    v_edit_bundle: &mut VEditBundle,
     ctx: &Context,
     color_user: Color32,
     color_secret: Color32,
@@ -206,7 +211,7 @@ fn visualize_bundle(
         .size(Size::exact(BUNDLE_WIDTH_RIGHT))
         .horizontal(|mut inner_bundle_strip| {
             inner_bundle_strip.cell(|ui| {
-                buttons::show_bundle_buttons(index, edit_idx, ui);
+                buttons::show_bundle_buttons(v_edit_bundle, pl_file, index, edit_idx, ui);
             });
 
             if Some(index) == *edit_idx {
@@ -215,7 +220,7 @@ fn visualize_bundle(
                     color_user,
                     color_secret,
                     index,
-                    v_bundle,
+                    v_edit_bundle,
                     inner_bundle_strip,
                 );
             } else {

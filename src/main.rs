@@ -12,7 +12,7 @@ mod sizes;
 mod ui;
 
 use anyhow::{anyhow, Context, Result};
-use data::{Bundle, PlFile};
+use data::PlFile;
 use eframe::{run_native, NativeOptions};
 use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
@@ -53,101 +53,7 @@ fn run() -> Result<()> {
             .expect("Wrong password");
     }
 
-    pl_file.add_bundle(
-        "Bank of North America",
-        Bundle::new_with_creds("aaa_dscr", &[("aaa_cn", "aaa_cs")]),
-    )?;
-    pl_file.add_bundle(
-        "Bank of South America",
-        Bundle::new_with_creds(
-            "http://one_bank.de\n\n\
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-            Hello world! Hello world! ",
-            &[("aaa_cn", "aaa_cs"), ("asdaqweqweqwe", "rtzrtzfhfghgfh")],
-        ),
-    )?;
-    // pl_file.add_bundle(
-    //     "Some Bank with a very very very very very very long name",
-    //     Bundle::new_with_creds(
-    //         "http://some_bank.de\n\n\
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! ",
-    //         &[
-    //             (
-    //                 "some.pretty.long.name@t-online.de",
-    //                 "bbb_cs_adawdeewqfdf-rgrdt-xyz-123",
-    //             ),
-    //             (
-    //                 "someotherveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
-    //                 "bbb_cs erw rtrz werert",
-    //             ),
-    //         ],
-    //     ),
-    // )?;
-    // pl_file.add_bundle(
-    //     "Some Bank with a pretty long long name",
-    //     Bundle::new_with_creds(
-    //         "http://some_other_bank.de\n\n\
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! Hello world! Hello world! Hello world! Hello world! \
-    //         Hello world! Hello world! ",
-    //         &[
-    //             (
-    //                 "some.pretty.long.name@t-online.de",
-    //                 "bbb_cs_adawdeewqfdf-rgrdt-xyz-123",
-    //             ),
-    //             (
-    //                 "someotherveryveryveryveryveryveryveryveryveryvery.long.name@t-online.de",
-    //                 "bbb_cs erw rtrz werert",
-    //             ),
-    //         ],
-    //     ),
-    // )?;
-    pl_file.add_bundle(
-        "ccc",
-        Bundle::new_with_creds(
-            "ccc_dscr1\n\
-            ccc_dscr2\n\
-            ccc_dscr3\n\
-            ccc_dscr4\n\
-            ccc_dscr5",
-            &[
-                ("ccc_cn1", "ccc_cs"),
-                ("ccc_cn2", "ccc_cs"),
-                ("ccc_cn3", "ccc_cs"),
-            ],
-        ),
-    )?;
-    pl_file.add_bundle(
-        "ddd",
-        Bundle::new_with_creds(
-            "ddd_dscr",
-            &[
-                ("ddd_cn1", "ddd_cs"),
-                ("ddd_cn2", "ddd_cs"),
-                ("ddd_cn3", "ddd_cs"),
-            ],
-        ),
-    )?;
-    pl_file.add_bundle(
-        "eee",
-        Bundle::new_with_creds("eee_dscr", &[("eee_cn", "eee_cs")]),
-    )?;
-    pl_file.add_bundle(
-        "fff",
-        Bundle::new_with_creds("fff_dscr", &[("fff_cn", "fff_cs")]),
-    )?;
+    pl_file.add_test_bundles(false)?;
     //^^ temp section (to get rid of "unused" messages ^^//
 
     // prepare and show ui

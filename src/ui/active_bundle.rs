@@ -1,4 +1,4 @@
-use super::v::{NamedSecret, VBundle};
+use super::v::{VEditBundle, VNamedSecret};
 use egui::{Button, Color32, Context, FontFamily, FontId, Rgba, ScrollArea, TextEdit, Ui};
 use egui_extras::{Size, StripBuilder};
 
@@ -7,11 +7,11 @@ pub(crate) fn show(
     color_user: Color32,
     color_secret: Color32,
     index: usize,
-    v_bundle: &mut VBundle,
+    v_edit_bundle: &mut VEditBundle,
     mut inner_bundle_strip: egui_extras::Strip<'_, '_>,
 ) {
     inner_bundle_strip.strip(|left_builder| {
-        show_left_part(index, v_bundle, left_builder);
+        show_left_part(index, v_edit_bundle, left_builder);
     });
     inner_bundle_strip.strip(|right_builder| {
         show_right_part(
@@ -19,13 +19,13 @@ pub(crate) fn show(
             color_user,
             color_secret,
             index,
-            v_bundle,
+            v_edit_bundle,
             right_builder,
         );
     });
 }
 
-fn show_left_part(index: usize, v_bundle: &mut VBundle, left_builder: StripBuilder<'_>) {
+fn show_left_part(index: usize, v_edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
     left_builder
         .size(Size::exact(15.))
         .size(Size::exact(40.))
@@ -35,7 +35,7 @@ fn show_left_part(index: usize, v_bundle: &mut VBundle, left_builder: StripBuild
             left_strip.cell(|ui| {
                 set_faded_bg_color(ui, 20., index);
                 ui.add(
-                    TextEdit::singleline(&mut v_bundle.name)
+                    TextEdit::singleline(&mut v_edit_bundle.name)
                         .desired_width(330.)
                         .clip_text(true)
                         .font(FontId {
@@ -52,7 +52,7 @@ fn show_left_part(index: usize, v_bundle: &mut VBundle, left_builder: StripBuild
                     set_faded_bg_color(ui, f32::INFINITY, index);
                     ui.add_sized(
                         [380., 80.],
-                        TextEdit::multiline(&mut v_bundle.description).interactive(true),
+                        TextEdit::multiline(&mut v_edit_bundle.description).interactive(true),
                     );
                 });
             });
@@ -64,13 +64,13 @@ fn show_right_part(
     color_user: Color32,
     color_secret: Color32,
     index: usize,
-    v_bundle: &mut VBundle,
+    v_edit_bundle: &mut VEditBundle,
     right_builder: StripBuilder<'_>,
 ) {
     right_builder
-        .sizes(Size::exact(20.), v_bundle.named_secrets.len())
+        .sizes(Size::exact(20.), v_edit_bundle.v_named_secrets.len())
         .vertical(|mut right_strip| {
-            for named_secret in &mut v_bundle.named_secrets {
+            for named_secret in &mut v_edit_bundle.v_named_secrets {
                 right_strip.strip(|cred_builder| {
                     show_cred(
                         ctx,
@@ -90,7 +90,7 @@ pub(crate) fn show_cred(
     color_user: Color32,
     color_secret: Color32,
     index: usize,
-    named_secret: &mut NamedSecret,
+    named_secret: &mut VNamedSecret,
     cred_builder: StripBuilder<'_>,
 ) {
     cred_builder

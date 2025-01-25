@@ -1,5 +1,4 @@
-use super::Transient;
-use serde::de::Visitor;
+use super::{secret::Secret, Transient};
 use std::collections::BTreeMap;
 
 // A bundle.
@@ -53,13 +52,31 @@ impl Bundle {
         self.named_secrets.insert(id, Secret::New(password));
     }
 
-    pub(super) fn convert_to_refs(&mut self, transient: &mut Transient) {
+    pub(super) fn convert_new_secrets_to_refs(&mut self, transient: &mut Transient) {
         for pw in self.named_secrets.values_mut() {
             if let Secret::New(s) = pw {
                 let ref_value = transient.add_secret_value(s.clone());
                 *pw = Secret::Ref(ref_value);
             }
         }
+    }
+
+    pub fn refs(&self) -> (Vec<u64>, bool) {
+        let mut found_non_reffed_secrets = false;
+        (
+            self.named_secrets
+                .values()
+                .filter_map(|secret| {
+                    if let Secret::Ref(n) = secret {
+                        Some(n.clone())
+                    } else {
+                        found_non_reffed_secrets = true;
+                        None
+                    }
+                })
+                .collect::<Vec<u64>>(),
+            found_non_reffed_secrets,
+        )
     }
 
     pub(super) fn is_storable(&self) -> bool {
@@ -71,65 +88,7 @@ impl Bundle {
         true
     }
 
-    pub(super) fn secret(&self, name: &str, transient: &Transient) -> String {
-        self.named_secrets[name].resolve(transient)
-    }
-}
-
-#[derive(Clone, Debug)]
-pub(crate) enum Secret {
-    New(String),
-    Ref(u64),
-}
-impl Secret {
-    pub fn resolve(&self, transient: &Transient) -> String {
-        match self {
-            Secret::New(s) => s.clone(),
-            Secret::Ref(i) => transient
-                .get_secret_value(*i)
-                .expect("index out of bounds")
-                .to_string(),
-        }
-    }
-}
-impl Default for Secret {
-    fn default() -> Self {
-        Secret::New(String::new())
-    }
-}
-impl serde::ser::Serialize for Secret {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Secret::New(_) => unreachable!("Password::New"),
-            Secret::Ref(idx) => serializer.serialize_u64(*idx),
-        }
-    }
-}
-impl<'de> serde::de::Deserialize<'de> for Secret {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let visitor = PwVisitor;
-        deserializer.deserialize_u64(visitor)
-    }
-}
-
-struct PwVisitor;
-impl Visitor<'_> for PwVisitor {
-    type Value = Secret;
-
-    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(Secret::Ref(v))
-    }
-
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(formatter, "expecting a u64")
+    pub(super) fn secret_value(&self, name: &str, transient: &Transient) -> String {
+        self.named_secrets[name].disclose(transient)
     }
 }

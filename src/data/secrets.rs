@@ -1,10 +1,18 @@
-use std::collections::{hash_map::Keys, HashMap};
+use std::{
+    collections::{hash_map::Keys, HashMap},
+    fmt::Write,
+};
 
-// A map from SIdx to String
+// A map from u64 to String, containing the secret values, keyed by some number.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Secrets(HashMap<u64, String>);
 
 impl Secrets {
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     #[must_use]
     pub fn keys(&self) -> Keys<u64, String> {
         self.0.keys()
@@ -14,9 +22,23 @@ impl Secrets {
         self.0.insert(idx, s)
     }
 
+    pub(crate) fn remove(&mut self, idx: &u64) {
+        self.0.remove(idx);
+    }
+
     #[must_use]
     pub fn get(&self, idx: u64) -> Option<&String> {
         self.0.get(&idx)
+    }
+
+    pub fn write_keys(&self, w: &mut dyn Write) {
+        let mut keys = self.0.keys().map(Clone::clone).collect::<Vec<u64>>();
+        keys.sort();
+        write!(w, "[").unwrap();
+        for key in keys {
+            write!(w, "{},", key).unwrap();
+        }
+        write!(w, "]").unwrap();
     }
 }
 

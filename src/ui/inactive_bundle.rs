@@ -1,4 +1,4 @@
-use super::v::{NamedSecret, VBundle};
+use super::v::{VNamedSecret, VBundle};
 use egui::{Button, Color32, Context, FontFamily, FontId, Rgba, ScrollArea, TextEdit, Ui};
 use egui_extras::{Size, StripBuilder};
 
@@ -68,9 +68,9 @@ fn show_right_part(
     right_builder: StripBuilder<'_>,
 ) {
     right_builder
-        .sizes(Size::exact(20.), v_bundle.named_secrets.len())
+        .sizes(Size::exact(20.), v_bundle.v_named_secrets.len())
         .vertical(|mut right_strip| {
-            for named_secret in &mut v_bundle.named_secrets {
+            for named_secret in &mut v_bundle.v_named_secrets {
                 right_strip.strip(|cred_builder| {
                     show_cred(
                         ctx,
@@ -90,7 +90,7 @@ pub(crate) fn show_cred(
     color_user: Color32,
     color_secret: Color32,
     index: usize,
-    named_secret: &mut NamedSecret,
+    named_secret: &mut VNamedSecret,
     cred_builder: StripBuilder<'_>,
 ) {
     cred_builder

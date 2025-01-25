@@ -3,6 +3,7 @@ use anyhow::{Context, Result};
 use pwsec::{ChachaB64, CipherB64};
 use secstr::SecUtf8;
 use sequential::Sequence;
+use std::fmt::Write;
 
 const PBKDF2_ROUNDS: u32 = 91_232;
 
@@ -10,14 +11,14 @@ const PBKDF2_ROUNDS: u32 = 91_232;
 pub(crate) struct Transient {
     storage_password: SecUtf8,
     seq_for_secret_refs: Sequence<u64>,
-    secrets: Secrets,
+    pub(crate) secrets: Secrets,
 }
 impl Transient {
-    pub(crate) fn new(password: String, secret: Secrets) -> Self {
+    pub(crate) fn new(password: String, secrets: Secrets) -> Self {
         Self {
             storage_password: SecUtf8::from(password),
-            seq_for_secret_refs: Sequence::start_after_highest(&mut secret.keys()),
-            secrets: secret,
+            seq_for_secret_refs: Sequence::start_after_highest(&mut secrets.keys()),
+            secrets,
         }
     }
 
@@ -41,6 +42,10 @@ impl Transient {
         idx
     }
 
+    pub(crate) fn remove_secret(&mut self, idx: u64) {
+        self.secrets.remove(&idx);
+    }
+
     pub(crate) fn get_secret_value(&self, idx: u64) -> Option<&String> {
         self.secrets.get(idx)
     }
@@ -57,5 +62,18 @@ impl Transient {
                 self.storage_password.unsecure(),
             )?
             .to_string())
+    }
+
+    pub(crate) fn as_string(&self) -> String {
+        let mut result = String::with_capacity(200);
+        write!(
+            &mut result,
+            "{{Transient: {} elements: ",
+            self.secrets.len()
+        )
+        .unwrap();
+        self.secrets.write_keys(&mut result);
+        write!(&mut result, "}}").ok();
+        result
     }
 }

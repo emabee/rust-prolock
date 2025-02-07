@@ -22,8 +22,8 @@ impl Secrets {
         self.0.insert(idx, s)
     }
 
-    pub(crate) fn remove(&mut self, idx: &u64) {
-        self.0.remove(idx);
+    pub(crate) fn remove(&mut self, idx: u64) {
+        self.0.remove(&idx);
     }
 
     #[must_use]
@@ -33,10 +33,10 @@ impl Secrets {
 
     pub fn write_keys(&self, w: &mut dyn Write) {
         let mut keys = self.0.keys().map(Clone::clone).collect::<Vec<u64>>();
-        keys.sort();
+        keys.sort_unstable();
         write!(w, "[").unwrap();
         for key in keys {
-            write!(w, "{},", key).unwrap();
+            write!(w, "{key},").unwrap();
         }
         write!(w, "]").unwrap();
     }

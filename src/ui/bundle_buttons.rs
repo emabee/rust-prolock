@@ -1,5 +1,6 @@
-use super::v::VEditBundle;
+use super::v::{EditIdx, VBundle, VEditBundle};
 use crate::data::PlFile;
+use anyhow::anyhow;
 use egui::{include_image, Button, Color32, Image, ImageSource, Ui};
 
 pub(crate) const IMG_EDIT: ImageSource = include_image!("assets/edit.png");
@@ -11,27 +12,11 @@ pub(crate) const IMG_SAVE_INACTIVE: ImageSource = include_image!("assets/save in
 pub(crate) const IMG_DELETE_INACTIVE: ImageSource = include_image!("assets/delete inactive.png");
 pub(crate) const IMG_CANCEL_INACTIVE: ImageSource = include_image!("assets/cancel inactive.png");
 
-pub(crate) fn show_bundle_buttons(
-    v_edit_bundle: &mut VEditBundle,
-    pl_file: &mut PlFile,
-    index: usize,
-    edit_idx: &mut Option<usize>,
-    ui: &mut Ui,
-) {
-    if edit_idx.is_none() {
-        active_buttons_edit_and_delete(index, edit_idx, ui);
-    } else {
-        if Some(index) == *edit_idx {
-            active_buttons_save_and_cancel(pl_file, v_edit_bundle, edit_idx, ui);
-        } else {
-            inactive_buttons_edit_and_delete(ui);
-        }
-    }
-}
-
 pub(crate) fn active_buttons_edit_and_delete(
     index: usize,
-    edit_idx: &mut Option<usize>,
+    v_bundle: &VBundle,
+    edit_idx: &mut EditIdx,
+    v_edit_bundle: &mut VEditBundle,
     ui: &mut Ui,
 ) {
     if ui
@@ -48,8 +33,14 @@ pub(crate) fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        *edit_idx = Some(index);
-    };
+        *edit_idx = EditIdx::Mod(index);
+        *v_edit_bundle = VEditBundle {
+            orig_name: v_bundle.name.clone(),
+            name: v_bundle.name.clone(),
+            description: v_bundle.description.to_string(),
+            v_named_secrets: v_bundle.v_named_secrets.clone(),
+        };
+    }
 
     ui.add_space(5.);
 
@@ -68,14 +59,15 @@ pub(crate) fn active_buttons_edit_and_delete(
         .clicked()
     {
         println!("FIXME delete is not yet implemented");
-        *edit_idx = Some(index);
-    };
+        // *edit_idx = EditIdx::Delete(index);
+    }
 }
 
 pub(crate) fn active_buttons_save_and_cancel(
     pl_file: &mut PlFile,
     v_edit_bundle: &mut VEditBundle,
-    edit_idx: &mut Option<usize>,
+    edit_idx: &mut EditIdx,
+    need_refresh: &mut bool,
     ui: &mut Ui,
 ) {
     if ui
@@ -93,12 +85,18 @@ pub(crate) fn active_buttons_save_and_cancel(
         .clicked()
     {
         let (orig_name, name, bundle) = v_edit_bundle.as_bundle();
-        if let Err(e) = pl_file.save_with_updated_bundle(orig_name, name, bundle) {
-            println!("FIXME 'Save changes' failed with {e}");
+        if let Err(e) = if edit_idx.is_mod() {
+            pl_file.save_with_updated_bundle(&orig_name, name, &bundle)
+        } else if edit_idx.is_new() {
+            pl_file.save_with_added_bundle(name, bundle)
+        } else {
+            Err(anyhow!("save: only mod and new are expected"))
+        } {
+            println!("FIXME 'Save changes' failed with {e:?}");
         }
-        *edit_idx = None;
-    };
-
+        *edit_idx = EditIdx::None;
+        *need_refresh = true;
+    }
     ui.add_space(5.);
 
     if ui
@@ -115,9 +113,8 @@ pub(crate) fn active_buttons_save_and_cancel(
         })
         .clicked()
     {
-        println!("FIXME 'Discard changes' is not yet implemented");
-        *edit_idx = None;
-    };
+        *edit_idx = EditIdx::None;
+    }
 }
 
 pub(crate) fn inactive_buttons_edit_and_delete(ui: &mut Ui) {

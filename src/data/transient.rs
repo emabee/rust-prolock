@@ -11,7 +11,7 @@ const PBKDF2_ROUNDS: u32 = 91_232;
 pub(crate) struct Transient {
     storage_password: SecUtf8,
     seq_for_secret_refs: Sequence<u64>,
-    pub(crate) secrets: Secrets,
+    secrets: Secrets,
 }
 impl Transient {
     pub(crate) fn new(password: String, secrets: Secrets) -> Self {
@@ -43,7 +43,7 @@ impl Transient {
     }
 
     pub(crate) fn remove_secret(&mut self, idx: u64) {
-        self.secrets.remove(&idx);
+        self.secrets.remove(idx);
     }
 
     pub(crate) fn get_secret_value(&self, idx: u64) -> Option<&String> {

@@ -20,7 +20,7 @@ impl Bundle {
         }
     }
 
-    pub fn new_with_creds<S: AsRef<str> + Ord>(description: S, creds: &[(S, S)]) -> Self {
+    pub fn new_with_creds<S: AsRef<str> + Ord>(description: &S, creds: &[(S, S)]) -> Self {
         let mut named_secrets: BTreeMap<String, Secret> = BTreeMap::new();
         for (name, secret) in creds {
             named_secrets.insert(
@@ -68,7 +68,7 @@ impl Bundle {
                 .values()
                 .filter_map(|secret| {
                     if let Secret::Ref(n) = secret {
-                        Some(n.clone())
+                        Some(*n)
                     } else {
                         found_non_reffed_secrets = true;
                         None

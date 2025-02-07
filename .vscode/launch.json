@@ -1,0 +1,82 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'prolock'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=prolock",
+                    "--package=prolock"
+                ],
+                "filter": {
+                    "name": "prolock",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'prolock'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=prolock",
+                    "--package=prolock"
+                ],
+                "filter": {
+                    "name": "prolock",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example '_textedit_issue'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=_textedit_issue",
+                    "--package=prolock"
+                ],
+                "filter": {
+                    "name": "_textedit_issue",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example '_textedit_issue'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=_textedit_issue",
+                    "--package=prolock"
+                ],
+                "filter": {
+                    "name": "_textedit_issue",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

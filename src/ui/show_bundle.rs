@@ -1,5 +1,5 @@
 use super::{
-    v::{VBundle, VNamedSecret},
+    viz::{VBundle, VNamedSecret},
     Colors,
 };
 use egui::{Button, Color32, Context, FontFamily, FontId, Rgba, ScrollArea, TextEdit, Ui};

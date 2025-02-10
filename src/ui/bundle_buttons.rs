@@ -1,4 +1,4 @@
-use super::v::{EditIdx, VBundle, VEditBundle};
+use super::viz::{EditIdx, VBundle, VEditBundle};
 use crate::data::PlFile;
 use anyhow::anyhow;
 use egui::{include_image, Button, Color32, Image, ImageSource, Ui};

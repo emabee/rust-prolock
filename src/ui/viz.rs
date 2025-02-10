@@ -1,5 +1,3 @@
-#![allow(clippy::module_name_repetitions)]
-
 use crate::data::{Bundle, Bundles, Secret, Transient};
 use std::time::Instant;
 

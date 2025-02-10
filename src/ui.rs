@@ -2,7 +2,7 @@ mod bundle_buttons;
 mod edit_bundle;
 mod show_bundle;
 pub mod sizes;
-mod v;
+mod viz;
 
 use super::PlFile;
 use bundle_buttons::{
@@ -13,7 +13,7 @@ use sizes::{
     BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT, EGUI_DEFAULT_SPACE,
     SEARCH_TEXT_WIDTH, WIN_WIDTH,
 };
-use v::{EditIdx, VBundle, VEditBundle, V};
+use viz::{EditIdx, VBundle, VEditBundle, V};
 
 use eframe::{App, Frame};
 use egui::{

@@ -12,6 +12,9 @@ use egui::{include_image, Color32, Context, FontFamily, Image, RichText, Theme, 
 /* TODOs *************************************
 
 Backlog:
+- !! cred-Liste editierbar machen (limitieren auf vier?)
+- !! Mehrsprachigkeit
+
 - Header visuell abheben
 - Suchfeld, um Einträge schnell finden zu können
     - Konkretere Beispiele erzeugen
@@ -20,22 +23,9 @@ Backlog:
 - Drei-Punkt Menu rechts oben
     - Passwort ändern…
     - Über prolock…
-    - Druck-Option: alles als Text serialisieren und anzeigen, den man drucken kann
-
-- Passwort-Handling
-    - beim ersten Start: Abfrage erst, wenn Daten erfasst wurden und gespeichert werden soll
-    - beim Start mit existierendem File direkt abfragen, dann normales Fenster anzeigen
-    - Passwort ändern (-> Menü-Eintrag?)
-    - demo für Modals könnte interessant sein
-
-- Änderungsprozess:
-    - Nach Start ist alles sichtbar bzw auf Wunsch lesbar, aber nicht änderbar
-    - Neuen Eintrag hinzufügen
-    - Bestehenden Eintrag ändern
-    - Bestehenden Eintrag löschen
+    - Druck-Option: alles als druckbaren Text serialisieren und anzeigen
 
 - About + Hilfe
-- Mehrsprachigkeit?
 
 ******************************************* */
 

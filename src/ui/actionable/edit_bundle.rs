@@ -28,7 +28,7 @@ fn left_part(v_edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
                 set_faded_bg_color(ui, 20.);
                 ui.add(
                     TextEdit::singleline(&mut v_edit_bundle.name)
-                        .hint_text("Unique name of the entry")
+                        .hint_text("Unique name of the new entry, e.g. 'Banco Rotto'")
                         .desired_width(330.)
                         .clip_text(true)
                         .font(FontId {

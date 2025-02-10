@@ -36,11 +36,12 @@ impl Ui {
                     StripBuilder::new(ui)
                         .sizes(
                             Size::exact(BUNDLE_HEIGHT),
-                            self.v.bundles.len() + usize::from(self.v.edit_idx.is_new()),
+                            usize::max(self.v.bundles.len(), 1)
+                                + usize::from(self.v.edit_idx.is_new()),
                         )
                         .vertical(|mut bundle_strip| {
-                            // loop over bundles: FIXME show new bundle if bundles is empty
-                            if self.v.bundles.is_empty() && self.v.edit_idx == EditIdx::New(0) {
+                            if self.v.bundles.is_empty() {
+                                self.v.edit_idx = EditIdx::New(0);
                                 bundle_strip.strip(|bundle_builder| {
                                     edit_a_bundle_with_buttons(
                                         ctx,

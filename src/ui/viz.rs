@@ -36,13 +36,12 @@ impl V {
     }
 }
 
-#[derive(Default, Debug, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EditIdx {
     #[default]
     None,
     Mod(usize),
     New(usize),
-    // Delete(usize),
 }
 impl EditIdx {
     pub fn is_none(&self) -> bool {
@@ -51,15 +50,36 @@ impl EditIdx {
     pub fn is_mod(&self) -> bool {
         matches!(self, Self::Mod(_))
     }
+    pub fn is_mod_with(&self, idx: usize) -> bool {
+        if let Self::Mod(i) = self {
+            *i == idx
+        } else {
+            false
+        }
+    }
+    pub fn is_mod_not_with(&self, idx: usize) -> bool {
+        if let Self::Mod(i) = self {
+            *i != idx
+        } else {
+            false
+        }
+    }
     pub fn is_new(&self) -> bool {
         matches!(self, Self::New(_))
+    }
+    pub fn is_new_with(&self, idx: usize) -> bool {
+        if let Self::New(i) = self {
+            *i == idx
+        } else {
+            false
+        }
     }
 }
 #[derive(Default)]
 pub struct Pw {
     pub pw1: String,
     pub pw2: String,
-    pub show: bool,
+    // pub show: bool,
     pub error: Option<String>,
     pub focus: PwFocus,
 }
@@ -96,23 +116,23 @@ pub struct VEditBundle {
 }
 
 impl VEditBundle {
-    pub fn from_bundle(name: &str, bundle: &Bundle, transient: &Transient) -> Self {
-        VEditBundle {
-            orig_name: name.to_string(),
-            name: name.to_string(),
-            description: bundle.description.clone(),
-            v_named_secrets: bundle
-                .named_secrets
-                .iter()
-                .map(|(name, secret)| VNamedSecret {
-                    name: name.clone(),
-                    secret: secret.disclose(transient),
-                    show_secret: false,
-                    copied_at: None,
-                })
-                .collect(),
-        }
-    }
+    // pub fn from_bundle(name: &str, bundle: &Bundle, transient: &Transient) -> Self {
+    //     VEditBundle {
+    //         orig_name: name.to_string(),
+    //         name: name.to_string(),
+    //         description: bundle.description.clone(),
+    //         v_named_secrets: bundle
+    //             .named_secrets
+    //             .iter()
+    //             .map(|(name, secret)| VNamedSecret {
+    //                 name: name.clone(),
+    //                 secret: secret.disclose(transient),
+    //                 show_secret: false,
+    //                 copied_at: None,
+    //             })
+    //             .collect(),
+    //     }
+    // }
 
     pub fn as_bundle(&self) -> (String, String, Bundle) {
         (

@@ -1,7 +1,6 @@
 #![deny(clippy::all)]
 #![deny(clippy::pedantic)]
 #![forbid(unsafe_code)]
-#![allow(dead_code)] // FIXME
 
 #[macro_use]
 extern crate serde;

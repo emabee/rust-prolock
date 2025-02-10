@@ -4,8 +4,9 @@ use super::{Bundle, Bundles, Secrets, Transient};
 use anyhow::{anyhow, Context, Result};
 use fd_lock::RwLock as FdRwLock;
 use sequential::Sequence;
+#[cfg(test)]
+use std::collections::btree_map::Iter;
 use std::{
-    collections::btree_map::Iter,
     fs::{create_dir_all, File, OpenOptions},
     io::{Read, Write as _},
     path::{Path, PathBuf},
@@ -121,13 +122,18 @@ impl PlFile {
         serde_json::from_str(semantic_content).context("parsing")
     }
 
+    #[cfg(test)]
     pub(crate) fn len(&self) -> usize {
         self.stored.readable.bundles.len()
+    }
+    pub(crate) fn is_empty(&self) -> bool {
+        self.stored.readable.bundles.is_empty()
     }
 
     pub(crate) fn transient(&self) -> Option<&Transient> {
         self.o_transient.as_ref()
     }
+    #[cfg(test)]
     pub(crate) fn bundles(&self) -> Iter<'_, String, Bundle> {
         self.stored.readable.bundles.into_iter()
     }
@@ -170,6 +176,7 @@ impl PlFile {
         }
     }
 
+    #[cfg(test)]
     pub(crate) fn get_bundle(&self, key: &str) -> Result<Bundle> {
         self.stored
             .readable
@@ -189,6 +196,21 @@ impl PlFile {
             }
         } else {
             Err(anyhow!("modify_bundle: bundle '{key}' does not exist"))
+        }
+    }
+
+    fn delete_bundle(&mut self, key: String) -> Result<()> {
+        if self.stored.readable.bundles.contains_key(&key) {
+            match self.o_transient {
+                None => Err(anyhow!("Password is not yet provided")),
+                Some(ref mut transient) => self
+                    .stored
+                    .readable
+                    .bundles
+                    .remove_bundle_with_refs(key, transient),
+            }
+        } else {
+            Err(anyhow!("delete_bundle: bundle '{key}' does not exist"))
         }
     }
 
@@ -323,10 +345,18 @@ impl PlFile {
         Ok(())
     }
 
-    // pub(crate) fn save_with_deleted_bundle(&mut self, name: String) -> Result<()> {
-    //     unimplemented!("FIXME");
-    //     // self.save()?;
-    // }
+    pub(crate) fn save_with_deleted_bundle(&mut self, name: String) -> Result<()> {
+        if name.is_empty() {
+            return Err(anyhow!("internal error: can't save with empty name"));
+        }
+        if !self.has_bundle(&name) {
+            return Err(anyhow!("a bundle with name {name} does not exist"));
+        }
+        self.delete_bundle(name)?;
+
+        self.save()?;
+        Ok(())
+    }
 
     pub(crate) fn save_with_updated_bundle(
         &mut self,
@@ -399,6 +429,7 @@ impl PlFile {
                 .fold(true, |a, b| a && b)
     }
 
+    #[cfg(test)]
     pub(crate) fn print_content(&self, with_transient: bool) -> String {
         use std::fmt::Write as _;
         let spc = |n: usize| -> String { " ".repeat(4 * n) };
@@ -451,6 +482,7 @@ impl PlFile {
         output
     }
 
+    #[cfg(test)]
     pub(crate) fn add_test_bundles(&mut self, modified: bool) -> Result<(), anyhow::Error> {
         self.add_bundle(
             "Bank of North America",
@@ -501,6 +533,7 @@ impl PlFile {
     }
 }
 
+#[cfg(test)]
 fn unmodified_bundle() -> Bundle {
     Bundle::new_with_creds(
         &"ddd_dscr",
@@ -511,6 +544,7 @@ fn unmodified_bundle() -> Bundle {
         ],
     )
 }
+#[cfg(test)]
 fn modified_bundle() -> Bundle {
     Bundle::new_with_creds(
         &"modified description",

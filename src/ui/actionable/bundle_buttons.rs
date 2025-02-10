@@ -3,21 +3,22 @@ use crate::data::PlFile;
 use anyhow::anyhow;
 use egui::{include_image, Button, Color32, Image, ImageSource, Ui};
 
-const IMG_EDIT: ImageSource = include_image!("./../assets/edit.png");
-const IMG_SAVE: ImageSource = include_image!("./../assets/save.png");
-const IMG_DELETE: ImageSource = include_image!("./../assets/delete.png");
-const IMG_CANCEL: ImageSource = include_image!("./../assets/cancel.png");
-const IMG_EDIT_INACTIVE: ImageSource = include_image!("./../assets/edit inactive.png");
-const IMG_SAVE_INACTIVE: ImageSource = include_image!("./../assets/save inactive.png");
-const IMG_DELETE_INACTIVE: ImageSource = include_image!("./../assets/delete inactive.png");
-const IMG_CANCEL_INACTIVE: ImageSource = include_image!("./../assets/cancel inactive.png");
+const IMG_EDIT: ImageSource = include_image!("./assets/edit.png");
+const IMG_OK: ImageSource = include_image!("./assets/ok.png");
+const IMG_SAVE: ImageSource = include_image!("./assets/save.png");
+const IMG_DELETE: ImageSource = include_image!("./assets/delete.png");
+const IMG_CANCEL: ImageSource = include_image!("./assets/cancel.png");
+const IMG_EDIT_INACTIVE: ImageSource = include_image!("./assets/edit inactive.png");
+const IMG_DELETE_INACTIVE: ImageSource = include_image!("./assets/delete inactive.png");
 
 pub(super) fn active_buttons_edit_and_delete(
+    ui: &mut Ui,
+    pl_file: &mut PlFile,
     index: usize,
     v_bundle: &VBundle,
     edit_idx: &mut EditIdx,
-    v_edit_bundle: &mut VEditBundle,
-    ui: &mut Ui,
+    edit_bundle: &mut VEditBundle,
+    need_refresh: &mut bool,
 ) {
     if ui
         .add(
@@ -34,7 +35,7 @@ pub(super) fn active_buttons_edit_and_delete(
         .clicked()
     {
         *edit_idx = EditIdx::Mod(index);
-        *v_edit_bundle = VEditBundle {
+        *edit_bundle = VEditBundle {
             orig_name: v_bundle.name.clone(),
             name: v_bundle.name.clone(),
             description: v_bundle.description.to_string(),
@@ -58,33 +59,40 @@ pub(super) fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        println!("FIXME delete is not yet implemented");
-        // *edit_idx = EditIdx::Delete(index);
+        if let Err(e) = pl_file.save_with_deleted_bundle(v_bundle.name.clone()) {
+            println!("FIXME 'Delete entry' failed with {e:?}");
+        }
+        *edit_idx = EditIdx::None;
+        *need_refresh = true;
     }
 }
 
 pub(super) fn active_buttons_save_and_cancel(
+    ui: &mut Ui,
     pl_file: &mut PlFile,
-    v_edit_bundle: &mut VEditBundle,
+    edit_bundle: &mut VEditBundle,
     edit_idx: &mut EditIdx,
     need_refresh: &mut bool,
-    ui: &mut Ui,
 ) {
     if ui
         .add(
             Button::image(
-                Image::new(IMG_SAVE)
+                Image::new(if edit_idx.is_new() { IMG_SAVE } else { IMG_OK })
                     .maintain_aspect_ratio(true)
                     .fit_to_original_size(0.30),
             )
             .fill(Color32::WHITE),
         )
         .on_hover_ui(|ui| {
-            ui.label("Save changes");
+            if edit_idx.is_new() {
+                ui.label("Add new entry");
+            } else {
+                ui.label("Save changes");
+            }
         })
         .clicked()
     {
-        let (orig_name, name, bundle) = v_edit_bundle.as_bundle();
+        let (orig_name, name, bundle) = edit_bundle.as_bundle();
         if let Err(e) = if edit_idx.is_mod() {
             pl_file.save_with_updated_bundle(&orig_name, name, &bundle)
         } else if edit_idx.is_new() {
@@ -109,7 +117,11 @@ pub(super) fn active_buttons_save_and_cancel(
             .fill(Color32::WHITE),
         )
         .on_hover_ui(|ui| {
-            ui.label("Discard changes");
+            if edit_idx.is_new() {
+                ui.label("Discard new entry");
+            } else {
+                ui.label("Discard changes");
+            }
         })
         .clicked()
     {

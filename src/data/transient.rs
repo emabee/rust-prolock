@@ -3,6 +3,7 @@ use anyhow::{Context, Result};
 use pwsec::{ChachaB64, CipherB64};
 use secstr::SecUtf8;
 use sequential::Sequence;
+#[cfg(test)]
 use std::fmt::Write;
 
 const PBKDF2_ROUNDS: u32 = 91_232;
@@ -64,6 +65,7 @@ impl Transient {
             .to_string())
     }
 
+    #[cfg(test)]
     pub(crate) fn as_string(&self) -> String {
         let mut result = String::with_capacity(200);
         write!(

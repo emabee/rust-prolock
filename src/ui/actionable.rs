@@ -17,9 +17,13 @@ use bundle_buttons::{
 };
 use egui::{
     include_image, scroll_area::ScrollBarVisibility, Button, CentralPanel, Color32, Context, Image,
-    ScrollArea, TextEdit, TopBottomPanel,
+    ImageSource, ScrollArea, TextEdit, TopBottomPanel,
 };
 use egui_extras::{Size, StripBuilder};
+
+const IMG_ADD_ENTRY: ImageSource = include_image!("./../ui/assets/add_entry.png");
+const IMG_ADD_ENTRY_INACTIVE: ImageSource = include_image!("./../ui/assets/add_entry inactive.png");
+const IMG_SEARCH: ImageSource = include_image!("./../ui/assets/search.png");
 
 impl Ui {
     pub(super) fn panels_for_actionable_ui(&mut self, ctx: &Context) {
@@ -36,54 +40,56 @@ impl Ui {
                     StripBuilder::new(ui)
                         .sizes(
                             Size::exact(BUNDLE_HEIGHT),
-                            usize::max(self.v.bundles.len(), 1)
-                                + usize::from(self.v.edit_idx.is_new()),
+                            self.v.bundles.len() + usize::from(self.v.edit_idx.is_new()),
                         )
                         .vertical(|mut bundle_strip| {
-                            if self.v.bundles.is_empty() {
-                                self.v.edit_idx = EditIdx::New(0);
+                            if self.v.bundles.is_empty() && self.v.edit_idx.is_new() {
                                 bundle_strip.strip(|bundle_builder| {
                                     edit_a_bundle_with_buttons(
                                         ctx,
                                         bundle_builder,
                                         &mut self.pl_file,
                                         &mut self.v.edit_idx,
-                                        &mut self.v.need_refresh,
                                         &mut self.v.edit_bundle,
+                                        &mut self.v.need_refresh,
                                         &self.colors,
                                     );
                                 });
                             } else {
                                 for (index, v_bundle) in &mut self.v.bundles.iter_mut().enumerate()
                                 {
-                                    bundle_strip.strip(|bundle_builder| {
-                                        let edit = match self.v.edit_idx {
-                                            EditIdx::None => false,
-                                            EditIdx::Mod(idx) | EditIdx::New(idx) => idx == index,
-                                        };
-
-                                        if edit {
+                                    let edit_idx = self.v.edit_idx;
+                                    if edit_idx.is_new_with(index) || edit_idx.is_mod_with(index) {
+                                        bundle_strip.strip(|bundle_builder| {
                                             edit_a_bundle_with_buttons(
                                                 ctx,
                                                 bundle_builder,
                                                 &mut self.pl_file,
                                                 &mut self.v.edit_idx,
-                                                &mut self.v.need_refresh,
                                                 &mut self.v.edit_bundle,
+                                                &mut self.v.need_refresh,
                                                 &self.colors,
                                             );
-                                        } else {
+                                        });
+                                    }
+                                    if edit_idx.is_none()
+                                        || edit_idx.is_new()
+                                        || edit_idx.is_mod_not_with(index)
+                                    {
+                                        bundle_strip.strip(|bundle_builder| {
                                             show_a_bundle_with_buttons(
                                                 ctx,
                                                 bundle_builder,
+                                                &mut self.pl_file,
                                                 index,
                                                 v_bundle,
                                                 &mut self.v.edit_idx,
                                                 &mut self.v.edit_bundle,
+                                                &mut self.v.need_refresh,
                                                 &self.colors,
                                             );
-                                        }
-                                    });
+                                        });
+                                    }
                                 }
                             }
                         });
@@ -100,9 +106,9 @@ impl Ui {
                         self.v.edit_idx.is_none(),
                         Button::image(
                             Image::new(if self.v.edit_idx.is_none() {
-                                include_image!("./../ui/assets/add_entry.png")
+                                IMG_ADD_ENTRY
                             } else {
-                                include_image!("./../ui/assets/add_entry inactive.png")
+                                IMG_ADD_ENTRY_INACTIVE
                             })
                             .maintain_aspect_ratio(true)
                             .fit_to_original_size(0.22),
@@ -132,7 +138,7 @@ impl Ui {
                 if ui
                     .add(
                         Button::image(
-                            Image::new(include_image!("./../ui/assets/search.png"))
+                            Image::new(IMG_SEARCH)
                                 .maintain_aspect_ratio(true)
                                 .fit_to_original_size(0.22),
                         )
@@ -153,8 +159,8 @@ fn edit_a_bundle_with_buttons(
     bundle_builder: StripBuilder<'_>,
     pl_file: &mut PlFile,
     edit_idx: &mut EditIdx,
+    edit_bundle: &mut VEditBundle,
     need_refresh: &mut bool,
-    v_edit_bundle: &mut VEditBundle,
     colors: &Colors,
 ) {
     bundle_builder
@@ -163,19 +169,22 @@ fn edit_a_bundle_with_buttons(
         .size(Size::exact(BUNDLE_WIDTH_RIGHT))
         .horizontal(|mut inner_bundle_strip| {
             inner_bundle_strip.cell(|ui| {
-                active_buttons_save_and_cancel(pl_file, v_edit_bundle, edit_idx, need_refresh, ui);
+                active_buttons_save_and_cancel(ui, pl_file, edit_bundle, edit_idx, need_refresh);
             });
-            edit_bundle::ui(ctx, colors, v_edit_bundle, &mut inner_bundle_strip);
+            edit_bundle::ui(ctx, colors, edit_bundle, &mut inner_bundle_strip);
         });
 }
 
+#[allow(clippy::too_many_arguments)]
 fn show_a_bundle_with_buttons(
     ctx: &Context,
     bundle_builder: StripBuilder<'_>,
+    pl_file: &mut PlFile,
     index: usize,
     v_bundle: &mut VBundle,
     edit_idx: &mut EditIdx,
-    v_edit_bundle: &mut VEditBundle,
+    edit_bundle: &mut VEditBundle,
+    need_refresh: &mut bool,
     colors: &Colors,
 ) {
     bundle_builder
@@ -185,7 +194,15 @@ fn show_a_bundle_with_buttons(
         .horizontal(|mut inner_bundle_strip| {
             inner_bundle_strip.cell(|ui| {
                 if edit_idx.is_none() {
-                    active_buttons_edit_and_delete(index, v_bundle, edit_idx, v_edit_bundle, ui);
+                    active_buttons_edit_and_delete(
+                        ui,
+                        pl_file,
+                        index,
+                        v_bundle,
+                        edit_idx,
+                        edit_bundle,
+                        need_refresh,
+                    );
                 } else {
                     inactive_buttons_edit_and_delete(ui);
                 }

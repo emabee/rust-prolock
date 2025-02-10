@@ -13,6 +13,7 @@ pub(crate) struct Bundle {
     pub named_secrets: BTreeMap<String, Secret>,
 }
 impl Bundle {
+    #[cfg(test)]
     pub fn new<S: AsRef<str>>(description: S) -> Self {
         Self {
             description: description.as_ref().to_string(),
@@ -20,6 +21,7 @@ impl Bundle {
         }
     }
 
+    #[cfg(test)]
     pub fn new_with_creds<S: AsRef<str> + Ord>(description: &S, creds: &[(S, S)]) -> Self {
         let mut named_secrets: BTreeMap<String, Secret> = BTreeMap::new();
         for (name, secret) in creds {
@@ -34,20 +36,24 @@ impl Bundle {
         }
     }
 
+    #[cfg(test)]
     #[must_use]
     pub fn len(&self) -> usize {
         self.named_secrets.len()
     }
 
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
+    // #[cfg(test)]
+    // #[must_use]
+    // pub fn is_empty(&self) -> bool {
+    //     self.len() == 0
+    // }
 
-    pub fn update_description(&mut self, description: &str) {
-        self.description.clear();
-        self.description.insert_str(0, description);
-    }
+    // #[cfg(test)]
+    // pub fn update_description(&mut self, description: &str) {
+    //     self.description.clear();
+    //     self.description.insert_str(0, description);
+    // }
+    #[cfg(test)]
     pub fn add_cred(&mut self, id: String, password: String) {
         self.named_secrets.insert(id, Secret::New(password));
     }

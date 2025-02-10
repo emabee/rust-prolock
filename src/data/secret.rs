@@ -17,12 +17,12 @@ impl Secret {
                 .to_string(),
         }
     }
-    pub fn reff(&self) -> u64 {
-        match self {
-            Secret::New(_) => unreachable!("Secret::New"),
-            Secret::Ref(i) => *i,
-        }
-    }
+    // pub fn reff(&self) -> u64 {
+    //     match self {
+    //         Secret::New(_) => unreachable!("Secret::New"),
+    //         Secret::Ref(i) => *i,
+    //     }
+    // }
 }
 impl Default for Secret {
     fn default() -> Self {

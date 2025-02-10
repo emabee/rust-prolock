@@ -6,18 +6,18 @@ use egui_extras::{Size, Strip, StripBuilder};
 pub(crate) fn ui(
     ctx: &Context,
     colors: &Colors,
-    v_edit_bundle: &mut VEditBundle,
+    edit_bundle: &mut VEditBundle,
     inner_bundle_strip: &mut Strip<'_, '_>,
 ) {
     inner_bundle_strip.strip(|left_builder| {
-        left_part(v_edit_bundle, left_builder);
+        left_part(edit_bundle, left_builder);
     });
     inner_bundle_strip.strip(|right_builder| {
-        right_part(ctx, colors, v_edit_bundle, right_builder);
+        right_part(ctx, colors, edit_bundle, right_builder);
     });
 }
 
-fn left_part(v_edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
+fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
     left_builder
         .size(Size::exact(15.))
         .size(Size::exact(40.))
@@ -27,7 +27,7 @@ fn left_part(v_edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
             left_strip.cell(|ui| {
                 set_faded_bg_color(ui, 20.);
                 ui.add(
-                    TextEdit::singleline(&mut v_edit_bundle.name)
+                    TextEdit::singleline(&mut edit_bundle.name)
                         .hint_text("Unique name of the new entry, e.g. 'Banco Rotto'")
                         .desired_width(330.)
                         .clip_text(true)
@@ -45,7 +45,7 @@ fn left_part(v_edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
                     set_faded_bg_color(ui, f32::INFINITY);
                     ui.add_sized(
                         [380., 80.],
-                        TextEdit::multiline(&mut v_edit_bundle.description)
+                        TextEdit::multiline(&mut edit_bundle.description)
                             .hint_text("Further description (optional)")
                             .interactive(true),
                     );
@@ -57,13 +57,13 @@ fn left_part(v_edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
 fn right_part(
     ctx: &Context,
     colors: &Colors,
-    v_edit_bundle: &mut VEditBundle,
+    edit_bundle: &mut VEditBundle,
     right_builder: StripBuilder<'_>,
 ) {
     right_builder
-        .sizes(Size::exact(20.), v_edit_bundle.v_named_secrets.len())
+        .sizes(Size::exact(20.), edit_bundle.v_named_secrets.len())
         .vertical(|mut right_strip| {
-            for named_secret in &mut v_edit_bundle.v_named_secrets {
+            for named_secret in &mut edit_bundle.v_named_secrets {
                 right_strip.strip(|cred_builder| {
                     single_cred(ctx, colors, named_secret, cred_builder);
                 });

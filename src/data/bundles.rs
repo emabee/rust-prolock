@@ -27,6 +27,10 @@ impl Bundles {
         self.0.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     pub fn count_secrets(&self) -> usize {
         self.0
             .values()
@@ -38,6 +42,7 @@ impl Bundles {
         self.0.contains_key(key)
     }
 
+    #[cfg(test)]
     pub fn get(&self, key: &str) -> Option<&Bundle> {
         self.0.get(key)
     }
@@ -80,15 +85,15 @@ impl Bundles {
         }
     }
 
-    pub fn remove_bundle_keep_refs<S>(&mut self, key: S) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        match self.0.remove_entry(key.as_ref()) {
-            None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
-            Some((_key, _bundle)) => Ok(()),
-        }
-    }
+    // pub fn remove_bundle_keep_refs<S>(&mut self, key: S) -> Result<()>
+    // where
+    //     S: AsRef<str>,
+    // {
+    //     match self.0.remove_entry(key.as_ref()) {
+    //         None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
+    //         Some((_key, _bundle)) => Ok(()),
+    //     }
+    // }
 
     pub fn remove_bundle_with_refs<S>(&mut self, key: S, transient: &mut Transient) -> Result<()>
     where

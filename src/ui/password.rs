@@ -1,4 +1,7 @@
-use super::{viz::PwFocus, Ui};
+use super::{
+    viz::{EditIdx, PwFocus},
+    Ui,
+};
 use egui::{CentralPanel, Color32, Context, RichText, TextEdit, TopBottomPanel};
 
 impl Ui {
@@ -107,6 +110,10 @@ impl Ui {
                     &self.pl_file.stored.readable.bundles,
                     self.pl_file.transient().unwrap(/*should never fail*/),
                 );
+                if self.pl_file.is_empty() {
+                    self.v.edit_idx = EditIdx::New(0);
+                    self.v.edit_bundle.clear();
+                }
             }
             Err(e) => {
                 self.v.pw.error = Some(format!("{e:?}"));

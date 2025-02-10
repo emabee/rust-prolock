@@ -61,6 +61,15 @@ pub struct Pw {
     pub pw2: String,
     pub show: bool,
     pub error: Option<String>,
+    pub focus: PwFocus,
+}
+
+#[derive(Default)]
+pub enum PwFocus {
+    None,
+    #[default]
+    Pw1,
+    Pw2,
 }
 
 #[derive(Default)]

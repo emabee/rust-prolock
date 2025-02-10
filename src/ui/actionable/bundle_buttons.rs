@@ -1,18 +1,18 @@
-use super::viz::{EditIdx, VBundle, VEditBundle};
+use super::super::viz::{EditIdx, VBundle, VEditBundle};
 use crate::data::PlFile;
 use anyhow::anyhow;
 use egui::{include_image, Button, Color32, Image, ImageSource, Ui};
 
-pub(crate) const IMG_EDIT: ImageSource = include_image!("assets/edit.png");
-pub(crate) const IMG_SAVE: ImageSource = include_image!("assets/save.png");
-pub(crate) const IMG_DELETE: ImageSource = include_image!("assets/delete.png");
-pub(crate) const IMG_CANCEL: ImageSource = include_image!("assets/cancel.png");
-pub(crate) const IMG_EDIT_INACTIVE: ImageSource = include_image!("assets/edit inactive.png");
-pub(crate) const IMG_SAVE_INACTIVE: ImageSource = include_image!("assets/save inactive.png");
-pub(crate) const IMG_DELETE_INACTIVE: ImageSource = include_image!("assets/delete inactive.png");
-pub(crate) const IMG_CANCEL_INACTIVE: ImageSource = include_image!("assets/cancel inactive.png");
+const IMG_EDIT: ImageSource = include_image!("./../assets/edit.png");
+const IMG_SAVE: ImageSource = include_image!("./../assets/save.png");
+const IMG_DELETE: ImageSource = include_image!("./../assets/delete.png");
+const IMG_CANCEL: ImageSource = include_image!("./../assets/cancel.png");
+const IMG_EDIT_INACTIVE: ImageSource = include_image!("./../assets/edit inactive.png");
+const IMG_SAVE_INACTIVE: ImageSource = include_image!("./../assets/save inactive.png");
+const IMG_DELETE_INACTIVE: ImageSource = include_image!("./../assets/delete inactive.png");
+const IMG_CANCEL_INACTIVE: ImageSource = include_image!("./../assets/cancel inactive.png");
 
-pub(crate) fn active_buttons_edit_and_delete(
+pub(super) fn active_buttons_edit_and_delete(
     index: usize,
     v_bundle: &VBundle,
     edit_idx: &mut EditIdx,
@@ -63,7 +63,7 @@ pub(crate) fn active_buttons_edit_and_delete(
     }
 }
 
-pub(crate) fn active_buttons_save_and_cancel(
+pub(super) fn active_buttons_save_and_cancel(
     pl_file: &mut PlFile,
     v_edit_bundle: &mut VEditBundle,
     edit_idx: &mut EditIdx,
@@ -117,7 +117,7 @@ pub(crate) fn active_buttons_save_and_cancel(
     }
 }
 
-pub(crate) fn inactive_buttons_edit_and_delete(ui: &mut Ui) {
+pub(super) fn inactive_buttons_edit_and_delete(ui: &mut Ui) {
     ui.add_enabled(
         false,
         Button::image(

@@ -1,7 +1,5 @@
-use super::{
-    viz::{VEditBundle, VNamedSecret},
-    Colors,
-};
+use super::super::viz::{VEditBundle, VNamedSecret};
+use super::Colors;
 use egui::{Button, Color32, Context, FontFamily, FontId, Rgba, ScrollArea, TextEdit, Ui};
 use egui_extras::{Size, Strip, StripBuilder};
 

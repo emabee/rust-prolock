@@ -1,4 +1,4 @@
-use super::{
+use super::super::{
     viz::{VBundle, VNamedSecret},
     Colors,
 };

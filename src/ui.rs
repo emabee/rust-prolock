@@ -9,26 +9,6 @@ use viz::V;
 use eframe::{App, Frame};
 use egui::{include_image, Color32, Context, FontFamily, Image, RichText, Theme, TopBottomPanel};
 
-/* TODOs *************************************
-
-Backlog:
-- !! cred-Liste editierbar machen (limitieren auf vier?)
-- !! Mehrsprachigkeit
-
-- Header visuell abheben
-- Suchfeld, um Einträge schnell finden zu können
-    - Konkretere Beispiele erzeugen
-    - sehr viele Beispiele erzeugen
-
-- Drei-Punkt Menu rechts oben
-    - Passwort ändern…
-    - Über prolock…
-    - Druck-Option: alles als druckbaren Text serialisieren und anzeigen
-
-- About + Hilfe
-
-******************************************* */
-
 pub struct Ui {
     v: V,
     pl_file: PlFile,

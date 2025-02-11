@@ -21,11 +21,30 @@ use std::{
 use ui::sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH};
 use ui::Ui;
 
-// TODO introduce multi-lingual support
-//      - based on rust-i18n-support
-//      - ask for preferred language on first screen (setting password)
-//      - allow later adaptation in settings
-//      - store preference in file header
+/* TODOs *************************************
+
+Backlog:
+- !! cred-Liste editierbar machen (limitieren auf vier?)
+- !! Mehrsprachigkeit
+TODO introduce multi-lingual support
+     - based on rust-i18n-support
+     - ask for preferred language on first screen (setting password)
+     - allow later adaptation in settings
+     - store preference in file header
+
+- Header visuell abheben
+- Suchfeld, um Einträge schnell finden zu können
+    - Konkretere Beispiele erzeugen
+    - sehr viele Beispiele erzeugen
+
+- Drei-Punkt Menu rechts oben
+    - Passwort ändern…
+    - Über prolock…
+    - Druck-Option: alles als druckbaren Text serialisieren und anzeigen
+
+- About + Hilfe
+
+******************************************* */
 
 fn main() -> ExitCode {
     match run() {

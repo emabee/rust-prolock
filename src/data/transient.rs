@@ -51,6 +51,9 @@ impl Transient {
         self.secrets.get(idx)
     }
 
+    pub(crate) fn set_storage_password(&mut self, new_pw: String) {
+        self.storage_password = SecUtf8::from(new_pw);
+    }
     pub(crate) fn get_storage_password(&self) -> &str {
         self.storage_password.unsecure()
     }

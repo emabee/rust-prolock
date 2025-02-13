@@ -4,8 +4,9 @@ use std::time::Instant;
 #[derive(Default)]
 pub struct V {
     pub pw: Pw,
-    pub bundles: Vec<VBundle>,
     pub search: String,
+    pub burger: Burger,
+    pub bundles: Vec<VBundle>,
     pub edit_idx: EditIdx,
     pub edit_bundle: VEditBundle,
     pub need_refresh: bool,
@@ -34,6 +35,16 @@ impl V {
             })
             .collect();
     }
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Burger {
+    #[default]
+    None,
+    About,
+    ChangePassword,
+    ChangeLanguage,
+    ShowPrintable,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,6 +90,7 @@ impl EditIdx {
 pub struct Pw {
     pub pw1: String,
     pub pw2: String,
+    pub pw_old: String,
     pub error: Option<String>,
     pub focus: PwFocus,
 }
@@ -89,6 +101,7 @@ pub enum PwFocus {
     #[default]
     Pw1,
     Pw2,
+    PwOld,
 }
 
 #[derive(Default)]

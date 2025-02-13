@@ -174,6 +174,20 @@ impl PlFile {
         Ok(())
     }
 
+    pub(crate) fn change_password(&mut self, old_pw: String, new_pw: String) -> Result<()> {
+        if self.transient().unwrap(/*Hopefully ok*/).get_storage_password() != &old_pw {
+            Err(anyhow!(
+                t!("The  current password is not correct").to_string()
+            ))
+        } else {
+            if let Some(ref mut transient) = self.o_transient {
+                transient.set_storage_password(new_pw);
+                self.save()?;
+            }
+            Ok(())
+        }
+    }
+
     fn add_bundle<S>(&mut self, key: S, bundle: Bundle) -> Result<()>
     where
         S: AsRef<str>,

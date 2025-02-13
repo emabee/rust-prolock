@@ -1,13 +1,14 @@
 mod actionable;
 mod password;
 pub mod sizes;
+mod top_panel;
 mod viz;
 
 use super::PlFile;
 use viz::V;
 
 use eframe::{App, Frame};
-use egui::{include_image, Color32, Context, FontFamily, Image, RichText, Theme, TopBottomPanel};
+use egui::{Color32, Context, Theme};
 
 pub struct Ui {
     v: V,
@@ -45,36 +46,20 @@ impl App for Ui {
             self.v.need_refresh = false;
         }
 
-        TopBottomPanel::top("file").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.colored_label(
-                    Color32::LIGHT_GRAY,
-                    RichText::new(self.pl_file.file_path.display().to_string())
-                        .family(FontFamily::Monospace),
-                );
-                ui.add_space(10.);
-                ui.label("  –—  ");
-                ui.add_space(10.);
+        self.top_panel(ctx);
 
-                ui.label(t!(
-                    "entries_with_secrets %{n1} %{n2}",
-                    n1 = self.pl_file.stored.readable.bundles.len(),
-                    n2 = self.pl_file.stored.readable.bundles.count_secrets()
-                ));
-
-                ui.add_space(ui.available_width() - 80.);
-
-                // TODO: Drei-Punkt Menu rechts oben
-                ui.add(Image::new(include_image!("ui/assets/burger.png")));
-            });
-
-            ui.add_space(10.);
-        });
-
-        if self.pl_file.is_actionable() {
-            self.panels_for_actionable_ui(ctx);
-        } else {
-            self.ask_for_password(ctx);
+        match self.v.burger {
+            viz::Burger::About => unimplemented!(""), //self.panel_about(ctx),
+            viz::Burger::ChangePassword => self.change_password(ctx),
+            viz::Burger::ChangeLanguage => unimplemented!(""), //self.change_language(ctx),
+            viz::Burger::ShowPrintable => unimplemented!(""),  //self.show_printable(),
+            viz::Burger::None => {
+                if self.pl_file.is_actionable() {
+                    self.panels_for_actionable_ui(ctx);
+                } else {
+                    self.ask_for_password(ctx);
+                }
+            }
         }
     }
 }

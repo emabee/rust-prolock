@@ -34,12 +34,6 @@ use std::{
 
 Backlog:
 - !! cred-Liste editierbar machen (limitieren auf vier?)
-- !! Mehrsprachigkeit
-TODO introduce multi-lingual support
-     - based on rust-i18n-support
-     - ask for preferred language on first screen (setting password)
-     - allow later adaptation in settings
-     - store preference in file header
 
 - Header visuell abheben
 - Suchfeld, um Einträge schnell finden zu können
@@ -70,9 +64,9 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<()> {
-    std::env::set_var("RUST_BACKTRACE", "1");
-    // evaluate args:: do we need some?
-    // let args = Args::from_command_line();
+    if cfg!(debug_assertions) {
+        std::env::set_var("RUST_BACKTRACE", "1");
+    }
 
     run_native(
         "ProLock",

@@ -17,16 +17,16 @@ impl Ui {
                 // this is the first start, so ask twice
                 ui.add_space(15.);
                 ui.label(
-                    RichText::new("Creating the prolock file")
+                    RichText::new(t!("Creating the prolock file"))
                         .size(16.)
                         .color(Color32::DARK_BLUE),
                 );
                 ui.add_space(15.);
-                ui.label("Specify the password to secure your prolock file:");
+                ui.label(t!("Specify the password to secure your prolock file:"));
                 ui.add_space(15.);
                 ui.horizontal(|ui| {
                     ui.add_space(50.);
-                    ui.add(TextEdit::singleline(&mut "Password:").desired_width(80.));
+                    ui.add(TextEdit::singleline(&mut t!("Password:")).desired_width(80.));
                     let response = ui.add(
                         TextEdit::singleline(&mut self.v.pw.pw1)
                             .desired_width(120.)
@@ -48,7 +48,7 @@ impl Ui {
                 ui.horizontal(|ui| {
                     let mut go_forward = false;
                     ui.add_space(50.);
-                    ui.add(TextEdit::singleline(&mut "Repeat:").desired_width(80.));
+                    ui.add(TextEdit::singleline(&mut t!("Repeat:")).desired_width(80.));
                     let response = ui.add(
                         TextEdit::singleline(&mut self.v.pw.pw2)
                             .desired_width(120.)
@@ -68,7 +68,7 @@ impl Ui {
                         if self.v.pw.pw1 == self.v.pw.pw2 {
                             self.switch_to_actionable();
                         } else {
-                            self.v.pw.error = Some("The passwords don't match".to_string());
+                            self.v.pw.error = Some(t!("The passwords don't match").to_string());
                         }
                     }
                 });
@@ -77,7 +77,7 @@ impl Ui {
                 ui.horizontal(|ui| {
                     let mut go_forward = false;
                     ui.add_space(50.);
-                    ui.add(TextEdit::singleline(&mut "Password:").desired_width(80.));
+                    ui.add(TextEdit::singleline(&mut t!("Password:")).desired_width(80.));
                     let response = ui.add(
                         TextEdit::singleline(&mut self.v.pw.pw1)
                             .desired_width(120.)

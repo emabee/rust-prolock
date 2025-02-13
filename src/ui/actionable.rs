@@ -116,7 +116,7 @@ impl Ui {
                         .fill(Color32::WHITE),
                     )
                     .on_hover_ui(|ui| {
-                        ui.label("New entry");
+                        ui.label(t!("New entry"));
                     })
                     .clicked()
                 {

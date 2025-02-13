@@ -56,10 +56,10 @@ impl App for Ui {
                 ui.label("  –—  ");
                 ui.add_space(10.);
 
-                ui.label(format!(
-                    "{} entries with {} secrets",
-                    self.pl_file.stored.readable.bundles.len(),
-                    self.pl_file.stored.readable.bundles.count_secrets(),
+                ui.label(t!(
+                    "entries_with_secrets %{n1} %{n2}",
+                    n1 = self.pl_file.stored.readable.bundles.len(),
+                    n2 = self.pl_file.stored.readable.bundles.count_secrets()
                 ));
 
                 ui.add_space(ui.available_width() - 80.);

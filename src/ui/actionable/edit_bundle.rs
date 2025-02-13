@@ -28,8 +28,8 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
                 set_faded_bg_color(ui, 20.);
                 ui.add(
                     TextEdit::singleline(&mut edit_bundle.name)
-                        .hint_text("Unique name of the new entry, e.g. 'Banco Rotto'")
-                        .desired_width(330.)
+                        .hint_text(t!("unique_name"))
+                        .desired_width(400.)
                         .clip_text(true)
                         .font(FontId {
                             size: 16.,
@@ -44,9 +44,9 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
                 ScrollArea::vertical().show(ui, |ui| {
                     set_faded_bg_color(ui, f32::INFINITY);
                     ui.add_sized(
-                        [380., 80.],
+                        [400., 80.],
                         TextEdit::multiline(&mut edit_bundle.description)
-                            .hint_text("Further description (optional)")
+                            .hint_text(t!("Further description (optional)"))
                             .interactive(true),
                     );
                 });
@@ -85,7 +85,7 @@ pub(crate) fn single_cred(
                 set_faded_bg_color(ui, 20.);
                 ui.add(
                     TextEdit::singleline(&mut named_secret.name)
-                        .hint_text("User name etc")
+                        .hint_text(t!("User name etc"))
                         .desired_width(200.)
                         .clip_text(true)
                         .text_color(colors.user)
@@ -97,7 +97,7 @@ pub(crate) fn single_cred(
                 let response = ui
                     .add(
                         TextEdit::singleline(&mut named_secret.secret)
-                            .hint_text("Secret password etc")
+                            .hint_text(t!("_hint_secret"))
                             .desired_width(160.)
                             .clip_text(true)
                             .text_color(colors.secret)
@@ -109,7 +109,7 @@ pub(crate) fn single_cred(
                         match named_secret.copied_at {
                             None => {
                                 if ui
-                                    .add(Button::new("  Copy").min_size([60., 10.].into()))
+                                    .add(Button::new(t!("_copy")).min_size([60., 10.].into()))
                                     .clicked()
                                 {
                                     ctx.copy_text(named_secret.secret.clone());
@@ -117,7 +117,7 @@ pub(crate) fn single_cred(
                                 }
                             }
                             Some(instant) => {
-                                ui.label("✔ Copied");
+                                ui.label(t!("_copied"));
                                 if instant.elapsed() > std::time::Duration::from_millis(800) {
                                     named_secret.copied_at = None;
                                 }

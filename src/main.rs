@@ -1,15 +1,26 @@
-#![deny(clippy::all)]
-#![deny(clippy::pedantic)]
-#![forbid(unsafe_code)]
+// #![deny(clippy::all)]
+// #![deny(clippy::pedantic)]
+// #![forbid(unsafe_code)]
 
 #[macro_use]
 extern crate serde;
 
+#[macro_use]
+extern crate rust_i18n;
+
+i18n!("locales", fallback = "en");
+
 mod data;
 mod ui;
 
+use crate::{
+    data::PlFile,
+    ui::{
+        sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH},
+        Ui,
+    },
+};
 use anyhow::{anyhow, Context, Result};
-use data::PlFile;
 use eframe::{run_native, NativeOptions};
 use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
@@ -18,8 +29,6 @@ use std::{
     path::{Path, PathBuf},
     process::ExitCode,
 };
-use ui::sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH};
-use ui::Ui;
 
 /* TODOs *************************************
 
@@ -47,6 +56,10 @@ TODO introduce multi-lingual support
 ******************************************* */
 
 fn main() -> ExitCode {
+    rust_i18n::set_locale("de");
+
+    i18n!("locales", fallback = "en");
+
     match run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {

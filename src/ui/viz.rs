@@ -79,7 +79,6 @@ impl EditIdx {
 pub struct Pw {
     pub pw1: String,
     pub pw2: String,
-    // pub show: bool,
     pub error: Option<String>,
     pub focus: PwFocus,
 }

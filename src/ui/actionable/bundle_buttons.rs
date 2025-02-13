@@ -30,7 +30,7 @@ pub(super) fn active_buttons_edit_and_delete(
             .fill(Color32::WHITE),
         )
         .on_hover_ui(|ui| {
-            ui.label("Edit entry");
+            ui.label(t!("Edit entry"));
         })
         .clicked()
     {
@@ -55,7 +55,7 @@ pub(super) fn active_buttons_edit_and_delete(
             .fill(Color32::WHITE),
         )
         .on_hover_ui(|ui| {
-            ui.label("Delete entry");
+            ui.label(t!("Delete entry"));
         })
         .clicked()
     {
@@ -85,9 +85,9 @@ pub(super) fn active_buttons_save_and_cancel(
         )
         .on_hover_ui(|ui| {
             if edit_idx.is_new() {
-                ui.label("Add new entry");
+                ui.label(t!("Add new entry"));
             } else {
-                ui.label("Save changes");
+                ui.label(t!("Save changes"));
             }
         })
         .clicked()
@@ -118,9 +118,9 @@ pub(super) fn active_buttons_save_and_cancel(
         )
         .on_hover_ui(|ui| {
             if edit_idx.is_new() {
-                ui.label("Discard new entry");
+                ui.label(t!("Discard new entry"));
             } else {
-                ui.label("Discard changes");
+                ui.label(t!("Discard changes"));
             }
         })
         .clicked()

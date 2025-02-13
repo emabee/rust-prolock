@@ -1,0 +1,92 @@
+_version: 2
+
+opening file:
+  en: opening file
+  de: Datei öffnen
+parsing:
+  en: parsing
+  de: lesen
+password_not_available:
+  en: Password is not yet available
+  de: Passwort is noch nicht verfügbar
+Creating the prolock file:
+  en: Creating the prolock file
+  de: Erzeugen der Prolock Datei
+'Password:':
+  en: 'Password:'
+  de: 'Passwort:'
+'Repeat:':
+  en: 'Repeat:'
+  de: 'Wiederholen:'
+'Specify the password to secure your prolock file:':
+  en: 'Specify the password to secure your prolock file:'
+  de: 'Passwort für die Prolock Datei:'
+The passwords don't match:
+  en: The passwords don't match
+  de: Die Eingaben stimmen nicht überein
+'entries_with_secrets %{n1} %{n2}':
+  en: '%{n1} entries with %{n2} secrets'
+  de: '%{n1} Einträge mit %{n2} Geheimnissen'
+'add_bundle: bundle %{b} exists already':
+  en: 'add_bundle: bundle %{b} exists already'
+  de: 'add_bundle: Eintrag %{bundle} existiert bereits'
+Cannot save because not all secrets are in correct state:
+  en: Cannot save because not all secrets are in correct state
+Cannot save because the file was updated concurrently:
+  en: Cannot save because the file was updated concurrently
+Cannot save because the password is not set:
+  en: Cannot save because the password is not set
+Further description (optional):
+  en: Further description (optional)
+  de: Weitere Beschreibung (optional)
+_hint_secret:
+  en: Secret password etc
+  de: Geheimes Passwort etc
+unique_name:
+  en: 'Unique name of the new entry (e.g. ''Banco Rotto'')'
+  de: 'Name des neuen Eintrags (z.B. ''Banco Rotto'')'
+User name etc:
+  en: User name etc
+  en: Benutzername etc
+'delete_bundle: bundle ''%{key}'' does not exist':
+  en: 'delete_bundle: bundle ''%{key}'' does not exist'
+  de: 'delete_bundle: Eintrag ''%{key}'' nicht gefunden'
+_copy:
+  en: '  Copy  '
+  de: Kopieren
+_copied:
+  en: ✔ Copied
+  de: ✔ Kopiert
+Add new entry:
+  en: Save new entry
+  de: Neuen Eintrag speichern
+Delete entry:
+  en: Delete entry
+  de: Eintrag löschen
+Discard changes:
+  en: Discard changes
+  de: Änderungen verwerfen
+Discard new entry:
+  en: Discard new entry
+  de: Neuen Eintrag verwerfen
+Edit entry:
+  en: Edit entry
+  de: Eintrag ändern
+Save changes:
+  en: Save changes
+  de: Änderungen speichern
+New entry:
+  en: Add new entry ...
+  de: Neuen Eintrag anlegen ...
+Description:
+  en: Description
+  de: Beschreibung
+Name of the entry:
+  en: Name of the entry
+  de: Name des Eintrags
+Username:
+  en: Username etc
+  de: Benutzername etc
+Secret:
+  en: Secret
+  de: Passwort

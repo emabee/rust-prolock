@@ -45,7 +45,7 @@ fn ui_left_part(index: usize, v_bundle: &VBundle, left_builder: StripBuilder<'_>
                         })
                         .interactive(true),
                 )
-                .on_hover_text("Name of the entry");
+                .on_hover_text(t!("Name of the entry"));
             });
 
             // description
@@ -56,7 +56,7 @@ fn ui_left_part(index: usize, v_bundle: &VBundle, left_builder: StripBuilder<'_>
                         [380., 80.],
                         TextEdit::multiline(&mut v_bundle.description.as_str()).interactive(true),
                     )
-                    .on_hover_text("Description");
+                    .on_hover_text(t!("Description"));
                 });
             });
         });
@@ -105,7 +105,7 @@ pub(crate) fn show_cred(
                         .text_color(colors.user)
                         .interactive(true),
                 )
-                .on_hover_text("Username, etc");
+                .on_hover_text(t!("Username"));
             });
             cred_strip.cell(|ui| {
                 set_faded_bg_color(ui, 20., color_switch);
@@ -123,7 +123,7 @@ pub(crate) fn show_cred(
                         match v_named_secret.copied_at {
                             None => {
                                 if ui
-                                    .add(Button::new("  Copy").min_size([60., 10.].into()))
+                                    .add(Button::new(t!("_copy")).min_size([60., 10.].into()))
                                     .clicked()
                                 {
                                     ctx.copy_text(v_named_secret.secret.clone());
@@ -131,14 +131,14 @@ pub(crate) fn show_cred(
                                 }
                             }
                             Some(instant) => {
-                                ui.label("✔ Copied");
+                                ui.label(t!("_copied"));
                                 if instant.elapsed() > std::time::Duration::from_millis(800) {
                                     v_named_secret.copied_at = None;
                                 }
                             }
                         }
                     })
-                    .on_hover_text("Secret");
+                    .on_hover_text(t!("Secret"));
                 v_named_secret.show_secret = response.hovered();
             });
         });

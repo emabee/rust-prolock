@@ -32,6 +32,62 @@ impl Ui {
         self.central_panel_bundles(ctx);
     }
 
+    fn top_panel_header(&mut self, ctx: &Context) {
+        TopBottomPanel::top("header").show(ctx, |ui| {
+            ui.add_space(4.);
+            ui.horizontal(|ui| {
+                if ui
+                    .add_enabled(
+                        self.v.edit_idx.is_none(),
+                        Button::image(
+                            Image::new(if self.v.edit_idx.is_none() {
+                                IMG_ADD_ENTRY
+                            } else {
+                                IMG_ADD_ENTRY_INACTIVE
+                            })
+                            .maintain_aspect_ratio(true)
+                            .fit_to_original_size(0.22),
+                        )
+                        .fill(Color32::WHITE),
+                    )
+                    .on_hover_ui(|ui| {
+                        ui.label(t!("New entry"));
+                    })
+                    .clicked()
+                {
+                    // TODO use index that is currently visible
+                    self.v.edit_idx = EditIdx::New(0);
+                    self.v.edit_bundle.clear();
+                }
+
+                ui.add_space(
+                    WIN_WIDTH
+                        - 4.
+                        - SEARCH_TEXT_WIDTH
+                        - 16.
+                        - (2. * EGUI_DEFAULT_SPACE)
+                        - (2. * 26.)
+                        - 58.,
+                );
+                ui.add(TextEdit::singleline(&mut self.v.search).desired_width(SEARCH_TEXT_WIDTH));
+                if ui
+                    .add(
+                        Button::image(
+                            Image::new(IMG_SEARCH)
+                                .maintain_aspect_ratio(true)
+                                .fit_to_original_size(0.22),
+                        )
+                        .fill(Color32::WHITE),
+                    )
+                    .clicked()
+                {
+                    //
+                }
+            });
+            ui.add_space(4.);
+        });
+    }
+
     fn central_panel_bundles(&mut self, ctx: &Context) {
         CentralPanel::default().show(ctx, |ui| {
             ScrollArea::vertical()
@@ -94,62 +150,6 @@ impl Ui {
                             }
                         });
                 })
-        });
-    }
-
-    fn top_panel_header(&mut self, ctx: &Context) {
-        TopBottomPanel::top("header").show(ctx, |ui| {
-            ui.add_space(4.);
-            ui.horizontal(|ui| {
-                if ui
-                    .add_enabled(
-                        self.v.edit_idx.is_none(),
-                        Button::image(
-                            Image::new(if self.v.edit_idx.is_none() {
-                                IMG_ADD_ENTRY
-                            } else {
-                                IMG_ADD_ENTRY_INACTIVE
-                            })
-                            .maintain_aspect_ratio(true)
-                            .fit_to_original_size(0.22),
-                        )
-                        .fill(Color32::WHITE),
-                    )
-                    .on_hover_ui(|ui| {
-                        ui.label(t!("New entry"));
-                    })
-                    .clicked()
-                {
-                    // TODO use index that is currently visible
-                    self.v.edit_idx = EditIdx::New(0);
-                    self.v.edit_bundle.clear();
-                }
-
-                ui.add_space(
-                    WIN_WIDTH
-                        - 4.
-                        - SEARCH_TEXT_WIDTH
-                        - 16.
-                        - (2. * EGUI_DEFAULT_SPACE)
-                        - (2. * 26.)
-                        - 58.,
-                );
-                ui.add(TextEdit::singleline(&mut self.v.search).desired_width(SEARCH_TEXT_WIDTH));
-                if ui
-                    .add(
-                        Button::image(
-                            Image::new(IMG_SEARCH)
-                                .maintain_aspect_ratio(true)
-                                .fit_to_original_size(0.22),
-                        )
-                        .fill(Color32::WHITE),
-                    )
-                    .clicked()
-                {
-                    //
-                }
-            });
-            ui.add_space(4.);
         });
     }
 }

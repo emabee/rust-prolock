@@ -30,12 +30,11 @@ impl Ui {
 
                 ui.add_space(ui.available_width() - 80.);
 
-                // FIXME
-                let b = menu_custom_button(
+                menu_custom_button(
                     ui,
                     Button::image(Image::new(include_image!("assets/burger.png"))),
                     |ui| {
-                        if ui.button("❓About ProLock").clicked() {
+                        if ui.button(t!("❓About ProLock")).clicked() {
                             self.v.burger = Burger::About;
                             // FIXME
                             ui.close_menu();
@@ -43,7 +42,7 @@ impl Ui {
                         if ui
                             .add_enabled(
                                 self.pl_file.is_actionable(),
-                                Button::new("🔐 Change password"),
+                                Button::new(t!("🔐 Change password")),
                             )
                             .clicked()
                         {
@@ -55,7 +54,7 @@ impl Ui {
                         if ui
                             .add_enabled(
                                 self.pl_file.is_actionable(),
-                                Button::new("🌍 Change language"),
+                                Button::new(t!("🌍 Change language")),
                             )
                             .clicked()
                         {
@@ -66,7 +65,7 @@ impl Ui {
                         if ui
                             .add_enabled(
                                 self.pl_file.is_actionable(),
-                                Button::new("📄 Show content as printable document"),
+                                Button::new(t!("📄 Show content as printable document")),
                             )
                             .clicked()
                         {

@@ -175,7 +175,7 @@ impl PlFile {
     }
 
     pub(crate) fn change_password(&mut self, old_pw: String, new_pw: String) -> Result<()> {
-        if self.transient().unwrap(/*Hopefully ok*/).get_storage_password() != &old_pw {
+        if self.transient().unwrap(/*ok*/).get_storage_password() != old_pw {
             Err(anyhow!(
                 t!("The  current password is not correct").to_string()
             ))

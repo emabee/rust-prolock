@@ -18,6 +18,33 @@ Creating the prolock file:
 'Repeat:':
   en: 'Repeat:'
   de: 'Wiederholen:'
+❓About ProLock:
+  en: ❓About ProLock
+  de: ❓Über ProLock
+🌍 Change language:
+  en: 🌍 Change language
+  de: 🌍 Sprache ändern
+📄 Show content as printable document:
+  en: 📄 Show content as printable document
+  de: 📄 Inhalt als druckbares Dokument anzeigen
+🔐 Change password:
+  en: 🔐 Change password
+  de: 🔐 Passwort ändern
+Change the password for the prolock file:
+  en: Change the password for the prolock file
+  de: Passwort für die Prolock Datei ändern
+'Old password:':
+  en: 'Old password:'
+  de: 'Altes Passwort:'
+'New password:':
+  en: 'New password:'
+  de: 'Neues Passwort:'
+'Repeat new password:':
+  en: 'Repeat new password:'
+  de: 'Neues Passwort wiederholen:'
+The current password is not correct:
+  en: The current password is not correct
+  de: Das aktuelle Passwort ist nocht korrekt
 'Specify the password to secure your prolock file:':
   en: 'Specify the password to secure your prolock file:'
   de: 'Passwort für die Prolock Datei:'
@@ -34,8 +61,10 @@ Cannot save because not all secrets are in correct state:
   en: Cannot save because not all secrets are in correct state
 Cannot save because the file was updated concurrently:
   en: Cannot save because the file was updated concurrently
+  de: Speichern schlägt fehl weil die Datei konkurrierend geändert wurde
 Cannot save because the password is not set:
   en: Cannot save because the password is not set
+  en: Speichern schlägt fehl weil das Passwort nicht gesetzt ist
 Further description (optional):
   en: Further description (optional)
   de: Weitere Beschreibung (optional)
@@ -47,7 +76,7 @@ unique_name:
   de: 'Name des neuen Eintrags (z.B. ''Banco Rotto'')'
 User name etc:
   en: User name etc
-  en: Benutzername etc
+  de: Benutzername etc
 'delete_bundle: bundle ''%{key}'' does not exist':
   en: 'delete_bundle: bundle ''%{key}'' does not exist'
   de: 'delete_bundle: Eintrag ''%{key}'' nicht gefunden'

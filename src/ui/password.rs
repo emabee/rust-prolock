@@ -122,7 +122,7 @@ impl Ui {
             ui.add_space(15.);
             ui.horizontal(|ui| {
                 ui.add_space(50.);
-                ui.add(TextEdit::singleline(&mut t!("Old password:")).desired_width(140.));
+                ui.add(TextEdit::singleline(&mut t!("Old password:")).desired_width(170.));
                 let response = ui.add(
                     TextEdit::singleline(&mut self.v.pw.pw_old)
                         .desired_width(120.)
@@ -143,7 +143,7 @@ impl Ui {
             ui.add_space(15.);
             ui.horizontal(|ui| {
                 ui.add_space(50.);
-                ui.add(TextEdit::singleline(&mut t!("New password:")).desired_width(140.));
+                ui.add(TextEdit::singleline(&mut t!("New password:")).desired_width(170.));
                 let response = ui.add(
                     TextEdit::singleline(&mut self.v.pw.pw1)
                         .desired_width(120.)
@@ -164,7 +164,7 @@ impl Ui {
             ui.horizontal(|ui| {
                 let mut go_forward = false;
                 ui.add_space(50.);
-                ui.add(TextEdit::singleline(&mut t!("Repeat new password:")).desired_width(140.));
+                ui.add(TextEdit::singleline(&mut t!("Repeat new password:")).desired_width(170.));
                 let response = ui.add(
                     TextEdit::singleline(&mut self.v.pw.pw2)
                         .desired_width(120.)

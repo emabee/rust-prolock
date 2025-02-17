@@ -124,7 +124,7 @@ impl Ui {
                 ui.add_space(50.);
                 ui.add(TextEdit::singleline(&mut t!("Old password:")).desired_width(170.));
                 let response = ui.add(
-                    TextEdit::singleline(&mut self.v.pw.pw_old)
+                    TextEdit::singleline(&mut self.v.pw.old)
                         .desired_width(120.)
                         .password(true),
                 );
@@ -181,12 +181,10 @@ impl Ui {
                     go_forward = true;
                 }
                 if go_forward {
-                    if self.v.pw.pw1 != self.v.pw.pw2 {
-                        self.v.pw.error = Some(t!("The passwords don't match").to_string());
-                    } else {
+                    if self.v.pw.pw1 == self.v.pw.pw2 {
                         match self
                             .pl_file
-                            .change_password(self.v.pw.pw_old.clone(), self.v.pw.pw1.clone())
+                            .change_password(&self.v.pw.old, self.v.pw.pw1.clone())
                         {
                             Ok(()) => {
                                 self.v.burger = Burger::None;
@@ -195,6 +193,8 @@ impl Ui {
                                 self.v.pw.error = Some(e.to_string());
                             }
                         }
+                    } else {
+                        self.v.pw.error = Some(t!("The passwords don't match").to_string());
                     }
                 }
             });

@@ -90,7 +90,7 @@ impl EditIdx {
 pub struct Pw {
     pub pw1: String,
     pub pw2: String,
-    pub pw_old: String,
+    pub old: String,
     pub error: Option<String>,
     pub focus: PwFocus,
 }

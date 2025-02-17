@@ -1,6 +1,6 @@
-// #![deny(clippy::all)]
-// #![deny(clippy::pedantic)]
-// #![forbid(unsafe_code)]
+#![deny(clippy::all)]
+#![deny(clippy::pedantic)]
+#![forbid(unsafe_code)]
 
 #[macro_use]
 extern crate serde;

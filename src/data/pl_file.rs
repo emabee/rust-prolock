@@ -174,17 +174,17 @@ impl PlFile {
         Ok(())
     }
 
-    pub(crate) fn change_password(&mut self, old_pw: String, new_pw: String) -> Result<()> {
-        if self.transient().unwrap(/*ok*/).get_storage_password() != old_pw {
-            Err(anyhow!(
-                t!("The  current password is not correct").to_string()
-            ))
-        } else {
+    pub(crate) fn change_password(&mut self, old_pw: &str, new_pw: String) -> Result<()> {
+        if self.transient().unwrap(/*ok*/).get_storage_password() == old_pw {
             if let Some(ref mut transient) = self.o_transient {
                 transient.set_storage_password(new_pw);
                 self.save()?;
             }
             Ok(())
+        } else {
+            Err(anyhow!(
+                t!("The  current password is not correct").to_string()
+            ))
         }
     }
 

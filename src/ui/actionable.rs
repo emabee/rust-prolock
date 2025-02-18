@@ -1,13 +1,9 @@
-mod bundle_buttons;
-mod edit_bundle;
-mod show_bundle;
-
 use super::{
     sizes::{
         BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
         EGUI_DEFAULT_SPACE, SEARCH_TEXT_WIDTH, WIN_WIDTH,
     },
-    viz::{EditIdx, VBundle, VEditBundle},
+    viz::{EditIdx, PlModal, VBundle, VEditBundle},
     Colors, Ui,
 };
 use crate::PlFile;
@@ -21,9 +17,20 @@ use egui::{
 };
 use egui_extras::{Size, StripBuilder};
 
-const IMG_ADD_ENTRY: ImageSource = include_image!("./../ui/assets/add_entry.png");
-const IMG_ADD_ENTRY_INACTIVE: ImageSource = include_image!("./../ui/assets/add_entry inactive.png");
-const IMG_SEARCH: ImageSource = include_image!("./../ui/assets/search.png");
+mod bundle_buttons;
+pub(crate) mod edit_bundle;
+mod show_bundle;
+
+const IMG_EDIT: ImageSource = include_image!("./actionable/assets/edit.png");
+const IMG_OK: ImageSource = include_image!("./actionable/assets/ok.png");
+const IMG_DELETE: ImageSource = include_image!("./actionable/assets/delete.png");
+const IMG_CANCEL: ImageSource = include_image!("./actionable/assets/cancel.png");
+const IMG_EDIT_INACTIVE: ImageSource = include_image!("./actionable/assets/edit inactive.png");
+const IMG_DELETE_INACTIVE: ImageSource = include_image!("./actionable/assets/delete inactive.png");
+const IMG_ADD_ENTRY: ImageSource = include_image!("./actionable/assets/add_entry.png");
+const IMG_ADD_ENTRY_INACTIVE: ImageSource =
+    include_image!("./actionable/assets/add_entry inactive.png");
+const IMG_SEARCH: ImageSource = include_image!("./actionable/assets/search.png");
 
 impl Ui {
     pub(super) fn panels_for_actionable_ui(&mut self, ctx: &Context) {
@@ -55,8 +62,7 @@ impl Ui {
                     })
                     .clicked()
                 {
-                    // TODO use index that is currently visible
-                    self.v.edit_idx = EditIdx::New(0);
+                    self.v.pl_modal = PlModal::CreateBundle;
                     self.v.edit_bundle.clear();
                 }
 
@@ -94,58 +100,37 @@ impl Ui {
                 .scroll_bar_visibility(ScrollBarVisibility::AlwaysVisible)
                 .show(ui, |ui| {
                     StripBuilder::new(ui)
-                        .sizes(
-                            Size::exact(BUNDLE_HEIGHT),
-                            self.v.bundles.len() + usize::from(self.v.edit_idx.is_new()),
-                        )
+                        .sizes(Size::exact(BUNDLE_HEIGHT), self.v.bundles.len())
                         .vertical(|mut bundle_strip| {
-                            if self.v.bundles.is_empty() && self.v.edit_idx.is_new() {
-                                bundle_strip.strip(|bundle_builder| {
-                                    edit_a_bundle_with_buttons(
-                                        ctx,
-                                        bundle_builder,
-                                        &mut self.pl_file,
-                                        &mut self.v.edit_idx,
-                                        &mut self.v.edit_bundle,
-                                        &mut self.v.need_refresh,
-                                        &self.colors,
-                                    );
-                                });
-                            } else {
-                                for (index, v_bundle) in &mut self.v.bundles.iter_mut().enumerate()
-                                {
-                                    let edit_idx = self.v.edit_idx;
-                                    if edit_idx.is_new_with(index) || edit_idx.is_mod_with(index) {
-                                        bundle_strip.strip(|bundle_builder| {
-                                            edit_a_bundle_with_buttons(
-                                                ctx,
-                                                bundle_builder,
-                                                &mut self.pl_file,
-                                                &mut self.v.edit_idx,
-                                                &mut self.v.edit_bundle,
-                                                &mut self.v.need_refresh,
-                                                &self.colors,
-                                            );
-                                        });
-                                    }
-                                    if edit_idx.is_none()
-                                        || edit_idx.is_new()
-                                        || edit_idx.is_mod_not_with(index)
-                                    {
-                                        bundle_strip.strip(|bundle_builder| {
-                                            show_a_bundle_with_buttons(
-                                                ctx,
-                                                bundle_builder,
-                                                &mut self.pl_file,
-                                                index,
-                                                v_bundle,
-                                                &mut self.v.edit_idx,
-                                                &mut self.v.edit_bundle,
-                                                &mut self.v.need_refresh,
-                                                &self.colors,
-                                            );
-                                        });
-                                    }
+                            for (index, v_bundle) in &mut self.v.bundles.iter_mut().enumerate() {
+                                let edit_idx = self.v.edit_idx;
+                                if edit_idx.is_mod_with(index) {
+                                    bundle_strip.strip(|bundle_builder| {
+                                        edit_a_bundle_with_buttons(
+                                            ctx,
+                                            bundle_builder,
+                                            &mut self.pl_file,
+                                            &mut self.v.edit_idx,
+                                            &mut self.v.edit_bundle,
+                                            &mut self.v.need_refresh,
+                                            &self.colors,
+                                        );
+                                    });
+                                }
+                                if edit_idx.is_none() || edit_idx.is_mod_not_with(index) {
+                                    bundle_strip.strip(|bundle_builder| {
+                                        show_a_bundle_with_buttons(
+                                            ctx,
+                                            bundle_builder,
+                                            &mut self.pl_file,
+                                            index,
+                                            v_bundle,
+                                            &mut self.v.edit_idx,
+                                            &mut self.v.edit_bundle,
+                                            &mut self.v.need_refresh,
+                                            &self.colors,
+                                        );
+                                    });
                                 }
                             }
                         });

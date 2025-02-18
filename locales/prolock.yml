@@ -30,10 +30,16 @@ Creating the prolock file:
 🔐 Change password:
   en: 🔐 Change password
   de: 🔐 Passwort ändern
-Cancel:
+_cancel_with_icon:
   en: ❌ Cancel
   de: ❌ Abbrechen
-Ok:
+Cancel:
+  en: Cancel
+  de: Abbrechen
+Save:
+  en: Save
+  en: Speichern
+_ok_with_icon:
   en: ✅ Ok
   de: ✅ Übernehmen
 Password not correct:
@@ -79,8 +85,8 @@ Further description (optional):
   en: Further description (optional)
   de: Weitere Beschreibung (optional)
 _hint_secret:
-  en: Secret password etc
-  de: Geheimes Passwort etc
+  en: Secret (password etc)
+  de: Geheimnis (Passwort etc)
 unique_name:
   en: 'Unique name of the new entry (e.g. ''Banco Rotto'')'
   de: 'Name des neuen Eintrags (z.B. ''Banco Rotto'')'

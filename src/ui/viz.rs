@@ -5,7 +5,7 @@ use std::time::Instant;
 pub struct V {
     pub pw: Pw,
     pub search: String,
-    pub burger: Burger,
+    pub pl_modal: PlModal,
     pub bundles: Vec<VBundle>,
     pub edit_idx: EditIdx,
     pub edit_bundle: VEditBundle,
@@ -38,13 +38,14 @@ impl V {
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Burger {
+pub enum PlModal {
     #[default]
     None,
     About,
     ChangePassword,
     ChangeLanguage,
     ShowPrintable,
+    CreateBundle,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -52,7 +53,6 @@ pub enum EditIdx {
     #[default]
     None,
     Mod(usize),
-    New(usize),
 }
 impl EditIdx {
     pub fn is_none(&self) -> bool {
@@ -71,16 +71,6 @@ impl EditIdx {
     pub fn is_mod_not_with(&self, idx: usize) -> bool {
         if let Self::Mod(i) = self {
             *i != idx
-        } else {
-            false
-        }
-    }
-    pub fn is_new(&self) -> bool {
-        matches!(self, Self::New(_))
-    }
-    pub fn is_new_with(&self, idx: usize) -> bool {
-        if let Self::New(i) = self {
-            *i == idx
         } else {
             false
         }
@@ -125,6 +115,7 @@ pub struct VEditBundle {
     pub name: String,
     pub description: String,
     pub v_named_secrets: Vec<VNamedSecret>,
+    pub err: Option<String>,
 }
 
 impl VEditBundle {

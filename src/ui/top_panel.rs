@@ -1,4 +1,4 @@
-use crate::ui::viz::Burger;
+use crate::ui::viz::PlModal;
 
 use super::{
     viz::{Pw, PwFocus},
@@ -36,7 +36,7 @@ impl Ui {
                         .fill(Color32::TRANSPARENT),
                     |ui| {
                         if ui.button(t!("❓About ProLock")).clicked() {
-                            self.v.burger = Burger::About;
+                            self.v.pl_modal = PlModal::About;
                             // FIXME
                             ui.close_menu();
                         }
@@ -47,7 +47,7 @@ impl Ui {
                             )
                             .clicked()
                         {
-                            self.v.burger = Burger::ChangePassword;
+                            self.v.pl_modal = PlModal::ChangePassword;
                             self.v.pw = Pw::default();
                             self.v.pw.focus = PwFocus::PwOld;
                             ui.close_menu();
@@ -60,7 +60,7 @@ impl Ui {
                             .clicked()
                         {
                             // FIXME
-                            self.v.burger = Burger::ChangeLanguage;
+                            self.v.pl_modal = PlModal::ChangeLanguage;
                             ui.close_menu();
                         }
                         if ui
@@ -71,7 +71,7 @@ impl Ui {
                             .clicked()
                         {
                             // FIXME
-                            self.v.burger = Burger::ShowPrintable;
+                            self.v.pl_modal = PlModal::ShowPrintable;
                             ui.close_menu();
                         }
                     },

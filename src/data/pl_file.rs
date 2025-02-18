@@ -164,26 +164,30 @@ impl PlFile {
             self.o_transient = Some(Transient::new(password, Secrets::default()));
             self.save()?;
         } else {
-            self.o_transient = Some(Transient::from_cipher(
-                password,
-                &self.stored.readable,
-                &self.stored.cipher,
-            )?);
+            self.o_transient = Some(
+                Transient::from_cipher(password, &self.stored.readable, &self.stored.cipher)
+                    .context(t!("Password not correct"))?,
+            );
         }
 
         Ok(())
     }
 
     pub(crate) fn change_password(&mut self, old_pw: &str, new_pw: String) -> Result<()> {
+        self.check_password(old_pw)?;
+        if let Some(ref mut transient) = self.o_transient {
+            transient.set_storage_password(new_pw);
+            self.save()?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn check_password(&mut self, old_pw: &str) -> Result<()> {
         if self.transient().unwrap(/*ok*/).get_storage_password() == old_pw {
-            if let Some(ref mut transient) = self.o_transient {
-                transient.set_storage_password(new_pw);
-                self.save()?;
-            }
             Ok(())
         } else {
             Err(anyhow!(
-                t!("The  current password is not correct").to_string()
+                t!("The current password is not correct").to_string()
             ))
         }
     }

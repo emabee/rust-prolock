@@ -1,4 +1,5 @@
 mod actionable;
+mod modal;
 mod password;
 pub mod sizes;
 mod top_panel;
@@ -48,18 +49,12 @@ impl App for Ui {
 
         self.top_panel(ctx);
 
-        match self.v.burger {
-            viz::Burger::About => unimplemented!(""), //self.panel_about(ctx),
-            viz::Burger::ChangePassword => self.change_password(ctx),
-            viz::Burger::ChangeLanguage => unimplemented!(""), //self.change_language(ctx),
-            viz::Burger::ShowPrintable => unimplemented!(""),  //self.show_printable(),
-            viz::Burger::None => {
-                if self.pl_file.is_actionable() {
-                    self.panels_for_actionable_ui(ctx);
-                } else {
-                    self.ask_for_password(ctx);
-                }
-            }
+        self.show_modal(ctx);
+
+        if self.pl_file.is_actionable() {
+            self.panels_for_actionable_ui(ctx);
+        } else {
+            self.ask_for_password(ctx);
         }
     }
 }

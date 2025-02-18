@@ -30,12 +30,21 @@ Creating the prolock file:
 🔐 Change password:
   en: 🔐 Change password
   de: 🔐 Passwort ändern
+Cancel:
+  en: ❌ Cancel
+  de: ❌ Abbrechen
+Ok:
+  en: ✅ Ok
+  de: ✅ Übernehmen
+Password not correct:
+  en: Password not correct
+  de: Passwort nicht korrekt
 Change the password for the prolock file:
   en: Change the password for the prolock file
   de: Passwort für die Prolock Datei ändern
-'Old password:':
-  en: 'Old password:'
-  de: 'Altes Passwort:'
+'Current password:':
+  en: 'Current password:'
+  de: 'Aktuelles Passwort:'
 'New password:':
   en: 'New password:'
   de: 'Neues Passwort:'
@@ -44,13 +53,13 @@ Change the password for the prolock file:
   de: 'Neues Passwort wiederholen:'
 The current password is not correct:
   en: The current password is not correct
-  de: Das aktuelle Passwort ist nocht korrekt
+  de: Das aktuelle Passwort ist nicht korrekt
 'Specify the password to secure your prolock file:':
   en: 'Specify the password to secure your prolock file:'
   de: 'Passwort für die Prolock Datei:'
 The passwords don't match:
   en: The passwords don't match
-  de: Die Eingaben stimmen nicht überein
+  de: Die Eingaben für das neue Passwort stimmen nicht überein
 'entries_with_secrets %{n1} %{n2}':
   en: '%{n1} entries with %{n2} secrets'
   de: '%{n1} Einträge mit %{n2} Geheimnissen'
@@ -59,12 +68,13 @@ The passwords don't match:
   de: 'add_bundle: Eintrag %{bundle} existiert bereits'
 Cannot save because not all secrets are in correct state:
   en: Cannot save because not all secrets are in correct state
+  de: Speichern schlägt fehl, weil nicht alle Secrets im erwarteten Zustand sind
 Cannot save because the file was updated concurrently:
   en: Cannot save because the file was updated concurrently
-  de: Speichern schlägt fehl weil die Datei konkurrierend geändert wurde
+  de: Speichern schlägt fehl, weil die Datei konkurrierend geändert wurde
 Cannot save because the password is not set:
   en: Cannot save because the password is not set
-  en: Speichern schlägt fehl weil das Passwort nicht gesetzt ist
+  de: Speichern schlägt fehl, weil das Passwort nicht gesetzt ist
 Further description (optional):
   en: Further description (optional)
   de: Weitere Beschreibung (optional)

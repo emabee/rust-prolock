@@ -32,7 +32,8 @@ impl Ui {
 
                 menu_custom_button(
                     ui,
-                    Button::image(Image::new(include_image!("assets/burger.png"))),
+                    Button::image(Image::new(include_image!("assets/burger.png")))
+                        .fill(Color32::TRANSPARENT),
                     |ui| {
                         if ui.button(t!("❓About ProLock")).clicked() {
                             self.v.burger = Burger::About;

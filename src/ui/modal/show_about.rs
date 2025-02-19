@@ -1,6 +1,6 @@
-use egui::{include_image, Color32, Hyperlink, Image, RichText, Sides, TextEdit, Ui, Vec2};
+use egui::{Color32, Hyperlink, Image, RichText, Sides, TextEdit, Ui, Vec2};
 
-use crate::ui::viz::PlModal;
+use crate::ui::{viz::PlModal, IMG_LOGO};
 
 pub(super) fn show_about(pl_modal: &mut PlModal, ui: &mut Ui) {
     ui.set_width(400.0);
@@ -11,7 +11,7 @@ pub(super) fn show_about(pl_modal: &mut PlModal, ui: &mut Ui) {
         ui.horizontal(|ui| {
             ui.set_width(150.);
             ui.set_height(150.);
-            ui.add(Image::new(include_image!("../assets/logo.png")));
+            ui.add(Image::new(IMG_LOGO));
         });
         ui.vertical(|ui| {
             ui.add(

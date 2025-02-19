@@ -1,9 +1,8 @@
-use super::{IMG_CANCEL, IMG_SAVE};
 use crate::{
     ui::{
         sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
         viz::{PlModal, VEditBundle, VNamedSecret},
-        Colors,
+        Colors, IMG_CANCEL, IMG_SAVE,
     },
     PlFile,
 };

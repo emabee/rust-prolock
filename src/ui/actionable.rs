@@ -4,7 +4,7 @@ use super::{
         EGUI_DEFAULT_SPACE, SEARCH_TEXT_WIDTH, WIN_WIDTH,
     },
     viz::{EditIdx, PlModal, VBundle, VEditBundle},
-    Colors, Ui,
+    Colors, Ui, IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_SEARCH,
 };
 use crate::PlFile;
 use bundle_buttons::{
@@ -12,25 +12,14 @@ use bundle_buttons::{
     inactive_buttons_edit_and_delete,
 };
 use egui::{
-    include_image, scroll_area::ScrollBarVisibility, Button, CentralPanel, Color32, Context, Image,
-    ImageSource, ScrollArea, TextEdit, TopBottomPanel,
+    scroll_area::ScrollBarVisibility, Button, CentralPanel, Color32, Context, Image, ScrollArea,
+    TextEdit, TopBottomPanel,
 };
 use egui_extras::{Size, StripBuilder};
 
 mod bundle_buttons;
 pub(crate) mod edit_bundle;
 mod show_bundle;
-
-const IMG_EDIT: ImageSource = include_image!("./actionable/assets/edit.png");
-const IMG_OK: ImageSource = include_image!("./actionable/assets/ok.png");
-const IMG_DELETE: ImageSource = include_image!("./actionable/assets/delete.png");
-const IMG_CANCEL: ImageSource = include_image!("./actionable/assets/cancel.png");
-const IMG_EDIT_INACTIVE: ImageSource = include_image!("./actionable/assets/edit inactive.png");
-const IMG_DELETE_INACTIVE: ImageSource = include_image!("./actionable/assets/delete inactive.png");
-const IMG_ADD_ENTRY: ImageSource = include_image!("./actionable/assets/add_entry.png");
-const IMG_ADD_ENTRY_INACTIVE: ImageSource =
-    include_image!("./actionable/assets/add_entry inactive.png");
-const IMG_SEARCH: ImageSource = include_image!("./actionable/assets/search.png");
 
 impl Ui {
     pub(super) fn panels_for_actionable_ui(&mut self, ctx: &Context) {

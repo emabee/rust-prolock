@@ -1,7 +1,10 @@
-use super::super::viz::{PlModal, PwFocus};
-use crate::{ui::viz::Pw, PlFile};
+use crate::{
+    ui::viz::{PlModal, Pw, PwFocus},
+    PlFile,
+};
 use egui::{Color32, Key, RichText, Sides, TextEdit, Ui};
 
+#[allow(clippy::too_many_lines)]
 pub(super) fn change_password(
     pw: &mut Pw,
     pl_modal: &mut PlModal,
@@ -90,14 +93,12 @@ pub(super) fn change_password(
         }
     });
 
-    ui.add_space(15.);
-
     if let Some(e) = &pw.error {
+        ui.add_space(15.);
         ui.label(RichText::new(e).color(Color32::RED));
     }
 
     ui.add_space(15.);
-
     ui.separator();
 
     Sides::new().show(

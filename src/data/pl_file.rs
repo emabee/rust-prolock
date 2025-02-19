@@ -367,7 +367,6 @@ impl PlFile {
         result
     }
 
-    #[must_use]
     pub(crate) fn save_with_added_bundle(&mut self, name: String, bundle: Bundle) -> Result<()> {
         if name.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));

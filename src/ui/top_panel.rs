@@ -2,11 +2,10 @@ use crate::ui::viz::PlModal;
 
 use super::{
     viz::{Pw, PwFocus},
-    Ui,
+    Ui, IMG_BURGER,
 };
 use egui::{
-    include_image, menu::menu_custom_button, Button, Color32, Context, FontFamily, Image, RichText,
-    TopBottomPanel,
+    menu::menu_custom_button, Button, Color32, Context, FontFamily, Image, RichText, TopBottomPanel,
 };
 
 impl Ui {
@@ -32,8 +31,7 @@ impl Ui {
 
                 menu_custom_button(
                     ui,
-                    Button::image(Image::new(include_image!("assets/burger.png")))
-                        .fill(Color32::TRANSPARENT),
+                    Button::image(Image::new(IMG_BURGER)).fill(Color32::TRANSPARENT),
                     |ui| {
                         if ui.button(t!("❓About ProLock")).clicked() {
                             self.v.pl_modal = PlModal::About;

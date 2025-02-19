@@ -1,16 +1,14 @@
 use super::viz::PlModal;
-use egui::{include_image, Context, Id, ImageSource, Modal};
+use egui::{Context, Id, Modal};
 
 mod change_password;
 mod create_bundle;
 mod show_about;
-const IMG_SAVE: ImageSource = include_image!("./modal/assets/save.png");
-const IMG_CANCEL: ImageSource = include_image!("./modal/assets/cancel.png");
 
 impl super::Ui {
     pub(super) fn show_modal(&mut self, ctx: &Context) {
         let id = Id::new(match self.v.pl_modal {
-            PlModal::None => return,
+            PlModal::None => return, // happens frequently!!
             PlModal::ChangePassword => "ChangePassword",
             PlModal::About => "About",
             PlModal::ChangeLanguage => "ChangeLanguage",
@@ -27,8 +25,8 @@ impl super::Ui {
                 ui,
             ),
             PlModal::About => show_about::show_about(&mut self.v.pl_modal, ui),
-            PlModal::ChangeLanguage => todo!(),
-            PlModal::ShowPrintable => todo!(),
+            PlModal::ChangeLanguage => todo!("FIXME"),
+            PlModal::ShowPrintable => todo!("FIXME"),
             PlModal::CreateBundle => create_bundle::create_bundle(
                 &mut self.v.edit_bundle,
                 &mut self.v.pl_modal,
@@ -39,7 +37,9 @@ impl super::Ui {
             ),
         });
 
-        if modal_response.should_close() && matches!(self.v.pl_modal, PlModal::About) {
+        if modal_response.should_close()
+            && matches!(self.v.pl_modal, PlModal::About | PlModal::ShowPrintable)
+        {
             self.v.pl_modal = PlModal::None;
         }
     }

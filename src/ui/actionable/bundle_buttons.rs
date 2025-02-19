@@ -1,8 +1,8 @@
-use super::{
-    super::viz::{EditIdx, VBundle, VEditBundle},
-    IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK,
+use super::super::viz::{EditIdx, VBundle, VEditBundle};
+use crate::{
+    data::PlFile,
+    ui::{IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK},
 };
-use crate::data::PlFile;
 use anyhow::anyhow;
 use egui::{Button, Color32, Image, Ui};
 

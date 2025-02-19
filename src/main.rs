@@ -33,9 +33,8 @@ use std::{
 /* TODOs *************************************
 
 Backlog:
-- !! cred-Liste editierbar machen (limitieren auf vier?)
-
 - Header visuell abheben
+- show some start-help text when plfile is empty
 - Suchfeld, um Einträge schnell finden zu können
     - Konkretere Beispiele erzeugen
     - sehr viele Beispiele erzeugen

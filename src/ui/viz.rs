@@ -41,11 +41,11 @@ impl V {
 pub enum PlModal {
     #[default]
     None,
+    CreateBundle,
     About,
     ChangePassword,
     ChangeLanguage,
     ShowPrintable,
-    CreateBundle,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -146,14 +146,23 @@ impl VEditBundle {
                 named_secrets: self
                     .v_named_secrets
                     .iter()
-                    .map(|vns| (vns.name.clone(), Secret::New(vns.secret.clone())))
+                    .filter_map(|vns| {
+                        if vns.name.trim().is_empty() && vns.secret.trim().is_empty() {
+                            None
+                        } else {
+                            Some((vns.name.clone(), Secret::New(vns.secret.clone())))
+                        }
+                    })
                     .collect(),
             },
         )
     }
 
-    pub fn clear(&mut self) {
+    pub fn prepare_for_create(&mut self) {
         *self = Self::default();
+        self.v_named_secrets.push(VNamedSecret::default());
+        self.v_named_secrets.push(VNamedSecret::default());
+        self.v_named_secrets.push(VNamedSecret::default());
         self.v_named_secrets.push(VNamedSecret::default());
     }
 }

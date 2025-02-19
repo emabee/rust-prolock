@@ -1,7 +1,10 @@
 use super::super::viz::{EditIdx, VBundle, VEditBundle};
 use crate::{
     data::PlFile,
-    ui::{IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK},
+    ui::{
+        viz::VNamedSecret, IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT,
+        IMG_EDIT_INACTIVE, IMG_OK,
+    },
 };
 use anyhow::anyhow;
 use egui::{Button, Color32, Image, Ui};
@@ -37,6 +40,9 @@ pub(super) fn active_buttons_edit_and_delete(
             v_named_secrets: v_bundle.v_named_secrets.clone(),
             err: None,
         };
+        while edit_bundle.v_named_secrets.len() < 4 {
+            edit_bundle.v_named_secrets.push(VNamedSecret::default());
+        }
     }
 
     ui.add_space(5.);

@@ -5,7 +5,7 @@ pub const WIN_WIDTH: f32 = 900.;
 pub const WIN_HEIGHT: f32 = 700.;
 pub const WIN_MIN_HEIGHT: f32 = 200.;
 
-pub const BUNDLE_HEIGHT: f32 = 100.;
+pub const BUNDLE_HEIGHT: f32 = 120.;
 pub const BUNDLE_WIDTH_BUTTONS: f32 = 20.;
 pub const BUNDLE_WIDTH_LEFT: f32 = 400.;
 pub const BUNDLE_WIDTH_RIGHT: f32 =

@@ -52,7 +52,7 @@ impl Ui {
                     .clicked()
                 {
                     self.v.pl_modal = PlModal::CreateBundle;
-                    self.v.edit_bundle.clear();
+                    self.v.edit_bundle.prepare_for_create();
                 }
 
                 ui.add_space(

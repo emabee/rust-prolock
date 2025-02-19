@@ -9,15 +9,23 @@ impl super::Ui {
     pub(super) fn show_modal(&mut self, ctx: &Context) {
         let id = Id::new(match self.v.pl_modal {
             PlModal::None => return, // happens frequently!!
+            PlModal::CreateBundle => "CreateBundle",
             PlModal::ChangePassword => "ChangePassword",
             PlModal::About => "About",
             PlModal::ChangeLanguage => "ChangeLanguage",
             PlModal::ShowPrintable => "ShowPrintable",
-            PlModal::CreateBundle => "CreateBundle",
         });
 
         let modal_response = Modal::new(id).show(ctx, |ui| match self.v.pl_modal {
             PlModal::None => unreachable!(),
+            PlModal::CreateBundle => create_bundle::create_bundle(
+                &mut self.v.edit_bundle,
+                &mut self.v.pl_modal,
+                &mut self.pl_file,
+                &mut self.v.need_refresh,
+                &self.colors,
+                ui,
+            ),
             PlModal::ChangePassword => change_password::change_password(
                 &mut self.v.pw,
                 &mut self.v.pl_modal,
@@ -27,14 +35,6 @@ impl super::Ui {
             PlModal::About => show_about::show_about(&mut self.v.pl_modal, ui),
             PlModal::ChangeLanguage => todo!("FIXME"),
             PlModal::ShowPrintable => todo!("FIXME"),
-            PlModal::CreateBundle => create_bundle::create_bundle(
-                &mut self.v.edit_bundle,
-                &mut self.v.pl_modal,
-                &mut self.pl_file,
-                &mut self.v.need_refresh,
-                &self.colors,
-                ui,
-            ),
         });
 
         if modal_response.should_close()

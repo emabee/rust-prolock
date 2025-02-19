@@ -40,13 +40,6 @@ Backlog:
     - Konkretere Beispiele erzeugen
     - sehr viele Beispiele erzeugen
 
-- Drei-Punkt Menu rechts oben
-    - Passwort ändern…
-    - Über prolock…
-    - Druck-Option: alles als druckbaren Text serialisieren und anzeigen
-
-- About + Hilfe
-
 ******************************************* */
 
 fn main() -> ExitCode {

@@ -1,6 +1,6 @@
 mod actionable;
 mod assets;
-mod modal;
+mod modals;
 mod password;
 pub mod sizes;
 mod top_panel;

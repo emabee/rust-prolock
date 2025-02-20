@@ -35,7 +35,6 @@ impl Ui {
                     |ui| {
                         if ui.button(t!("❓About ProLock")).clicked() {
                             self.v.pl_modal = PlModal::About;
-                            // FIXME
                             ui.close_menu();
                         }
                         if ui

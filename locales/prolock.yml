@@ -69,9 +69,12 @@ The passwords don't match:
 'entries_with_secrets %{n1} %{n2}':
   en: '%{n1} entries with %{n2} secrets'
   de: '%{n1} Einträge mit %{n2} Geheimnissen'
+Press this button to create an entry:
+  en: Press this button to create an entry
+  de: Hier drücken um einen Eintrag zu erzeugen
 'add_bundle: bundle %{b} exists already':
-  en: 'add_bundle: bundle %{b} exists already'
-  de: 'add_bundle: Eintrag %{bundle} existiert bereits'
+  en: 'entry %{b} exists already'
+  de: 'Eintrag %{bundle} existiert bereits'
 Cannot save because not all secrets are in correct state:
   en: Cannot save because not all secrets are in correct state
   de: Speichern schlägt fehl, weil nicht alle Secrets im erwarteten Zustand sind

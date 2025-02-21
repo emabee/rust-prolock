@@ -22,7 +22,7 @@ pub(super) fn change_language(
                 for supported_language in &SUPPORTED_LANGUAGES {
                     ui.selectable_value(
                         &mut lang.selected,
-                        &supported_language,
+                        supported_language,
                         supported_language.1,
                     );
                 }
@@ -43,7 +43,7 @@ pub(super) fn change_language(
                 )
                 .clicked()
             {
-                match pl_file.set_language(&lang.selected.0) {
+                match pl_file.set_language(lang.selected.0) {
                     Ok(()) => {
                         *pl_modal = PlModal::None;
                     }

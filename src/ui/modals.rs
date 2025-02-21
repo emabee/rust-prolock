@@ -40,7 +40,7 @@ impl super::Ui {
                 &mut self.pl_file,
                 ui,
             ),
-            PlModal::ShowPrintable => todo!("FIXME"),
+            PlModal::ShowPrintable => todo!("TODO"),
         });
 
         if modal_response.should_close()

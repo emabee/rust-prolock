@@ -68,8 +68,8 @@ pub struct Lang {
 impl Default for Lang {
     fn default() -> Self {
         Self {
-            current: &DEFAULT_LANGUAGE,
-            selected: &DEFAULT_LANGUAGE,
+            current: DEFAULT_LANGUAGE,
+            selected: DEFAULT_LANGUAGE,
             err: None,
         }
     }

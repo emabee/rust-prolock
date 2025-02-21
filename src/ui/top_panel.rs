@@ -54,7 +54,7 @@ impl Ui {
                             )
                             .clicked()
                         {
-                            self.v.lang.init(&self.pl_file.language());
+                            self.v.lang.init(self.pl_file.language());
                             self.v.pl_modal = PlModal::ChangeLanguage;
                             ui.close_menu();
                         }
@@ -65,7 +65,7 @@ impl Ui {
                             )
                             .clicked()
                         {
-                            // FIXME
+                            // TODO
                             self.v.pl_modal = PlModal::ShowPrintable;
                             ui.close_menu();
                         }

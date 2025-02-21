@@ -4,9 +4,6 @@ use std::collections::{btree_map::Entry, BTreeMap};
 
 // All bundles in the file.
 //
-// `Bundles` do not contain ...FIXME
-// How do we do inserts, updates, deletes, and keep the sequence and the secret up-to-date?
-//
 // When doing the desired modifications to `bundles`, we
 // - always make sure that `bundles` only contain Passwords in variant Ref and that the
 //   referenced value in Secret exists and is up-to-date

@@ -459,7 +459,7 @@ impl PlFile {
 
     #[cfg(test)]
     pub(crate) fn content_is_equal_to(&self, other: &PlFile) -> bool {
-        // TODO does not compare everything, esp. not the secret values!
+        // does not compare everything, esp. not the secret values!
         self.file_path == other.file_path
             && self
                 .stored

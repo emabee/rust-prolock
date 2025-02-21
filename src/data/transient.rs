@@ -38,7 +38,7 @@ impl Transient {
     }
 
     pub(crate) fn add_secret_value(&mut self, s: String) -> u64 {
-        let idx = self.seq_for_secret_refs.next().unwrap(/* TODO */);
+        let idx = self.seq_for_secret_refs.next().unwrap(/*ok*/);
         self.secrets.add(idx, s);
         idx
     }

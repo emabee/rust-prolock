@@ -117,26 +117,26 @@ pub(super) fn change_password(
             {
                 *pl_modal = PlModal::None;
             }
-
-            if go_for_it {
-                match pl_file.check_password(&pw.old) {
-                    Err(e) => pw.error = Some(e.to_string()),
-                    Ok(()) => {
-                        if pw.pw1 == pw.pw2 {
-                            match pl_file.change_password(&pw.old, pw.pw1.clone()) {
-                                Ok(()) => {
-                                    *pl_modal = PlModal::None;
-                                }
-                                Err(e) => {
-                                    pw.error = Some(e.to_string());
-                                }
-                            }
-                        } else {
-                            pw.error = Some(t!("The passwords don't match").to_string());
-                        }
-                    }
-                }
-            }
         },
     );
+
+    if go_for_it {
+        match pl_file.check_password(&pw.old) {
+            Err(e) => pw.error = Some(e.to_string()),
+            Ok(()) => {
+                if pw.pw1 == pw.pw2 {
+                    match pl_file.change_password(&pw.old, pw.pw1.clone()) {
+                        Ok(()) => {
+                            *pl_modal = PlModal::None;
+                        }
+                        Err(e) => {
+                            pw.error = Some(e.to_string());
+                        }
+                    }
+                } else {
+                    pw.error = Some(t!("The passwords don't match").to_string());
+                }
+            }
+        }
+    }
 }

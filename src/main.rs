@@ -33,17 +33,21 @@ use std::{
 /* TODOs *************************************
 
 Backlog:
+- Drucken
+- Username mit verschlüsseln
+- visuell klarstellen, dass die rechte Seite verschlüsselt wird, die linke nicht
+- Zusätzliches random dummy field mit variabler Länge einführen, das mit verschlüsselt wird
+
 - Header visuell abheben
-- show some start-help text when plfile is empty
 - Suchfeld, um Einträge schnell finden zu können
     - Konkretere Beispiele erzeugen
     - sehr viele Beispiele erzeugen
-
 ******************************************* */
+pub(crate) type Language = (&'static str, &'static str);
+pub(crate) const SUPPORTED_LANGUAGES: [Language; 2] = [("en", "English"), ("de", "Deutsch")];
+pub(crate) const DEFAULT_LANGUAGE: &Language = &SUPPORTED_LANGUAGES[0];
 
 fn main() -> ExitCode {
-    rust_i18n::set_locale("de");
-
     i18n!("locales", fallback = "en");
 
     match run() {

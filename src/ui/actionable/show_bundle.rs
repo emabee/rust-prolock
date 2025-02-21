@@ -105,7 +105,7 @@ pub(crate) fn show_cred(
                         .text_color(colors.user)
                         .interactive(true),
                 )
-                .on_hover_text(t!("Username"));
+                .on_hover_text(t!("_hover_username"));
             });
             cred_strip.cell(|ui| {
                 set_faded_bg_color(ui, 20., color_switch);

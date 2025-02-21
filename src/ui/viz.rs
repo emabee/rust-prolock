@@ -1,7 +1,9 @@
-use crate::data::{Bundle, Bundles, Secret, Transient};
+use crate::{
+    data::{Bundle, Bundles, Secret, Transient},
+    DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
+};
 use std::time::Instant;
 
-#[derive(Default)]
 pub struct V {
     pub pw: Pw,
     pub search: String,
@@ -10,10 +12,20 @@ pub struct V {
     pub edit_idx: EditIdx,
     pub edit_bundle: VEditBundle,
     pub need_refresh: bool,
+    pub lang: Lang,
 }
 impl V {
     pub(crate) fn new() -> Self {
-        V::default()
+        Self {
+            pw: Pw::default(),
+            search: String::default(),
+            pl_modal: PlModal::default(),
+            bundles: Vec::<VBundle>::default(),
+            edit_idx: EditIdx::default(),
+            edit_bundle: VEditBundle::default(),
+            need_refresh: bool::default(),
+            lang: Lang::default(),
+        }
     }
 
     pub(crate) fn reset_bundles(&mut self, bundles: &Bundles, transient: &Transient) {
@@ -46,6 +58,31 @@ pub enum PlModal {
     ChangePassword,
     ChangeLanguage,
     ShowPrintable,
+}
+
+pub struct Lang {
+    pub current: &'static (&'static str, &'static str),
+    pub selected: &'static (&'static str, &'static str),
+    pub err: Option<String>,
+}
+impl Default for Lang {
+    fn default() -> Self {
+        Self {
+            current: &DEFAULT_LANGUAGE,
+            selected: &DEFAULT_LANGUAGE,
+            err: None,
+        }
+    }
+}
+impl Lang {
+    pub(crate) fn init(&mut self, lang_short: &str) {
+        self.current = SUPPORTED_LANGUAGES
+            .iter()
+            .find(|(short, _long)| lang_short == *short)
+            .unwrap_or(DEFAULT_LANGUAGE);
+        self.selected = self.current;
+        self.err = None;
+    }
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]

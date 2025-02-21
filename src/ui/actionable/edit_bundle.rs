@@ -28,7 +28,7 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
                 set_faded_bg_color(ui, 20.);
                 ui.add(
                     TextEdit::singleline(&mut edit_bundle.name)
-                        .hint_text(t!("unique_name"))
+                        .hint_text(t!("_unique_name"))
                         .desired_width(400.)
                         .clip_text(true)
                         .font(FontId {
@@ -85,7 +85,7 @@ pub(crate) fn single_cred(
                 set_faded_bg_color(ui, 20.);
                 ui.add(
                     TextEdit::singleline(&mut named_secret.name)
-                        .hint_text(t!("User name etc"))
+                        .hint_text(t!("_hint_username"))
                         .desired_width(200.)
                         .clip_text(true)
                         .text_color(colors.user)

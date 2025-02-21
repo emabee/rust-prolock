@@ -1,7 +1,5 @@
-use crate::ui::viz::PlModal;
-
-use super::{
-    viz::{Pw, PwFocus},
+use crate::ui::{
+    viz::{PlModal, Pw, PwFocus},
     Ui, IMG_BURGER,
 };
 use egui::{
@@ -56,7 +54,7 @@ impl Ui {
                             )
                             .clicked()
                         {
-                            // FIXME
+                            self.v.lang.init(&self.pl_file.language());
                             self.v.pl_modal = PlModal::ChangeLanguage;
                             ui.close_menu();
                         }

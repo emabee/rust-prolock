@@ -1,6 +1,7 @@
 use super::viz::PlModal;
 use egui::{Context, Id, Modal};
 
+mod change_language;
 mod change_password;
 mod create_bundle;
 mod show_about;
@@ -17,7 +18,7 @@ impl super::Ui {
         });
 
         let modal_response = Modal::new(id).show(ctx, |ui| match self.v.pl_modal {
-            PlModal::None => unreachable!(),
+            PlModal::None => unreachable!(), // because of 'return' above
             PlModal::CreateBundle => create_bundle::create_bundle(
                 &mut self.v.edit_bundle,
                 &mut self.v.pl_modal,
@@ -33,7 +34,12 @@ impl super::Ui {
                 ui,
             ),
             PlModal::About => show_about::show_about(&mut self.v.pl_modal, ui),
-            PlModal::ChangeLanguage => todo!("FIXME"),
+            PlModal::ChangeLanguage => change_language::change_language(
+                &mut self.v.lang,
+                &mut self.v.pl_modal,
+                &mut self.pl_file,
+                ui,
+            ),
             PlModal::ShowPrintable => todo!("FIXME"),
         });
 

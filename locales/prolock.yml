@@ -72,6 +72,12 @@ The passwords don't match:
 Press this button to create an entry:
   en: Press this button to create an entry
   de: Hier drücken um einen Eintrag zu erzeugen
+'Current language:':
+  en: 'Current language:'
+  de: 'Aktuelle Sprache:'
+'New language:':
+  en: 'New language:'
+  de: 'Gewünschte Sprache:'
 'add_bundle: bundle %{b} exists already':
   en: 'entry %{b} exists already'
   de: 'Eintrag %{bundle} existiert bereits'
@@ -84,17 +90,17 @@ Cannot save because the file was updated concurrently:
 Cannot save because the password is not set:
   en: Cannot save because the password is not set
   de: Speichern schlägt fehl, weil das Passwort nicht gesetzt ist
+_unique_name:
+  en: 'Unique name of the new entry (e.g. ''Banco Rotto'')'
+  de: 'Name des neuen Eintrags (z.B. ''Banco Rotto'')'
 Further description (optional):
   en: Further description (optional)
   de: Weitere Beschreibung (optional)
 _hint_secret:
   en: Secret (password etc)
   de: Geheimnis (Passwort etc)
-unique_name:
-  en: 'Unique name of the new entry (e.g. ''Banco Rotto'')'
-  de: 'Name des neuen Eintrags (z.B. ''Banco Rotto'')'
-User name etc:
-  en: User name etc
+_hint_username:
+  en: Username etc
   de: Benutzername etc
 'delete_bundle: bundle ''%{key}'' does not exist':
   en: 'delete_bundle: bundle ''%{key}'' does not exist'
@@ -132,7 +138,7 @@ Description:
 Name of the entry:
   en: Name of the entry
   de: Name des Eintrags
-Username:
+_hover_username:
   en: Username etc
   de: Benutzername etc
 Secret:

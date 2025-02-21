@@ -173,6 +173,19 @@ impl PlFile {
         Ok(())
     }
 
+    pub(crate) fn language(&self) -> &str {
+        &self.stored.readable.header.language
+    }
+
+    pub(crate) fn set_language(&mut self, new_lang: &str) -> Result<()> {
+        if self.stored.readable.header.language != new_lang {
+            self.stored.readable.header.language = new_lang.to_string();
+            self.save()?;
+            rust_i18n::set_locale(new_lang);
+        }
+        Ok(())
+    }
+
     pub(crate) fn change_password(&mut self, old_pw: &str, new_pw: String) -> Result<()> {
         self.check_password(old_pw)?;
         if let Some(ref mut transient) = self.o_transient {

@@ -108,7 +108,6 @@ impl Ui {
                     self.pl_file.transient().unwrap(/*should never fail*/),
                 );
                 if self.pl_file.is_empty() {
-                    // FIXME directly open create bundle popup?
                     self.v.edit_bundle.prepare_for_create();
                 }
             }

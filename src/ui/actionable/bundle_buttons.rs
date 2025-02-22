@@ -2,8 +2,8 @@ use super::super::viz::{EditIdx, VBundle, VEditBundle};
 use crate::{
     data::PlFile,
     ui::{
-        viz::VNamedSecret, IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT,
-        IMG_EDIT_INACTIVE, IMG_OK,
+        viz::VCred, IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE,
+        IMG_OK,
     },
 };
 use anyhow::anyhow;
@@ -37,11 +37,11 @@ pub(super) fn active_buttons_edit_and_delete(
             orig_name: v_bundle.name.clone(),
             name: v_bundle.name.clone(),
             description: v_bundle.description.to_string(),
-            v_named_secrets: v_bundle.v_named_secrets.clone(),
+            v_creds: v_bundle.v_creds.clone(),
             err: None,
         };
-        while edit_bundle.v_named_secrets.len() < 4 {
-            edit_bundle.v_named_secrets.push(VNamedSecret::default());
+        while edit_bundle.v_creds.len() < 4 {
+            edit_bundle.v_creds.push(VCred::default());
         }
     }
 

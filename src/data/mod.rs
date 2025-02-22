@@ -5,7 +5,7 @@ mod secret;
 mod secrets;
 mod transient;
 
-pub(crate) use bundle::Bundle;
+pub(crate) use bundle::{Bundle, Cred};
 pub(crate) use bundles::Bundles;
 pub(crate) use pl_file::{PlFile, Readable};
 pub(crate) use secret::Secret;

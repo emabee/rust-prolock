@@ -2,6 +2,7 @@
 
 ## Data structures
 
+```text
     PlFile
         - stored: Stored
             * readable: Readable
@@ -12,44 +13,49 @@
                     * Bundles: BTreeMap<String, Bundle>
                         * Bundle
                             * description: String,
-                            * named_secrets: BTreeMap<String, Secret>,
+                            * creds: BTreeMap<String, Secret>,
                                 * enum Secret{New(String), Ref(u64)}
             * cipher: String
         - o_transient: Option<Transient>
             * storage_password: SecUtf8
             * seq_for_secret_refs: Sequence<u64>
             * secrets: Secrets(HashMap<u64, String>)
+```
 
 ```mermaid
     flowchart LR
 
-    subgraph stored: Stored
-        direction LR
-        subgraph readable: Readable
-            subgraph header: FileHeader
-                format_version
-                update_counter
-            end
-            subgraph content: NamedBundles
-                subgraph Bundle
-                    direction LR
-                    description
-                    subgraph named_secrets
-                        Secret:Ref
+    subgraph pl_file: PlFile
+        subgraph stored: Stored
+            direction LR
+            subgraph readable: Readable
+                subgraph header: FileHeader
+                    format_version
+                    language
+                    update_counter
+                end
+                subgraph content: NamedBundles
+                    subgraph Bundle
+                        direction LR
+                        description
+                        subgraph creds
+                            Secret:Ref
+                        end
                     end
                 end
             end
+            subgraph cipher
+                C(unreadable ciphertext)
+            end
         end
-        subgraph cipher
-            C(unreadable ciphertext)
+
+        subgraph transient
+            storage_password
+            seq_for_secret_refs
+            Secrets:Hashmap
         end
     end
 
-    subgraph transient
-        storage_password
-        seq_for_secret_refs
-        Secrets:Hashmap
-    end
 
     Secret:Ref -- u64 --> Secrets:Hashmap
     Secrets:Hashmap -. encrypt .-> cipher
@@ -63,7 +69,7 @@ classDef class4 fill:#ff9,stroke:#333,stroke-width:1px;
 class readable class1
 class content:NamedBundles,header class2
 class Bundle class3
-class named_secrets class4
+class creds class4
 ```
 
 ## Main flow

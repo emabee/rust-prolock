@@ -1,4 +1,4 @@
-use super::super::viz::{VEditBundle, VNamedSecret};
+use super::super::viz::{VCred, VEditBundle};
 use super::Colors;
 use egui::{Button, Color32, Context, FontFamily, FontId, Rgba, ScrollArea, TextEdit, Ui};
 use egui_extras::{Size, Strip, StripBuilder};
@@ -61,11 +61,11 @@ fn right_part(
     right_builder: StripBuilder<'_>,
 ) {
     right_builder
-        .sizes(Size::exact(20.), edit_bundle.v_named_secrets.len())
+        .sizes(Size::exact(20.), edit_bundle.v_creds.len())
         .vertical(|mut right_strip| {
-            for named_secret in &mut edit_bundle.v_named_secrets {
+            for v_cred in &mut edit_bundle.v_creds {
                 right_strip.strip(|cred_builder| {
-                    single_cred(ctx, colors, named_secret, cred_builder);
+                    single_cred(ctx, colors, v_cred, cred_builder);
                 });
             }
         });
@@ -74,7 +74,7 @@ fn right_part(
 pub(crate) fn single_cred(
     ctx: &Context,
     colors: &Colors,
-    named_secret: &mut VNamedSecret,
+    v_cred: &mut VCred,
     cred_builder: StripBuilder<'_>,
 ) {
     cred_builder
@@ -84,7 +84,7 @@ pub(crate) fn single_cred(
             cred_strip.cell(|ui| {
                 set_faded_bg_color(ui, 20.);
                 ui.add(
-                    TextEdit::singleline(&mut named_secret.name)
+                    TextEdit::singleline(&mut v_cred.name)
                         .hint_text(t!("_hint_username"))
                         .desired_width(200.)
                         .clip_text(true)
@@ -96,35 +96,35 @@ pub(crate) fn single_cred(
                 set_faded_bg_color(ui, 20.);
                 let response = ui
                     .add(
-                        TextEdit::singleline(&mut named_secret.secret)
+                        TextEdit::singleline(&mut v_cred.secret)
                             .hint_text(t!("_hint_secret"))
                             .desired_width(160.)
                             .clip_text(true)
                             .text_color(colors.secret)
-                            .password(!named_secret.show_secret)
+                            .password(!v_cred.show_secret)
                             .interactive(true),
                     )
                     .on_hover_ui(|ui| {
                         ui.style_mut().interaction.selectable_labels = true;
-                        match named_secret.copied_at {
+                        match v_cred.copied_at {
                             None => {
                                 if ui
                                     .add(Button::new(t!("_copy")).min_size([60., 10.].into()))
                                     .clicked()
                                 {
-                                    ctx.copy_text(named_secret.secret.clone());
-                                    named_secret.copied_at = Some(std::time::Instant::now());
+                                    ctx.copy_text(v_cred.secret.clone());
+                                    v_cred.copied_at = Some(std::time::Instant::now());
                                 }
                             }
                             Some(instant) => {
                                 ui.label(t!("_copied"));
                                 if instant.elapsed() > std::time::Duration::from_millis(800) {
-                                    named_secret.copied_at = None;
+                                    v_cred.copied_at = None;
                                 }
                             }
                         }
                     });
-                named_secret.show_secret = response.hovered();
+                v_cred.show_secret = response.hovered();
             });
         });
 }

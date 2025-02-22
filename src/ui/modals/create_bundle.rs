@@ -1,7 +1,7 @@
 use crate::{
     ui::{
         sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
-        viz::{PlModal, VEditBundle, VNamedSecret},
+        viz::{PlModal, VCred, VEditBundle},
         Colors, IMG_CANCEL, IMG_SAVE,
     },
     PlFile,
@@ -126,17 +126,17 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
 
 fn right_part(colors: &Colors, edit_bundle: &mut VEditBundle, right_builder: StripBuilder<'_>) {
     right_builder
-        .sizes(Size::exact(20.), edit_bundle.v_named_secrets.len())
+        .sizes(Size::exact(20.), edit_bundle.v_creds.len())
         .vertical(|mut right_strip| {
-            for named_secret in &mut edit_bundle.v_named_secrets {
+            for v_cred in &mut edit_bundle.v_creds {
                 right_strip.strip(|cred_builder| {
-                    single_cred(colors, named_secret, cred_builder);
+                    single_cred(colors, v_cred, cred_builder);
                 });
             }
         });
 }
 
-fn single_cred(colors: &Colors, named_secret: &mut VNamedSecret, cred_builder: StripBuilder<'_>) {
+fn single_cred(colors: &Colors, v_cred: &mut VCred, cred_builder: StripBuilder<'_>) {
     cred_builder
         .size(Size::exact(210.))
         .size(Size::exact(170.))
@@ -144,7 +144,7 @@ fn single_cred(colors: &Colors, named_secret: &mut VNamedSecret, cred_builder: S
             cred_strip.cell(|ui| {
                 set_faded_bg_color(ui, 20.);
                 ui.add(
-                    TextEdit::singleline(&mut named_secret.name)
+                    TextEdit::singleline(&mut v_cred.name)
                         .hint_text(t!("_hint_username"))
                         .desired_width(200.)
                         .clip_text(true)
@@ -156,18 +156,18 @@ fn single_cred(colors: &Colors, named_secret: &mut VNamedSecret, cred_builder: S
                 set_faded_bg_color(ui, 20.);
                 let response = ui
                     .add(
-                        TextEdit::singleline(&mut named_secret.secret)
+                        TextEdit::singleline(&mut v_cred.secret)
                             .hint_text(t!("_hint_secret"))
                             .desired_width(160.)
                             .clip_text(true)
                             .text_color(colors.secret)
-                            .password(!named_secret.show_secret)
+                            .password(!v_cred.show_secret)
                             .interactive(true),
                     )
                     .on_hover_ui(|ui| {
                         ui.style_mut().interaction.selectable_labels = true;
                     });
-                named_secret.show_secret = response.hovered();
+                v_cred.show_secret = response.hovered();
             });
         });
 }

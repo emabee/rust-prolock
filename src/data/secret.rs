@@ -8,6 +8,10 @@ pub(crate) enum Secret {
     Ref(u64),
 }
 impl Secret {
+    // pub fn is_ref(&self) -> bool {
+    //     matches!(self, Secret::Ref(_))
+    // }
+
     pub fn disclose(&self, transient: &Transient) -> String {
         match self {
             Secret::New(s) => s.clone(),
@@ -17,12 +21,6 @@ impl Secret {
                 .to_string(),
         }
     }
-    // pub fn reff(&self) -> u64 {
-    //     match self {
-    //         Secret::New(_) => unreachable!("Secret::New"),
-    //         Secret::Ref(i) => *i,
-    //     }
-    // }
 }
 impl Default for Secret {
     fn default() -> Self {

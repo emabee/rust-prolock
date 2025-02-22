@@ -29,20 +29,17 @@ impl Bundles {
     }
 
     pub fn count_secrets(&self) -> usize {
-        self.0
-            .values()
-            .map(|bundle| bundle.named_secrets.len())
-            .sum()
+        self.0.values().map(|bundle| bundle.creds.len()).sum()
     }
 
     pub fn contains_key(&self, key: &str) -> bool {
         self.0.contains_key(key)
     }
 
-    #[cfg(test)]
-    pub fn get(&self, key: &str) -> Option<&Bundle> {
-        self.0.get(key)
-    }
+    // #[cfg(test)]
+    // pub fn get(&self, key: &str) -> Option<&Bundle> {
+    //     self.0.get(key)
+    // }
 
     pub fn add<S>(&mut self, key: S, mut bundle: Bundle, transient: &mut Transient) -> Result<()>
     where
@@ -82,16 +79,6 @@ impl Bundles {
         }
     }
 
-    // pub fn remove_bundle_keep_refs<S>(&mut self, key: S) -> Result<()>
-    // where
-    //     S: AsRef<str>,
-    // {
-    //     match self.0.remove_entry(key.as_ref()) {
-    //         None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
-    //         Some((_key, _bundle)) => Ok(()),
-    //     }
-    // }
-
     pub fn remove_bundle_with_refs<S>(&mut self, key: S, transient: &mut Transient) -> Result<()>
     where
         S: AsRef<str>,
@@ -99,8 +86,11 @@ impl Bundles {
         match self.0.remove_entry(key.as_ref()) {
             None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
             Some((_key, bundle)) => {
-                for (_, secret) in bundle.named_secrets {
-                    if let Secret::Ref(idx) = secret {
+                for cred in bundle.creds {
+                    if let Secret::Ref(idx) = cred.name {
+                        transient.remove_secret(idx);
+                    }
+                    if let Secret::Ref(idx) = cred.secret {
                         transient.remove_secret(idx);
                     }
                 }

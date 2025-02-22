@@ -1,5 +1,4 @@
 use super::{secret::Secret, Transient};
-use std::collections::BTreeMap;
 
 // A bundle.
 //
@@ -10,59 +9,18 @@ use std::collections::BTreeMap;
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
 pub(crate) struct Bundle {
     pub description: String,
-    pub named_secrets: BTreeMap<String, Secret>,
+    pub creds: Vec<Cred>,
 }
 impl Bundle {
-    #[cfg(test)]
-    pub fn new<S: AsRef<str>>(description: S) -> Self {
-        Self {
-            description: description.as_ref().to_string(),
-            named_secrets: BTreeMap::new(),
-        }
-    }
-
-    #[cfg(test)]
-    pub fn new_with_creds<S: AsRef<str> + Ord>(description: &S, creds: &[(S, S)]) -> Self {
-        let mut named_secrets: BTreeMap<String, Secret> = BTreeMap::new();
-        for (name, secret) in creds {
-            named_secrets.insert(
-                name.as_ref().to_string(),
-                Secret::New(secret.as_ref().to_string()),
-            );
-        }
-        Self {
-            description: description.as_ref().to_string(),
-            named_secrets,
-        }
-    }
-
-    #[cfg(test)]
-    #[must_use]
-    pub fn len(&self) -> usize {
-        self.named_secrets.len()
-    }
-
-    // #[cfg(test)]
-    // #[must_use]
-    // pub fn is_empty(&self) -> bool {
-    //     self.len() == 0
-    // }
-
-    // #[cfg(test)]
-    // pub fn update_description(&mut self, description: &str) {
-    //     self.description.clear();
-    //     self.description.insert_str(0, description);
-    // }
-    #[cfg(test)]
-    pub fn add_cred(&mut self, id: String, password: String) {
-        self.named_secrets.insert(id, Secret::New(password));
-    }
-
     pub(super) fn convert_new_secrets_to_refs(&mut self, transient: &mut Transient) {
-        for pw in self.named_secrets.values_mut() {
-            if let Secret::New(s) = pw {
+        for cred in &mut self.creds {
+            if let Secret::New(s) = &cred.name {
                 let ref_value = transient.add_secret_value(s.clone());
-                *pw = Secret::Ref(ref_value);
+                cred.name = Secret::Ref(ref_value);
+            }
+            if let Secret::New(s) = &cred.secret {
+                let ref_value = transient.add_secret_value(s.clone());
+                cred.secret = Secret::Ref(ref_value);
             }
         }
     }
@@ -70,8 +28,9 @@ impl Bundle {
     pub fn refs(&self) -> (Vec<u64>, bool) {
         let mut found_non_reffed_secrets = false;
         (
-            self.named_secrets
-                .values()
+            self.creds
+                .iter()
+                .flat_map(|t| [&t.name, &t.secret].into_iter())
                 .filter_map(|secret| {
                     if let Secret::Ref(n) = secret {
                         Some(*n)
@@ -86,15 +45,37 @@ impl Bundle {
     }
 
     pub(super) fn is_storable(&self) -> bool {
-        for pw in self.named_secrets.values() {
-            if let Secret::New(_) = *pw {
+        for cred in &self.creds {
+            if let Secret::New(_) = cred.name {
+                return false;
+            }
+            if let Secret::New(_) = cred.secret {
                 return false;
             }
         }
         true
     }
+}
 
-    pub(super) fn secret_value(&self, name: &str, transient: &Transient) -> String {
-        self.named_secrets[name].disclose(transient)
+#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+pub(crate) struct Cred {
+    pub name: Secret,
+    pub secret: Secret,
+}
+impl Cred {
+    pub(crate) fn new(name: String, password: String) -> Self {
+        Self {
+            name: Secret::New(name),
+            secret: Secret::New(password),
+        }
+    }
+    // pub(crate) fn is_storable(&self) -> bool {
+    //     self.name.is_ref() && self.secret.is_ref()
+    // }
+    pub(crate) fn name(&self, transient: &Transient) -> String {
+        self.name.disclose(transient)
+    }
+    pub(crate) fn secret(&self, transient: &Transient) -> String {
+        self.secret.disclose(transient)
     }
 }

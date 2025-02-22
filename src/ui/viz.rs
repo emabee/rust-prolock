@@ -1,5 +1,5 @@
 use crate::{
-    data::{Bundle, Bundles, Secret, Transient},
+    data::{Bundle, Bundles, Cred, Transient},
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
 };
 use std::time::Instant;
@@ -34,12 +34,12 @@ impl V {
             .map(|(name, bundle)| VBundle {
                 name: name.to_string(),
                 description: bundle.description.clone(),
-                v_named_secrets: bundle
-                    .named_secrets
+                v_creds: bundle
+                    .creds
                     .iter()
-                    .map(|(name, secret)| VNamedSecret {
-                        name: name.clone(),
-                        secret: secret.disclose(transient),
+                    .map(|cred| VCred {
+                        name: cred.name(transient),
+                        secret: cred.secret(transient),
                         show_secret: false,
                         copied_at: None,
                     })
@@ -135,11 +135,11 @@ pub enum PwFocus {
 pub struct VBundle {
     pub name: String,
     pub description: String,
-    pub v_named_secrets: Vec<VNamedSecret>,
+    pub v_creds: Vec<VCred>,
 }
 
 #[derive(Clone, Default)]
-pub struct VNamedSecret {
+pub struct VCred {
     pub name: String,
     pub secret: String,
     pub show_secret: bool,
@@ -151,43 +151,25 @@ pub struct VEditBundle {
     pub orig_name: String,
     pub name: String,
     pub description: String,
-    pub v_named_secrets: Vec<VNamedSecret>,
+    pub v_creds: Vec<VCred>,
     pub err: Option<String>,
 }
 
 impl VEditBundle {
-    // pub fn from_bundle(name: &str, bundle: &Bundle, transient: &Transient) -> Self {
-    //     VEditBundle {
-    //         orig_name: name.to_string(),
-    //         name: name.to_string(),
-    //         description: bundle.description.clone(),
-    //         v_named_secrets: bundle
-    //             .named_secrets
-    //             .iter()
-    //             .map(|(name, secret)| VNamedSecret {
-    //                 name: name.clone(),
-    //                 secret: secret.disclose(transient),
-    //                 show_secret: false,
-    //                 copied_at: None,
-    //             })
-    //             .collect(),
-    //     }
-    // }
-
     pub fn as_bundle(&self) -> (String, String, Bundle) {
         (
             self.orig_name.to_string(),
             self.name.to_string(),
             Bundle {
                 description: self.description.clone(),
-                named_secrets: self
-                    .v_named_secrets
+                creds: self
+                    .v_creds
                     .iter()
                     .filter_map(|vns| {
                         if vns.name.trim().is_empty() && vns.secret.trim().is_empty() {
                             None
                         } else {
-                            Some((vns.name.clone(), Secret::New(vns.secret.clone())))
+                            Some(Cred::new(vns.name.clone(), vns.secret.clone()))
                         }
                     })
                     .collect(),
@@ -197,9 +179,9 @@ impl VEditBundle {
 
     pub fn prepare_for_create(&mut self) {
         *self = Self::default();
-        self.v_named_secrets.push(VNamedSecret::default());
-        self.v_named_secrets.push(VNamedSecret::default());
-        self.v_named_secrets.push(VNamedSecret::default());
-        self.v_named_secrets.push(VNamedSecret::default());
+        self.v_creds.push(VCred::default());
+        self.v_creds.push(VCred::default());
+        self.v_creds.push(VCred::default());
+        self.v_creds.push(VCred::default());
     }
 }

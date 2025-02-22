@@ -1,17 +1,17 @@
 use std::collections::{hash_map::Keys, HashMap};
-#[cfg(test)]
-use std::fmt::Write;
+// #[cfg(test)]
+// use std::fmt::Write;
 
 // A map from u64 to String, containing the secret values, keyed by some number.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Secrets(HashMap<u64, String>);
 
 impl Secrets {
-    #[cfg(test)]
-    #[must_use]
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
+    // #[cfg(test)]
+    // #[must_use]
+    // pub fn len(&self) -> usize {
+    //     self.0.len()
+    // }
 
     #[must_use]
     pub fn keys(&self) -> Keys<u64, String> {
@@ -31,16 +31,16 @@ impl Secrets {
         self.0.get(&idx)
     }
 
-    #[cfg(test)]
-    pub fn write_keys(&self, w: &mut dyn Write) {
-        let mut keys = self.0.keys().map(Clone::clone).collect::<Vec<u64>>();
-        keys.sort_unstable();
-        write!(w, "[").unwrap();
-        for key in keys {
-            write!(w, "{key},").unwrap();
-        }
-        write!(w, "]").unwrap();
-    }
+    // #[cfg(test)]
+    // pub fn write_keys(&self, w: &mut dyn Write) {
+    //     let mut keys = self.0.keys().map(Clone::clone).collect::<Vec<u64>>();
+    //     keys.sort_unstable();
+    //     write!(w, "[").unwrap();
+    //     for key in keys {
+    //         write!(w, "{key},").unwrap();
+    //     }
+    //     write!(w, "]").unwrap();
+    // }
 }
 
 // impl serde::ser::Serialize for Secret {

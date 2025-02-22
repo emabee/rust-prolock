@@ -46,10 +46,7 @@ impl Bundle {
 
     pub(super) fn is_storable(&self) -> bool {
         for cred in &self.creds {
-            if let Secret::New(_) = cred.name {
-                return false;
-            }
-            if let Secret::New(_) = cred.secret {
+            if !(cred.name.is_ref() && cred.secret.is_ref()) {
                 return false;
             }
         }

@@ -8,9 +8,9 @@ pub(crate) enum Secret {
     Ref(u64),
 }
 impl Secret {
-    // pub fn is_ref(&self) -> bool {
-    //     matches!(self, Secret::Ref(_))
-    // }
+    pub fn is_ref(&self) -> bool {
+        matches!(self, Secret::Ref(_))
+    }
 
     pub fn disclose(&self, transient: &Transient) -> String {
         match self {

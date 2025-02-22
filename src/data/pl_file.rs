@@ -309,7 +309,7 @@ impl PlFile {
         self.stored.readable.header.update_counter.next();
         self.stored.cipher = self
         .o_transient
-        .as_ref()
+        .as_mut()
         .unwrap(/* cannot fail */)
         .as_cipher(&self.stored.readable)?;
 

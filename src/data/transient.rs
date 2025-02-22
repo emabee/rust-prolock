@@ -58,7 +58,8 @@ impl Transient {
         self.storage_password.unsecure()
     }
 
-    pub(crate) fn as_cipher(&self, auth_tag: &Readable) -> Result<String> {
+    pub(crate) fn as_cipher(&mut self, auth_tag: &Readable) -> Result<String> {
+        self.secrets.prepare();
         Ok(ChachaB64::with_pbkdf2_rounds(PBKDF2_ROUNDS)
             .encrypt_auth(
                 serde_json::to_string(&self.secrets)?.as_bytes(),
@@ -67,18 +68,4 @@ impl Transient {
             )?
             .to_string())
     }
-
-    // #[cfg(test)]
-    // pub(crate) fn as_string(&self) -> String {
-    //     let mut result = String::with_capacity(200);
-    //     write!(
-    //         &mut result,
-    //         "{{Transient: {} elements: ",
-    //         self.secrets.len()
-    //     )
-    //     .unwrap();
-    //     self.secrets.write_keys(&mut result);
-    //     write!(&mut result, "}}").ok();
-    //     result
-    // }
 }

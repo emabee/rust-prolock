@@ -11,7 +11,7 @@ impl Ui {
         TopBottomPanel::top("file").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 ui.colored_label(
-                    Color32::LIGHT_GRAY,
+                    Color32::GRAY,
                     RichText::new(self.pl_file.file_path.display().to_string())
                         .family(FontFamily::Monospace),
                 );
@@ -60,12 +60,11 @@ impl Ui {
                         }
                         if ui
                             .add_enabled(
-                                self.pl_file.is_actionable(),
+                                false, //self.pl_file.is_actionable(),
                                 Button::new(t!("📄 Show content as printable document")),
                             )
                             .clicked()
                         {
-                            // TODO
                             self.v.pl_modal = PlModal::ShowPrintable;
                             ui.close_menu();
                         }

@@ -1,4 +1,4 @@
-use egui::{Color32, Hyperlink, Image, RichText, Sides, TextEdit, Ui, Vec2};
+use egui::{Color32, Image, RichText, Sides, TextEdit, Ui};
 
 use crate::ui::{viz::PlModal, IMG_LOGO};
 
@@ -16,9 +16,10 @@ pub(super) fn show_about(pl_modal: &mut PlModal, ui: &mut Ui) {
         ui.vertical(|ui| {
             ui.add(
                 TextEdit::multiline(&mut format!(
-                    "{}\n\n{}\n\nVersion: {}",
-                    "ProLock is a tool for securely storing secrets in a password-protected file.",
-                    "ProLock is written in rust.",
+                    "{}\n\n{}\n\n{}: {}",
+                    t!("_about_1"),
+                    t!("_about_2"),
+                    t!("Version"),
                     env!("CARGO_PKG_VERSION")
                 ))
                 .background_color(Color32::TRANSPARENT),
@@ -26,20 +27,10 @@ pub(super) fn show_about(pl_modal: &mut PlModal, ui: &mut Ui) {
 
             ui.add_space(15.);
 
-            ui.horizontal(|ui| {
-                ui.label("Repository and README:");
-                ui.hyperlink("https://github.com/emabee/rust-prolock");
-            });
-            ui.horizontal(|ui| {
-                ui.spacing_mut().item_spacing = Vec2 { x: 3., y: 0. };
-                ui.label(RichText::new(
-                    "Please provide your suggestions, proposals, wishes, complaints:",
-                ));
-            });
-            ui.add(Hyperlink::from_label_and_url(
-                ".../rust-prolock/issues",
-                "https://github.com/emabee/rust-prolock/issues",
-            ));
+            // ui.horizontal(|ui| {
+            ui.label(t!("_about_3"));
+            ui.hyperlink("https://github.com/emabee/rust-prolock");
+            // });
 
             ui.add_space(15.);
         });

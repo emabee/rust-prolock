@@ -44,6 +44,7 @@ impl App for Ui {
             Theme::Dark => (Color32::LIGHT_BLUE, Color32::LIGHT_RED),
             Theme::Light => (Color32::DARK_BLUE, Color32::DARK_RED),
         };
+
         if self.v.need_refresh {
             self.v.reset_bundles(
                 &self.pl_file.stored.readable.bundles,

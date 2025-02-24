@@ -2,7 +2,7 @@ use super::super::{
     viz::{VBundle, VCred},
     Colors,
 };
-use egui::{Button, Color32, Context, FontFamily, FontId, Rgba, ScrollArea, TextEdit, Ui};
+use egui::{Button, Color32, Context, Rgba, ScrollArea, TextEdit, TextStyle, Ui};
 use egui_extras::{Size, Strip, StripBuilder};
 use either::Either;
 
@@ -34,15 +34,12 @@ fn ui_left_part(index: usize, v_bundle: &VBundle, left_builder: StripBuilder<'_>
         .vertical(|mut left_strip| {
             //name
             left_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20., color);
+                set_faded_bg_color(ui, 95., color, true);
                 ui.add(
                     TextEdit::singleline(&mut v_bundle.name.as_str())
                         .desired_width(330.)
                         .clip_text(true)
-                        .font(FontId {
-                            size: 16.,
-                            family: FontFamily::Proportional,
-                        })
+                        .font(TextStyle::Heading)
                         .interactive(true),
                 )
                 .on_hover_text(t!("Name of the entry"));
@@ -51,7 +48,6 @@ fn ui_left_part(index: usize, v_bundle: &VBundle, left_builder: StripBuilder<'_>
             // description
             left_strip.cell(|ui| {
                 ScrollArea::vertical().show(ui, |ui| {
-                    set_faded_bg_color(ui, f32::INFINITY, color);
                     ui.add_sized(
                         [380., 80.],
                         TextEdit::multiline(&mut v_bundle.description.as_str()).interactive(true),
@@ -72,15 +68,18 @@ fn ui_right_part(
     right_builder
         .sizes(Size::exact(20.), v_bundle.v_creds.len())
         .vertical(|mut right_strip| {
+            let mut first = true;
             for v_cred in &mut v_bundle.v_creds {
                 right_strip.strip(|cred_builder| {
-                    show_cred(ctx, colors, index, v_cred, cred_builder);
+                    show_cred(first, ctx, colors, index, v_cred, cred_builder);
+                    first = false;
                 });
             }
         });
 }
 
 pub(crate) fn show_cred(
+    first: bool,
     ctx: &Context,
     colors: &Colors,
     index: usize,
@@ -97,7 +96,9 @@ pub(crate) fn show_cred(
         .size(Size::exact(170.))
         .horizontal(|mut cred_strip| {
             cred_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20., color_switch);
+                if first {
+                    set_faded_bg_color(ui, 95., color_switch, false);
+                }
                 ui.add(
                     TextEdit::singleline(&mut v_cred.name.as_str())
                         .desired_width(200.)
@@ -108,7 +109,9 @@ pub(crate) fn show_cred(
                 .on_hover_text(t!("_hover_username"));
             });
             cred_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20., color_switch);
+                if first {
+                    set_faded_bg_color(ui, 95., color_switch, false);
+                }
                 let response = ui
                     .add(
                         TextEdit::singleline(&mut v_cred.secret.as_str())
@@ -144,26 +147,19 @@ pub(crate) fn show_cred(
         });
 }
 
-fn set_faded_bg_color(ui: &mut Ui, height: f32, color_switch: Either<(), ()>) {
-    let dark_mode = ui.visuals().dark_mode;
+fn set_faded_bg_color(ui: &mut Ui, height: f32, color_switch: Either<(), ()>, left: bool) {
     let bg_color = ui.visuals().window_fill();
-    let t = if color_switch.is_left() {
-        if dark_mode {
-            0.95
-        } else {
-            0.91
-        }
-    } else if dark_mode {
-        0.95
-    } else {
-        0.8
-    };
+    let t = if color_switch.is_left() { 0.91 } else { 0.8 };
 
     let mut rect = ui.available_rect_before_wrap();
     rect.set_height(height);
     ui.painter().rect_filled(
         rect,
         0.0,
-        egui::lerp(Rgba::from(Color32::DARK_BLUE)..=Rgba::from(bg_color), t),
+        if left {
+            egui::lerp(Rgba::from(Color32::DARK_GRAY)..=Rgba::from(bg_color), t)
+        } else {
+            egui::lerp(Rgba::from(Color32::DARK_BLUE)..=Rgba::from(bg_color), t)
+        },
     );
 }

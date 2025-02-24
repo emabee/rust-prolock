@@ -1,6 +1,8 @@
-use super::super::viz::{VCred, VEditBundle};
-use super::Colors;
-use egui::{Button, Color32, Context, FontFamily, FontId, Rgba, ScrollArea, TextEdit, Ui};
+use crate::ui::{
+    viz::{VCred, VEditBundle},
+    Colors,
+};
+use egui::{Button, Context, FontFamily, FontId, ScrollArea, TextEdit};
 use egui_extras::{Size, Strip, StripBuilder};
 
 pub(crate) fn ui(
@@ -25,7 +27,6 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
         .vertical(|mut left_strip| {
             //name
             left_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20.);
                 ui.add(
                     TextEdit::singleline(&mut edit_bundle.name)
                         .hint_text(t!("_unique_name"))
@@ -42,7 +43,6 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
             // description
             left_strip.cell(|ui| {
                 ScrollArea::vertical().show(ui, |ui| {
-                    set_faded_bg_color(ui, f32::INFINITY);
                     ui.add_sized(
                         [400., 80.],
                         TextEdit::multiline(&mut edit_bundle.description)
@@ -82,7 +82,6 @@ pub(crate) fn single_cred(
         .size(Size::exact(170.))
         .horizontal(|mut cred_strip| {
             cred_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20.);
                 ui.add(
                     TextEdit::singleline(&mut v_cred.name)
                         .hint_text(t!("_hint_username"))
@@ -93,7 +92,6 @@ pub(crate) fn single_cred(
                 );
             });
             cred_strip.cell(|ui| {
-                set_faded_bg_color(ui, 20.);
                 let response = ui
                     .add(
                         TextEdit::singleline(&mut v_cred.secret)
@@ -127,17 +125,4 @@ pub(crate) fn single_cred(
                 v_cred.show_secret = response.hovered();
             });
         });
-}
-
-fn set_faded_bg_color(ui: &mut Ui, height: f32) {
-    let dark_mode = ui.visuals().dark_mode;
-    let bg_color = ui.visuals().window_fill();
-    let t = if dark_mode { 0.99 } else { 0.7 };
-    let mut rect = ui.available_rect_before_wrap();
-    rect.set_height(height);
-    ui.painter().rect_filled(
-        rect,
-        0.0,
-        egui::lerp(Rgba::from(Color32::DARK_BLUE)..=Rgba::from(bg_color), t),
-    );
 }

@@ -16,12 +16,12 @@ mod ui;
 use crate::{
     data::PlFile,
     ui::{
-        sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH},
         Ui,
+        sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH},
     },
 };
-use anyhow::{anyhow, Context, Result};
-use eframe::{run_native, NativeOptions};
+use anyhow::{Context, Result, anyhow};
+use eframe::{NativeOptions, run_native};
 use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
 use image::{ImageError, ImageReader};
@@ -47,9 +47,9 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<()> {
-    if cfg!(debug_assertions) {
-        std::env::set_var("RUST_BACKTRACE", "1");
-    }
+    // if cfg!(debug_assertions) {
+    //     unsafe { std::env::set_var("RUST_BACKTRACE", "1") }
+    // }
 
     run_native(
         "ProLock",

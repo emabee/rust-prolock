@@ -1,9 +1,8 @@
-use super::super::viz::{EditIdx, VBundle, VEditBundle};
 use crate::{
     data::PlFile,
     ui::{
-        viz::VCred, IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE,
-        IMG_OK,
+        viz::{EditIdx, PlModal, VBundle, VCred, VEditBundle},
+        IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK,
     },
 };
 use anyhow::anyhow;
@@ -11,12 +10,11 @@ use egui::{Button, Color32, Image, Ui};
 
 pub(super) fn active_buttons_edit_and_delete(
     ui: &mut Ui,
-    pl_file: &mut PlFile,
     index: usize,
+    pl_modal: &mut PlModal,
     v_bundle: &VBundle,
     edit_idx: &mut EditIdx,
     edit_bundle: &mut VEditBundle,
-    need_refresh: &mut bool,
 ) {
     if ui
         .add(
@@ -61,11 +59,7 @@ pub(super) fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        if let Err(e) = pl_file.save_with_deleted_bundle(v_bundle.name.clone()) {
-            println!("FIXME 'Delete entry' failed with {e:?}");
-        }
-        *edit_idx = EditIdx::None;
-        *need_refresh = true;
+        *pl_modal = PlModal::DeleteBundle(v_bundle.name.clone());
     }
 }
 

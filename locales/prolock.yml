@@ -41,7 +41,7 @@ Save:
   de: Speichern
 _ok_with_icon:
   en: ✅ Ok
-  de: ✅ Übernehmen
+  de: ✅ Weiter
 Password not correct:
   en: Password not correct
   de: Passwort nicht korrekt
@@ -162,3 +162,9 @@ _about_3:
 Version:
   en: Version
   de: Version
+_really_delete:
+  en: Really delete the entry '%{name}'?
+  de: Den Eintrag '%{name}' wirklich löschen?
+_no_undo:
+  en: 'This action cannot be undone.'
+  de: 'Diese Aktion kann nicht zurückgenommen werden.'

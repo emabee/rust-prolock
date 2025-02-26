@@ -49,11 +49,12 @@ impl V {
     }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub enum PlModal {
     #[default]
     None,
     CreateBundle,
+    DeleteBundle(String),
     About,
     ChangePassword,
     ChangeLanguage,

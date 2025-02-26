@@ -36,6 +36,12 @@ impl Bundles {
         self.0.contains_key(key)
     }
 
+    pub fn refs(&self) -> Vec<u64> {
+        let mut left_refs: Vec<u64> = self.0.values().flat_map(|bundle| bundle.refs().0).collect();
+        left_refs.sort_unstable();
+        left_refs
+    }
+
     // #[cfg(test)]
     // pub fn get(&self, key: &str) -> Option<&Bundle> {
     //     self.0.get(key)

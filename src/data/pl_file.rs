@@ -269,6 +269,10 @@ impl PlFile {
     }
 
     fn save(&mut self) -> Result<()> {
+        let used_refs = self.stored.readable.bundles.refs();
+        let provided_refs = self.transient().as_ref().unwrap().refs();
+        assert_eq!(used_refs, provided_refs);
+
         let mut prod_lock = if *self
             .stored
             .readable
@@ -404,45 +408,41 @@ impl PlFile {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
 
+        // remember all previously used refs
+        let (mut old_refs, found_non_reffed_secrets) = self.refs(orig_name);
+        assert!(
+            !found_non_reffed_secrets,
+            "internal error: can't save non-reffed Secrets"
+        );
+        old_refs.sort_unstable();
+
         if name == orig_name {
-            // remember all previously used refs
-            let (mut old_refs, found_non_reffed_secrets) = self.refs(&name);
-            assert!(
-                !found_non_reffed_secrets,
-                "internal error: can't save non-reffed Secrets"
-            );
-            old_refs.sort_unstable();
-
             self.modify_bundle(name, bundle.clone())?;
-
-            // garbage-collect all now redundant secrets
-            // - remove from old_refs all refs that are still in bundle
-            for cred in &bundle.creds {
-                if let Secret::Ref(reff) = &cred.name {
-                    if let Ok(index) = old_refs.binary_search(reff) {
-                        old_refs.remove(index);
-                    }
-                }
-                if let Secret::Ref(reff) = &cred.secret {
-                    if let Ok(index) = old_refs.binary_search(reff) {
-                        old_refs.remove(index);
-                    }
-                }
-            }
-            // - remove all remaining old_refs from Secrets
-            if let Some(transient) = &mut self.o_transient {
-                for reff in old_refs {
-                    transient.remove_secret(reff);
-                }
-            }
         } else {
-            // if name was changed
-            //      remember all previously used refs
-            //      add the new value to pl_file
-            //      remove the previously used key-value pair
-            //      make sure all Secrets are Ref'ed
-            //      garbage-collect all now redundant secrets
-            unimplemented!("FIXME bundle name was changed");
+            self.add_bundle(name, bundle.clone())?;
+            self.delete_bundle(orig_name.to_string())?;
+        }
+
+        // garbage-collect all now redundant secrets
+        // - remove from old_refs all refs that are still in bundle
+        for cred in &bundle.creds {
+            if let Secret::Ref(reff) = &cred.name {
+                if let Ok(index) = old_refs.binary_search(reff) {
+                    old_refs.remove(index);
+                }
+            }
+            if let Secret::Ref(reff) = &cred.secret {
+                if let Ok(index) = old_refs.binary_search(reff) {
+                    old_refs.remove(index);
+                }
+            }
+        }
+
+        // - remove all remaining old_refs from Secrets
+        if let Some(transient) = &mut self.o_transient {
+            for reff in old_refs {
+                transient.remove_secret(reff);
+            }
         }
 
         self.save()?;

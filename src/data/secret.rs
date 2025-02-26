@@ -16,7 +16,7 @@ impl Secret {
         match self {
             Secret::New(s) => s.clone(),
             Secret::Ref(i) => transient
-                .get_secret_value(*i)
+                .get_secret(*i)
                 .expect("wrong secret ref")
                 .to_string(),
         }

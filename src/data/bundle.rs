@@ -15,11 +15,11 @@ impl Bundle {
     pub(super) fn convert_new_secrets_to_refs(&mut self, transient: &mut Transient) {
         for cred in &mut self.creds {
             if let Secret::New(s) = &cred.name {
-                let ref_value = transient.add_secret_value(s.clone());
+                let ref_value = transient.add_secret(s.clone());
                 cred.name = Secret::Ref(ref_value);
             }
             if let Secret::New(s) = &cred.secret {
-                let ref_value = transient.add_secret_value(s.clone());
+                let ref_value = transient.add_secret(s.clone());
                 cred.secret = Secret::Ref(ref_value);
             }
         }

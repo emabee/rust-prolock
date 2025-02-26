@@ -126,12 +126,11 @@ impl Ui {
                                             show_a_bundle_with_buttons(
                                                 ctx,
                                                 bundle_builder,
-                                                &mut self.pl_file,
+                                                &mut self.v.pl_modal,
                                                 index,
                                                 v_bundle,
                                                 &mut self.v.edit_idx,
                                                 &mut self.v.edit_bundle,
-                                                &mut self.v.need_refresh,
                                                 &self.colors,
                                             );
                                         });
@@ -169,12 +168,11 @@ fn edit_a_bundle_with_buttons(
 fn show_a_bundle_with_buttons(
     ctx: &Context,
     bundle_builder: StripBuilder<'_>,
-    pl_file: &mut PlFile,
+    pl_modal: &mut PlModal,
     index: usize,
     v_bundle: &mut VBundle,
     edit_idx: &mut EditIdx,
     edit_bundle: &mut VEditBundle,
-    need_refresh: &mut bool,
     colors: &Colors,
 ) {
     bundle_builder
@@ -186,12 +184,11 @@ fn show_a_bundle_with_buttons(
                 if edit_idx.is_none() {
                     active_buttons_edit_and_delete(
                         ui,
-                        pl_file,
                         index,
+                        pl_modal,
                         v_bundle,
                         edit_idx,
                         edit_bundle,
-                        need_refresh,
                     );
                 } else {
                     inactive_buttons_edit_and_delete(ui);

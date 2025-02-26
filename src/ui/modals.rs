@@ -4,6 +4,7 @@ use egui::{Context, Id, Modal};
 mod change_language;
 mod change_password;
 mod create_bundle;
+mod delete_bundle;
 mod show_about;
 
 impl super::Ui {
@@ -11,13 +12,14 @@ impl super::Ui {
         let id = Id::new(match self.v.pl_modal {
             PlModal::None => return, // happens frequently!!
             PlModal::CreateBundle => "CreateBundle",
+            PlModal::DeleteBundle(_) => "DeleteBundle",
             PlModal::ChangePassword => "ChangePassword",
             PlModal::About => "About",
             PlModal::ChangeLanguage => "ChangeLanguage",
             PlModal::ShowPrintable => "ShowPrintable",
         });
 
-        let modal_response = Modal::new(id).show(ctx, |ui| match self.v.pl_modal {
+        let modal_response = Modal::new(id).show(ctx, |ui| match self.v.pl_modal.clone() {
             PlModal::None => unreachable!(), // because of 'return' above
             PlModal::CreateBundle => create_bundle::create_bundle(
                 &mut self.v.edit_bundle,
@@ -25,6 +27,14 @@ impl super::Ui {
                 &mut self.pl_file,
                 &mut self.v.need_refresh,
                 &self.colors,
+                ui,
+            ),
+            PlModal::DeleteBundle(name) => delete_bundle::delete_bundle(
+                &name,
+                &mut self.v.pl_modal,
+                &mut self.pl_file,
+                &mut self.v.edit_idx,
+                &mut self.v.need_refresh,
                 ui,
             ),
             PlModal::ChangePassword => change_password::change_password(

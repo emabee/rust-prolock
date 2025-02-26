@@ -37,7 +37,7 @@ impl Transient {
         Ok(Transient::new(password, secret))
     }
 
-    pub(crate) fn add_secret_value(&mut self, s: String) -> u64 {
+    pub(crate) fn add_secret(&mut self, s: String) -> u64 {
         let idx = self.seq_for_secret_refs.next().unwrap(/*ok*/);
         self.secrets.add(idx, s);
         idx
@@ -47,8 +47,14 @@ impl Transient {
         self.secrets.remove(idx);
     }
 
-    pub(crate) fn get_secret_value(&self, idx: u64) -> Option<&String> {
+    pub(crate) fn get_secret(&self, idx: u64) -> Option<&String> {
         self.secrets.get(idx)
+    }
+
+    pub(crate) fn refs(&self) -> Vec<u64> {
+        let mut keys: Vec<u64> = self.secrets.keys().copied().collect();
+        keys.sort_unstable();
+        keys
     }
 
     pub(crate) fn set_storage_password(&mut self, new_pw: String) {

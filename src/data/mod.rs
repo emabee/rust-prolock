@@ -1,13 +1,15 @@
 mod bundle;
 mod bundles;
+mod file_list;
 mod pl_file;
 mod secret;
 mod secrets;
 mod transient;
 
-pub(crate) use bundle::{Bundle, Cred};
-pub(crate) use bundles::Bundles;
-pub(crate) use pl_file::{PlFile, Readable};
-pub(crate) use secret::Secret;
-pub(crate) use secrets::Secrets;
-pub(crate) use transient::Transient;
+pub use bundle::{Bundle, Cred};
+pub use bundles::Bundles;
+pub use file_list::FileList;
+pub use pl_file::{PlFile, Readable};
+pub use secret::Secret;
+pub use secrets::Secrets;
+pub use transient::Transient;

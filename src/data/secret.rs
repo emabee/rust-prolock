@@ -1,9 +1,8 @@
+use crate::data::Transient;
 use serde::de::Visitor;
 
-use super::Transient;
-
 #[derive(Clone, Debug)]
-pub(crate) enum Secret {
+pub enum Secret {
     New(String),
     Ref(u64),
 }

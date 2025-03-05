@@ -5,7 +5,7 @@ use crate::ui::{
 use egui::{Button, Context, FontFamily, FontId, ScrollArea, TextEdit};
 use egui_extras::{Size, Strip, StripBuilder};
 
-pub(crate) fn ui(
+pub fn ui(
     ctx: &Context,
     colors: &Colors,
     edit_bundle: &mut VEditBundle,
@@ -71,7 +71,7 @@ fn right_part(
         });
 }
 
-pub(crate) fn single_cred(
+pub fn single_cred(
     ctx: &Context,
     colors: &Colors,
     v_cred: &mut VCred,

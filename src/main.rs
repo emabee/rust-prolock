@@ -20,7 +20,7 @@ use crate::{
         sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH},
     },
 };
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Result, anyhow};
 use eframe::{NativeOptions, run_native};
 use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
@@ -30,9 +30,9 @@ use std::{
     process::ExitCode,
 };
 
-pub(crate) type Language = (&'static str, &'static str);
-pub(crate) const SUPPORTED_LANGUAGES: [Language; 2] = [("en", "English"), ("de", "Deutsch")];
-pub(crate) const DEFAULT_LANGUAGE: &Language = &SUPPORTED_LANGUAGES[0];
+pub type Language = (&'static str, &'static str);
+pub const SUPPORTED_LANGUAGES: [Language; 2] = [("en", "English"), ("de", "Deutsch")];
+pub const DEFAULT_LANGUAGE: &Language = &SUPPORTED_LANGUAGES[0];
 
 fn main() -> ExitCode {
     i18n!("locales", fallback = "en");
@@ -69,7 +69,7 @@ fn run() -> Result<()> {
             Ok(Box::new(
                 // build UiApp (which implements egui::App) and hand it over to eframe::run_native,
                 // which will then call its method `update()` in an endless loop
-                Ui::new(PlFile::read_or_create().context("File open error")?),
+                Ui::new()?,
             ))
         }),
     )

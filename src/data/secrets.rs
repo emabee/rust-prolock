@@ -25,7 +25,7 @@ impl Secrets {
         self.content.insert(idx, s)
     }
 
-    pub(crate) fn remove(&mut self, idx: u64) {
+    pub fn remove(&mut self, idx: u64) {
         self.content.remove(&idx);
     }
 

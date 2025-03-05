@@ -1,6 +1,6 @@
-use super::{Bundle, Secret, Transient};
-use anyhow::{anyhow, Result};
-use std::collections::{btree_map::Entry, BTreeMap};
+use crate::data::{Bundle, Secret, Transient};
+use anyhow::{Result, anyhow};
+use std::collections::{BTreeMap, btree_map::Entry};
 
 // All bundles in the file.
 //
@@ -13,7 +13,7 @@ use std::collections::{btree_map::Entry, BTreeMap};
 //     - remove all bundles from secret that do not appear in the list
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub(crate) struct Bundles(pub(crate) BTreeMap<String, Bundle>);
+pub struct Bundles(pub BTreeMap<String, Bundle>);
 
 impl Bundles {
     pub fn new() -> Self {

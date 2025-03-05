@@ -168,3 +168,15 @@ _really_delete:
 _no_undo:
   en: 'This action cannot be undone.'
   de: 'Diese Aktion kann nicht zurückgenommen werden.'
+_new:
+  en: 'New:'
+  de: 'Neu:'
+Switch to another Prolock file:
+  en: Switch to another Prolock file
+  de: Zu anderer Prolock Datei wechseln
+parsing FileList:
+  en: parsing FileList
+  de: Lesen der Dateiliste
+parsing PlFile:
+  en: parsing the prolock file
+  de: Lesen der Prolock Datei

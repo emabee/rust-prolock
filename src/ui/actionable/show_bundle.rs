@@ -1,12 +1,12 @@
-use super::super::{
-    viz::{VBundle, VCred},
+use crate::ui::{
     Colors,
+    viz::{VBundle, VCred},
 };
 use egui::{Button, Color32, Context, Rgba, ScrollArea, TextEdit, TextStyle, Ui};
 use egui_extras::{Size, Strip, StripBuilder};
 use either::Either;
 
-pub(crate) fn ui(
+pub fn ui(
     ctx: &Context,
     colors: &Colors,
     index: usize,
@@ -78,7 +78,7 @@ fn ui_right_part(
         });
 }
 
-pub(crate) fn show_cred(
+pub fn show_cred(
     first: bool,
     ctx: &Context,
     colors: &Colors,

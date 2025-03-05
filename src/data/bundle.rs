@@ -1,4 +1,4 @@
-use super::{secret::Secret, Transient};
+use crate::data::{Transient, secret::Secret};
 
 // A bundle.
 //
@@ -7,7 +7,7 @@ use super::{secret::Secret, Transient};
 // A bundle can only be serialized (i.e., written to the file)
 // if each Secret it contains has Variant Ref.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub(crate) struct Bundle {
+pub struct Bundle {
     pub description: String,
     pub creds: Vec<Cred>,
 }
@@ -55,24 +55,24 @@ impl Bundle {
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub(crate) struct Cred {
+pub struct Cred {
     pub name: Secret,
     pub secret: Secret,
 }
 impl Cred {
-    pub(crate) fn new(name: String, password: String) -> Self {
+    pub fn new(name: String, password: String) -> Self {
         Self {
             name: Secret::New(name),
             secret: Secret::New(password),
         }
     }
-    // pub(crate) fn is_storable(&self) -> bool {
+    // pub fn is_storable(&self) -> bool {
     //     self.name.is_ref() && self.secret.is_ref()
     // }
-    pub(crate) fn name(&self, transient: &Transient) -> String {
+    pub fn name(&self, transient: &Transient) -> String {
         self.name.disclose(transient)
     }
-    pub(crate) fn secret(&self, transient: &Transient) -> String {
+    pub fn secret(&self, transient: &Transient) -> String {
         self.secret.disclose(transient)
     }
 }

@@ -1,90 +1,93 @@
 use crate::{
+    PlFile,
     ui::{
+        Colors, IMG_CANCEL, IMG_SAVE,
         sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
         viz::{PlModal, VCred, VEditBundle},
-        Colors, IMG_CANCEL, IMG_SAVE,
     },
-    PlFile,
 };
 use egui::{
-    Button, Color32, FontFamily, FontId, Image, Rgba, RichText, ScrollArea, Sides, TextEdit, Ui,
+    Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, ScrollArea, Sides,
+    TextEdit,
 };
 use egui_extras::{Size, StripBuilder};
 
-pub(super) fn create_bundle(
+pub fn create_bundle(
     edit_bundle: &mut VEditBundle,
     pl_modal: &mut PlModal,
     pl_file: &mut PlFile,
     need_refresh: &mut bool,
     colors: &Colors,
-    ui: &mut Ui,
+    ctx: &Context,
 ) {
-    ui.vertical(|ui| {
-        StripBuilder::new(ui)
-            .sizes(Size::exact(BUNDLE_HEIGHT), 1)
-            .vertical(|mut bundle_strip| {
-                bundle_strip.strip(|bundle_builder| {
-                    bundle_builder
-                        .size(Size::exact(BUNDLE_WIDTH_LEFT))
-                        .size(Size::exact(BUNDLE_WIDTH_RIGHT))
-                        .horizontal(|mut inner_bundle_strip| {
-                            inner_bundle_strip.strip(|left_builder| {
-                                left_part(edit_bundle, left_builder);
+    Modal::new("create_bundle".into()).show(ctx, |ui| {
+        ui.vertical(|ui| {
+            StripBuilder::new(ui)
+                .sizes(Size::exact(BUNDLE_HEIGHT), 1)
+                .vertical(|mut bundle_strip| {
+                    bundle_strip.strip(|bundle_builder| {
+                        bundle_builder
+                            .size(Size::exact(BUNDLE_WIDTH_LEFT))
+                            .size(Size::exact(BUNDLE_WIDTH_RIGHT))
+                            .horizontal(|mut inner_bundle_strip| {
+                                inner_bundle_strip.strip(|left_builder| {
+                                    left_part(edit_bundle, left_builder);
+                                });
+                                inner_bundle_strip.strip(|right_builder| {
+                                    right_part(colors, edit_bundle, right_builder);
+                                });
                             });
-                            inner_bundle_strip.strip(|right_builder| {
-                                right_part(colors, edit_bundle, right_builder);
-                            });
-                        });
+                    });
                 });
-            });
-    });
+        });
 
-    if let Some(e) = &edit_bundle.err {
-        ui.label(RichText::new(e).color(Color32::RED));
-    }
+        if let Some(e) = &edit_bundle.err {
+            ui.label(RichText::new(e).color(Color32::RED));
+        }
 
-    Sides::new().show(
-        ui,
-        |_ui| {},
-        |ui| {
-            if ui
-                .add(
-                    Button::image_and_text(
-                        Image::new(IMG_SAVE),
-                        RichText::new(t!("Save")).color(Color32::DARK_GREEN),
+        Sides::new().show(
+            ui,
+            |_ui| {},
+            |ui| {
+                if ui
+                    .add(
+                        Button::image_and_text(
+                            Image::new(IMG_SAVE),
+                            RichText::new(t!("Save")).color(Color32::DARK_GREEN),
+                        )
+                        .fill(Color32::TRANSPARENT),
                     )
-                    .fill(Color32::TRANSPARENT),
-                )
-                .clicked()
-            {
-                let (_orig_name, name, bundle) = edit_bundle.as_bundle();
-                match pl_file.save_with_added_bundle(name, bundle) {
-                    Ok(()) => {
-                        *pl_modal = PlModal::None;
-                        *need_refresh = true;
-                    }
-                    Err(e) => {
-                        edit_bundle.err = Some(e.to_string());
+                    .clicked()
+                {
+                    let (_orig_name, name, bundle) = edit_bundle.as_bundle();
+                    match pl_file.save_with_added_bundle(name, bundle) {
+                        Ok(()) => {
+                            *pl_modal = PlModal::None;
+                            *need_refresh = true;
+                        }
+                        Err(e) => {
+                            edit_bundle.err = Some(e.to_string());
+                        }
                     }
                 }
-            }
 
-            if ui
-                .add(
-                    Button::image_and_text(
-                        Image::new(IMG_CANCEL)
-                            .maintain_aspect_ratio(true)
-                            .fit_to_original_size(0.22),
-                        t!("Cancel"),
+                if ui
+                    .add(
+                        Button::image_and_text(
+                            Image::new(IMG_CANCEL)
+                                .maintain_aspect_ratio(true)
+                                .fit_to_original_size(0.22),
+                            t!("Cancel"),
+                        )
+                        .fill(Color32::TRANSPARENT),
                     )
-                    .fill(Color32::TRANSPARENT),
-                )
-                .clicked()
-            {
-                *pl_modal = PlModal::None;
-            }
-        },
-    );
+                    .clicked()
+                {
+                    *pl_modal = PlModal::None;
+                }
+            },
+        );
+    });
 }
 
 fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {

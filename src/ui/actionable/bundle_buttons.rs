@@ -1,8 +1,8 @@
 use crate::{
     data::PlFile,
     ui::{
-        viz::{EditIdx, PlModal, VBundle, VCred, VEditBundle},
         IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK,
+        viz::{EditIdx, PlModal, VBundle, VCred, VEditBundle},
     },
 };
 use anyhow::anyhow;
@@ -90,7 +90,7 @@ pub(super) fn active_buttons_save_and_cancel(
         } else {
             Err(anyhow!("save: only mod is expected"))
         } {
-            println!("FIXME 'Save changes' failed with {e:?}");
+            println!("TODO 'Save changes' failed with {e:?}");
         }
         *edit_idx = EditIdx::None;
         *need_refresh = true;

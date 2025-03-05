@@ -1,20 +1,15 @@
-use super::{Bundle, Bundles, Secrets, Transient};
-use crate::data::Secret;
-use anyhow::{anyhow, Context, Result};
+use crate::data::{Bundle, Bundles, FileList, Secret, Secrets, Transient};
+use anyhow::{Context, Result, anyhow};
 use fd_lock::RwLock as FdRwLock;
 use oxilangtag::LanguageTag;
 use rust_i18n::t;
 use sequential::Sequence;
 use std::{
-    fs::{create_dir_all, File, OpenOptions},
+    fs::{File, OpenOptions, create_dir_all},
     io::{Read, Write as _},
     path::{Path, PathBuf},
 };
 
-const PROD_DOC_FOLDER: &str = ".prolock";
-const TEST_DOC_FOLDER: &str = ".prolock_test";
-const PROD_DOC_FILE: &str = "secrets";
-const TEMP_DOC_FILE: &str = "secrets_temp";
 const CURRENT_FORMAT_VERSION: u8 = 0;
 const DEFAULT_LOCALE: &str = "en";
 const PREFACE: &str = "\
@@ -28,39 +23,38 @@ const PREFACE: &str = "\
 
 // Describes the status and content of the prolock file
 #[derive(Clone, Debug)]
-pub(crate) struct PlFile {
-    pub(crate) file_path: PathBuf,
-    pub(crate) stored: Stored,
+pub struct PlFile {
+    pub file_path: PathBuf,
+    pub stored: Stored,
     o_transient: Option<Transient>,
 }
 
 // This is the structure that is serialized to the file (after the preface);
 // it consists of a readable section and an encrypted section
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub(crate) struct Stored {
-    pub(crate) readable: Readable,
-    pub(crate) cipher: String,
+pub struct Stored {
+    pub readable: Readable,
+    pub cipher: String,
 }
 
 // The readable section is written in clear and also used as auth-tag for the encrypted section
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub(crate) struct Readable {
-    pub(crate) header: FileHeader,
-    pub(crate) bundles: Bundles,
+pub struct Readable {
+    pub header: FileHeader,
+    pub bundles: Bundles,
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub(crate) struct FileHeader {
-    pub(crate) format_version: u8,
-    pub(crate) language: String,
-    pub(crate) update_counter: Sequence<usize>,
+pub struct FileHeader {
+    pub format_version: u8,
+    pub language: String,
+    pub update_counter: Sequence<usize>,
 }
 
 impl PlFile {
-    pub(crate) fn read_or_create() -> Result<Self> {
-        let file_path = prod_document_path()?;
+    pub fn read_or_create(file_path: &Path) -> Result<Self> {
         if file_path.exists() {
-            let result = Self::lock_and_read(&file_path)?.1;
+            let result = Self::lock_and_read(file_path)?.1;
             rust_i18n::set_locale(&result.stored.readable.header.language);
             Ok(result)
         } else {
@@ -80,7 +74,7 @@ impl PlFile {
             rust_i18n::i18n!("locales", fallback = "en");
 
             Ok(Self {
-                file_path,
+                file_path: file_path.to_path_buf(),
                 o_transient: None,
                 stored: Stored {
                     readable: Readable {
@@ -132,32 +126,32 @@ impl PlFile {
             .read_to_string(&mut file_content)
             .context(format!("reading {}", file_path.display()))?;
         let semantic_content = skip_over_comments_and_empty_lines(&file_content);
-        serde_json::from_str(semantic_content).context(t!("parsing"))
+        serde_json::from_str(semantic_content).context(t!("parsing PlFile"))
     }
 
     // #[cfg(test)]
-    // pub(crate) fn len(&self) -> usize {
+    // pub fn len(&self) -> usize {
     //     self.stored.readable.bundles.len()
     // }
-    pub(crate) fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.stored.readable.bundles.is_empty()
     }
 
-    pub(crate) fn transient(&self) -> Option<&Transient> {
+    pub fn transient(&self) -> Option<&Transient> {
         self.o_transient.as_ref()
     }
     // #[cfg(test)]
-    // pub(crate) fn bundles(&self) -> Iter<'_, String, Bundle> {
+    // pub fn bundles(&self) -> Iter<'_, String, Bundle> {
     //     self.stored.readable.bundles.into_iter()
     // }
-    pub(crate) fn has_bundle(&self, name: &str) -> bool {
+    pub fn has_bundle(&self, name: &str) -> bool {
         self.stored.readable.bundles.contains_key(name)
     }
 
-    pub(crate) fn is_actionable(&self) -> bool {
+    pub fn is_actionable(&self) -> bool {
         self.o_transient.is_some()
     }
-    pub(crate) fn set_actionable(&mut self, password: String) -> Result<()> {
+    pub fn set_actionable(&mut self, password: String) -> Result<()> {
         if self.stored.cipher.is_empty() {
             self.o_transient = Some(Transient::new(password, Secrets::default()));
             self.save()?;
@@ -171,11 +165,11 @@ impl PlFile {
         Ok(())
     }
 
-    pub(crate) fn language(&self) -> &str {
+    pub fn language(&self) -> &str {
         &self.stored.readable.header.language
     }
 
-    pub(crate) fn set_language(&mut self, new_lang: &str) -> Result<()> {
+    pub fn set_language(&mut self, new_lang: &str) -> Result<()> {
         if self.stored.readable.header.language != new_lang {
             self.stored.readable.header.language = new_lang.to_string();
             self.save()?;
@@ -184,7 +178,7 @@ impl PlFile {
         Ok(())
     }
 
-    pub(crate) fn change_password(&mut self, old_pw: &str, new_pw: String) -> Result<()> {
+    pub fn change_password(&mut self, old_pw: &str, new_pw: String) -> Result<()> {
         self.check_password(old_pw)?;
         if let Some(ref mut transient) = self.o_transient {
             transient.set_storage_password(new_pw);
@@ -193,7 +187,7 @@ impl PlFile {
         Ok(())
     }
 
-    pub(crate) fn check_password(&mut self, old_pw: &str) -> Result<()> {
+    pub fn check_password(&mut self, old_pw: &str) -> Result<()> {
         if self.transient().unwrap(/*ok*/).get_storage_password() == old_pw {
             Ok(())
         } else {
@@ -221,7 +215,7 @@ impl PlFile {
     }
 
     // #[cfg(test)]
-    // pub(crate) fn get_bundle(&self, key: &str) -> Result<Bundle> {
+    // pub fn get_bundle(&self, key: &str) -> Result<Bundle> {
     //     self.stored
     //         .readable
     //         .bundles
@@ -318,8 +312,7 @@ impl PlFile {
         .as_cipher(&self.stored.readable)?;
 
         // store to temp file
-        let temp_path = temp_document_path()?;
-        let prod_path = prod_document_path()?;
+        let temp_path = FileList::temp_document_path()?;
         let mut temp_file = OpenOptions::new()
             .write(true)
             .create(true)
@@ -344,10 +337,10 @@ impl PlFile {
         }
 
         // copy temp file over prod file
-        match std::fs::rename(temp_path, prod_path) {
+        match std::fs::rename(temp_path, &self.file_path) {
             Ok(()) => Ok(()),
             Err(e) => {
-                // FIXME rollback by discarding the temp file and re-reading the old file
+                // TODO rollback by discarding the temp file and re-reading the old file
                 Err(e.into())
             }
         }
@@ -372,7 +365,7 @@ impl PlFile {
             })
     }
 
-    pub(crate) fn save_with_added_bundle(&mut self, name: String, bundle: Bundle) -> Result<()> {
+    pub fn save_with_added_bundle(&mut self, name: String, bundle: Bundle) -> Result<()> {
         if name.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
@@ -385,7 +378,7 @@ impl PlFile {
         Ok(())
     }
 
-    pub(crate) fn save_with_deleted_bundle(&mut self, name: String) -> Result<()> {
+    pub fn save_with_deleted_bundle(&mut self, name: String) -> Result<()> {
         if name.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
@@ -398,7 +391,7 @@ impl PlFile {
         Ok(())
     }
 
-    pub(crate) fn save_with_updated_bundle(
+    pub fn save_with_updated_bundle(
         &mut self,
         orig_name: &str,
         name: String,
@@ -449,26 +442,6 @@ impl PlFile {
 
         Ok(())
     }
-}
-
-fn document_folder() -> Result<PathBuf> {
-    let mut file_path = dirs::home_dir().context("Can't find home directory")?;
-    file_path.push(if cfg!(test) {
-        TEST_DOC_FOLDER
-    } else {
-        PROD_DOC_FOLDER
-    });
-    Ok(file_path)
-}
-fn prod_document_path() -> Result<PathBuf> {
-    let mut file_path = document_folder()?;
-    file_path.push(PROD_DOC_FILE);
-    Ok(file_path)
-}
-fn temp_document_path() -> Result<PathBuf> {
-    let mut file_path = document_folder()?;
-    file_path.push(TEMP_DOC_FILE);
-    Ok(file_path)
 }
 
 fn skip_over_comments_and_empty_lines(file_content: &str) -> &str {

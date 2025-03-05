@@ -2,3 +2,4 @@
 /.private
 /examples/_*
 .DS_Store
+locales/TODO.yml

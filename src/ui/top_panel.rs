@@ -1,78 +1,113 @@
-use crate::ui::{
-    viz::{PlModal, Pw, PwFocus},
-    Ui, IMG_BURGER,
+use crate::{
+    PlFile,
+    ui::{
+        IMG_BURGER, VERY_LIGHT_GRAY,
+        assets::{IMG_CHANGE_FILE, IMG_CHANGE_FILE_INACTIVE},
+        viz::V,
+        viz::{PlModal, Pw, PwFocus},
+    },
 };
 use egui::{
-    menu::menu_custom_button, Button, Color32, Context, FontFamily, Image, RichText, TopBottomPanel,
+    Button, Color32, Context, FontFamily, Image, RichText, TopBottomPanel, menu::menu_custom_button,
 };
+use egui_extras::{Size, StripBuilder};
 
-impl Ui {
-    pub fn top_panel(&mut self, ctx: &Context) {
-        TopBottomPanel::top("file").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.colored_label(
-                    Color32::GRAY,
-                    RichText::new(self.pl_file.file_path.display().to_string())
-                        .family(FontFamily::Monospace),
-                );
-                ui.add_space(10.);
-                ui.label("  –—  ");
-                ui.add_space(10.);
-
-                ui.label(t!(
-                    "entries_with_secrets %{n1} %{n2}",
-                    n1 = self.pl_file.stored.readable.bundles.len(),
-                    n2 = self.pl_file.stored.readable.bundles.count_secrets()
-                ));
-
-                ui.add_space(ui.available_width() - 80.);
-
-                menu_custom_button(
-                    ui,
-                    Button::image(Image::new(IMG_BURGER)).fill(Color32::TRANSPARENT),
-                    |ui| {
-                        if ui.button(t!("❓About ProLock")).clicked() {
-                            self.v.pl_modal = PlModal::About;
-                            ui.close_menu();
-                        }
+pub fn top_panel(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
+    TopBottomPanel::top("file").show(ctx, |ui| {
+        ui.horizontal(|ui| {
+            StripBuilder::new(ui)
+                .size(Size::exact(300.0))
+                .horizontal(|mut strip| {
+                    strip.cell(|ui| {
+                        ui.painter().rect_filled(
+                            ui.available_rect_before_wrap(),
+                            0.0,
+                            VERY_LIGHT_GRAY,
+                        );
                         if ui
                             .add_enabled(
-                                self.pl_file.is_actionable(),
-                                Button::new(t!("🔐 Change password")),
+                                v.edit_idx.is_none(),
+                                Button::image(if v.edit_idx.is_none() {
+                                    Image::new(IMG_CHANGE_FILE)
+                                        .maintain_aspect_ratio(true)
+                                        .fit_to_original_size(0.18)
+                                } else {
+                                    Image::new(IMG_CHANGE_FILE_INACTIVE)
+                                        .maintain_aspect_ratio(true)
+                                        .fit_to_original_size(0.18)
+                                })
+                                .fill(VERY_LIGHT_GRAY),
                             )
                             .clicked()
                         {
-                            self.v.pl_modal = PlModal::ChangePassword;
-                            self.v.pw = Pw::default();
-                            self.v.pw.focus = PwFocus::PwOld;
-                            ui.close_menu();
+                            v.pl_modal = PlModal::ChangeFile;
                         }
-                        if ui
-                            .add_enabled(
-                                self.pl_file.is_actionable(),
-                                Button::new(t!("🌍 Change language")),
-                            )
-                            .clicked()
-                        {
-                            self.v.lang.init(self.pl_file.language());
-                            self.v.pl_modal = PlModal::ChangeLanguage;
-                            ui.close_menu();
-                        }
-                        if ui
-                            .add_enabled(
-                                false, //self.pl_file.is_actionable(),
-                                Button::new(t!("📄 Show content as printable document")),
-                            )
-                            .clicked()
-                        {
-                            self.v.pl_modal = PlModal::ShowPrintable;
-                            ui.close_menu();
-                        }
-                    },
-                );
-            });
 
+                        ui.label(
+                            RichText::new(pl_file.file_path.display().to_string())
+                                .family(FontFamily::Monospace)
+                                .color(Color32::DARK_GRAY)
+                                .background_color(VERY_LIGHT_GRAY),
+                        );
+                    });
+                });
             ui.add_space(10.);
+            ui.label("  –—  ");
+            ui.add_space(10.);
+
+            ui.label(t!(
+                "entries_with_secrets %{n1} %{n2}",
+                n1 = pl_file.stored.readable.bundles.len(),
+                n2 = pl_file.stored.readable.bundles.count_secrets()
+            ));
+
+            ui.add_space(ui.available_width() - 80.);
+
+            menu_custom_button(
+                ui,
+                Button::image(Image::new(IMG_BURGER)).fill(Color32::TRANSPARENT),
+                |ui| {
+                    if ui.button(t!("❓About ProLock")).clicked() {
+                        v.pl_modal = PlModal::About;
+                        ui.close_menu();
+                    }
+                    if ui
+                        .add_enabled(
+                            pl_file.is_actionable(),
+                            Button::new(t!("🔐 Change password")),
+                        )
+                        .clicked()
+                    {
+                        v.pl_modal = PlModal::ChangePassword;
+                        v.pw = Pw::default();
+                        v.pw.focus = PwFocus::PwOld;
+                        ui.close_menu();
+                    }
+                    if ui
+                        .add_enabled(
+                            pl_file.is_actionable(),
+                            Button::new(t!("🌍 Change language")),
+                        )
+                        .clicked()
+                    {
+                        v.lang.init(pl_file.language());
+                        v.pl_modal = PlModal::ChangeLanguage;
+                        ui.close_menu();
+                    }
+                    if ui
+                        .add_enabled(
+                            false, //self.pl_file.is_actionable(),
+                            Button::new(t!("📄 Show content as printable document")),
+                        )
+                        .clicked()
+                    {
+                        v.pl_modal = PlModal::ShowPrintable;
+                        ui.close_menu();
+                    }
+                },
+            );
         });
-    }
+
+        ui.add_space(10.);
+    });
 }

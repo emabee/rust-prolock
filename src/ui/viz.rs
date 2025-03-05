@@ -1,11 +1,12 @@
 use crate::{
-    data::{Bundle, Bundles, Cred, Transient},
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
+    data::{Bundle, Bundles, Cred, Transient},
 };
 use std::time::Instant;
 
 pub struct V {
     pub pw: Pw,
+    pub file_selection: FileSelection,
     pub search: String,
     pub pl_modal: PlModal,
     pub bundles: Vec<VBundle>,
@@ -15,9 +16,10 @@ pub struct V {
     pub lang: Lang,
 }
 impl V {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             pw: Pw::default(),
+            file_selection: FileSelection::default(),
             search: String::default(),
             pl_modal: PlModal::default(),
             bundles: Vec::<VBundle>::default(),
@@ -28,7 +30,7 @@ impl V {
         }
     }
 
-    pub(crate) fn reset_bundles(&mut self, bundles: &Bundles, transient: &Transient) {
+    pub fn reset_bundles(&mut self, bundles: &Bundles, transient: &Transient) {
         self.bundles = bundles
             .into_iter()
             .map(|(name, bundle)| VBundle {
@@ -57,6 +59,7 @@ pub enum PlModal {
     DeleteBundle(String),
     About,
     ChangePassword,
+    ChangeFile,
     ChangeLanguage,
     ShowPrintable,
 }
@@ -76,7 +79,7 @@ impl Default for Lang {
     }
 }
 impl Lang {
-    pub(crate) fn init(&mut self, lang_short: &str) {
+    pub fn init(&mut self, lang_short: &str) {
         self.current = SUPPORTED_LANGUAGES
             .iter()
             .find(|(short, _long)| lang_short == *short)
@@ -130,6 +133,27 @@ pub enum PwFocus {
     Pw1,
     Pw2,
     PwOld,
+}
+
+#[derive(Default)]
+pub struct FileSelection {
+    pub err: Option<String>,
+    pub current: usize,
+    pub new: String,
+    pub o_action: Option<FileAction>,
+}
+impl FileSelection {
+    pub fn reset(&mut self, current: usize) {
+        self.err = None;
+        self.current = current;
+        self.new.clear();
+        self.o_action = None;
+    }
+}
+
+pub enum FileAction {
+    SwitchToKnown(usize),
+    SwitchToNew(String),
 }
 
 #[derive(Default)]

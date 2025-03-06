@@ -12,6 +12,8 @@ use egui::{
 };
 use egui_extras::{Size, StripBuilder};
 
+use super::IMG_LOGO;
+
 pub fn top_panel(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
     TopBottomPanel::top("file").show(ctx, |ui| {
         ui.horizontal(|ui| {
@@ -67,14 +69,20 @@ pub fn top_panel(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                 ui,
                 Button::image(Image::new(IMG_BURGER)).fill(Color32::TRANSPARENT),
                 |ui| {
-                    if ui.button(t!("❓About ProLock")).clicked() {
+                    if ui
+                        .add(Button::image_and_text(
+                            Image::new(IMG_LOGO),
+                            format!("{}", t!("About ProLock")),
+                        ))
+                        .clicked()
+                    {
                         v.pl_modal = PlModal::About;
                         ui.close_menu();
                     }
                     if ui
                         .add_enabled(
                             pl_file.is_actionable(),
-                            Button::new(t!("🔐 Change password")),
+                            Button::new(format!("🔐 {}", t!("Change password"))),
                         )
                         .clicked()
                     {
@@ -86,7 +94,7 @@ pub fn top_panel(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                     if ui
                         .add_enabled(
                             pl_file.is_actionable(),
-                            Button::new(t!("🌍 Change language")),
+                            Button::new(format!("🌐 {}", t!("Change language"))),
                         )
                         .clicked()
                     {
@@ -97,7 +105,7 @@ pub fn top_panel(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                     if ui
                         .add_enabled(
                             false, //self.pl_file.is_actionable(),
-                            Button::new(t!("📄 Show content as printable document")),
+                            Button::new(format!("📄 {}", t!("Show content as printable document"))),
                         )
                         .clicked()
                     {

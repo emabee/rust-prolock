@@ -62,8 +62,7 @@ pub fn show_about(pl_modal: &mut PlModal, ctx: &Context) {
             },
         );
     });
-    if modal_response.should_close() && matches!(pl_modal, PlModal::About | PlModal::ShowPrintable)
-    {
+    if modal_response.should_close() {
         *pl_modal = PlModal::None;
     }
 }

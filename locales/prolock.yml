@@ -18,18 +18,18 @@ Creating the prolock file:
 'Repeat:':
   en: 'Repeat:'
   de: 'Wiederholen:'
-❓About ProLock:
-  en: ❓About ProLock
-  de: ❓Über ProLock
-🌍 Change language:
-  en: 🌍 Change language
-  de: 🌍 Sprache ändern
-📄 Show content as printable document:
-  en: 📄 Show content as printable document
-  de: 📄 Inhalt als druckbares Dokument anzeigen
-🔐 Change password:
-  en: 🔐 Change password
-  de: 🔐 Passwort ändern
+About ProLock:
+  en: About ProLock
+  de: Über ProLock
+Change language:
+  en: Change language
+  de: Sprache ändern
+Show content as printable document:
+  en: Show content as printable document
+  de: Inhalt als druckbares Dokument anzeigen
+Change password:
+  en: Change password
+  de: Passwort ändern
 _cancel_with_icon:
   en: ❌ Cancel
   de: ❌ Abbrechen
@@ -180,3 +180,6 @@ parsing FileList:
 parsing PlFile:
   en: parsing the prolock file
   de: Lesen der Prolock Datei
+File path:
+  en: File path
+  de: Dateipfad

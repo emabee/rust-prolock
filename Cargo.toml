@@ -1,10 +1,10 @@
 [package]
 name = "prolock"
-version = "0.9.0"
+version = "0.9.1"
 edition = "2024"
 authors = ["emabee <meinolf.block-hd@t-online.de>"]
 description = """
-ProLock is a UI tool to manage secrets; it stores data into a password-encrypted file.
+ProLock is a tool for securely storing secrets (like passwords) in a password-protected file.
 """
 keywords = ["security", "encryption"]
 license = "MIT OR Apache-2.0"

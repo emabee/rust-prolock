@@ -2,7 +2,6 @@ use crate::{
     data::FileList,
     ui::{
         assets::IMG_CHANGE_FILE,
-        modals::title_of_modal,
         viz::{FileAction, FileSelection, PlModal},
     },
 };
@@ -14,33 +13,50 @@ pub fn change_file(
     file_list: &mut FileList,
     ctx: &Context,
 ) {
-    Modal::new("change_file".into()).show(ctx, |ui| {
-        title_of_modal(
-            Some(
-                Image::new(IMG_CHANGE_FILE)
-                    .maintain_aspect_ratio(true)
-                    .fit_to_original_size(0.25),
-            ),
-            &t!("Switch to another Prolock file"),
-            ui,
-        );
-
-        if let Some(e) = &file_selection.err {
-            ui.label(RichText::new(e).color(Color32::RED));
-            ui.add_space(15.);
-        }
-
-        for (i, s) in file_list.files.iter().enumerate() {
-            ui.radio_value(
-                &mut file_selection.current,
-                i,
-                RichText::new(s.display().to_string()).monospace(),
-            );
-        }
+    let modal_response = Modal::new("change_file".into()).show(ctx, |ui| {
+        ui.set_width(500.0);
 
         ui.horizontal(|ui| {
-            ui.radio_value(&mut file_selection.current, file_list.files.len(), "");
-            ui.add(TextEdit::singleline(&mut file_selection.new).font(TextStyle::Monospace));
+            ui.add_space(20.);
+            ui.vertical(|ui| {
+                ui.set_width(120.);
+                ui.set_height(140.);
+                ui.add_space(50.);
+                ui.add(
+                    Image::new(IMG_CHANGE_FILE)
+                        .maintain_aspect_ratio(true)
+                        .fit_to_original_size(1.25),
+                );
+            });
+            ui.vertical(|ui| {
+                ui.add_space(50.);
+                ui.label(RichText::new(t!("Switch to another Prolock file")).size(24.));
+
+                ui.add_space(15.);
+
+                if let Some(e) = &file_selection.err {
+                    ui.label(RichText::new(e).color(Color32::RED));
+                    ui.add_space(15.);
+                }
+
+                for (i, s) in file_list.files.iter().enumerate() {
+                    ui.radio_value(
+                        &mut file_selection.current,
+                        i,
+                        RichText::new(s.display().to_string()).monospace(),
+                    );
+                }
+
+                ui.horizontal(|ui| {
+                    ui.radio_value(&mut file_selection.current, file_list.files.len(), "");
+                    ui.add(
+                        TextEdit::singleline(&mut file_selection.new)
+                            .hint_text(t!("File path"))
+                            .font(TextStyle::Monospace),
+                    );
+                });
+                ui.add_space(20.);
+            });
         });
 
         ui.separator();
@@ -69,4 +85,7 @@ pub fn change_file(
             },
         );
     });
+    if modal_response.should_close() {
+        *pl_modal = PlModal::None;
+    }
 }

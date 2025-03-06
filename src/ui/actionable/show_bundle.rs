@@ -2,9 +2,13 @@ use crate::ui::{
     Colors,
     viz::{VBundle, VCred},
 };
-use egui::{Button, Color32, Context, Rgba, ScrollArea, TextEdit, TextStyle, Ui};
+use egui::{
+    Button, Color32, Context, FontFamily, FontId, Rgba, RichText, ScrollArea, TextEdit, TextStyle,
+    Ui,
+};
 use egui_extras::{Size, Strip, StripBuilder};
 use either::Either;
+use jiff::Zoned;
 
 pub fn ui(
     ctx: &Context,
@@ -53,6 +57,22 @@ fn ui_left_part(index: usize, v_bundle: &VBundle, left_builder: StripBuilder<'_>
                         TextEdit::multiline(&mut v_bundle.description.as_str()).interactive(true),
                     )
                     .on_hover_text(t!("Description"));
+                });
+            });
+            left_strip.cell(|ui| {
+                ui.horizontal(|ui| {
+                    if v_bundle.last_changed != Zoned::default() {
+                        ui.label(
+                            RichText::new(t!("_last_update_at"))
+                                .color(Color32::GRAY)
+                                .font(FontId::new(8., FontFamily::Proportional)),
+                        );
+                        ui.label(
+                            RichText::new(v_bundle.last_changed.to_string())
+                                .color(Color32::GRAY)
+                                .font(FontId::new(8., FontFamily::Proportional)),
+                        );
+                    }
                 });
             });
         });

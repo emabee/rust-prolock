@@ -24,12 +24,18 @@ impl Transient {
     }
 
     pub fn from_cipher(password: String, readable: &Readable, cipher: &str) -> Result<Transient> {
-        let secret =
-            serde_json::from_slice(&ChachaB64::with_pbkdf2_rounds(PBKDF2_ROUNDS).decrypt_auth(
-                CipherB64::parse(cipher).context("parse")?,
-                serde_json::to_string(readable)?.as_bytes(),
-                &password,
-            )?)?;
+        let secret = serde_json::from_slice(
+            &ChachaB64::with_pbkdf2_rounds(PBKDF2_ROUNDS)
+                .decrypt_auth(
+                    CipherB64::parse(cipher).context("decrypt")?,
+                    serde_json::to_string(readable)
+                        .context("parse header")?
+                        .as_bytes(),
+                    &password,
+                )
+                .context("decrypt")?,
+        )
+        .context("parse secrets")?;
         Ok(Transient::new(password, secret))
     }
 

@@ -156,10 +156,11 @@ impl PlFile {
             self.o_transient = Some(Transient::new(password, Secrets::default()));
             self.save()?;
         } else {
-            self.o_transient = Some(
-                Transient::from_cipher(password, &self.stored.readable, &self.stored.cipher)
-                    .context(t!("Password not correct"))?,
-            );
+            self.o_transient = Some(Transient::from_cipher(
+                password,
+                &self.stored.readable,
+                &self.stored.cipher,
+            )?);
         }
 
         Ok(())

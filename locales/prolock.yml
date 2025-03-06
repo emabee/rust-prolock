@@ -183,3 +183,6 @@ parsing PlFile:
 File path:
   en: File path
   de: Dateipfad
+_last_update_at:
+  en: 'Last update at:'
+  de: 'Letzte Änderung:'

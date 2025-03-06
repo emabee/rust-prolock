@@ -2,6 +2,7 @@ use crate::{
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
     data::{Bundle, Bundles, Cred, Transient},
 };
+use jiff::Zoned;
 use std::time::Instant;
 
 pub struct V {
@@ -46,6 +47,7 @@ impl V {
                         copied_at: None,
                     })
                     .collect(),
+                last_changed: bundle.last_changed_at.clone(),
             })
             .collect();
     }
@@ -161,6 +163,7 @@ pub struct VBundle {
     pub name: String,
     pub description: String,
     pub v_creds: Vec<VCred>,
+    pub last_changed: Zoned,
 }
 
 #[derive(Clone, Default)]
@@ -198,6 +201,7 @@ impl VEditBundle {
                         }
                     })
                     .collect(),
+                last_changed_at: Zoned::now(),
             },
         )
     }

@@ -1,3 +1,5 @@
+use jiff::Zoned;
+
 use crate::data::{Transient, secret::Secret};
 
 // A bundle.
@@ -10,6 +12,13 @@ use crate::data::{Transient, secret::Secret};
 pub struct Bundle {
     pub description: String,
     pub creds: Vec<Cred>,
+    // compatibility to pl-files where last_changed_at was not yet implemented:
+    #[serde(default)]
+    #[serde(skip_serializing_if = "is_default")]
+    pub last_changed_at: Zoned,
+}
+fn is_default(t: &Zoned) -> bool {
+    t == Zoned::default()
 }
 impl Bundle {
     pub(super) fn convert_new_secrets_to_refs(&mut self, transient: &mut Transient) {

@@ -12,8 +12,8 @@ use crate::{
         actionable::panels_for_actionable_ui,
         assets::{
             IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_BURGER, IMG_CANCEL, IMG_DELETE,
-            IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_LOGO, IMG_OK, IMG_SAVE,
-            IMG_SEARCH,
+            IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_LOGO, IMG_OK, IMG_RUST_LOGO,
+            IMG_SAVE, IMG_SEARCH,
         },
         modals::{
             change_file, change_language, change_password, create_bundle, delete_bundle, show_about,

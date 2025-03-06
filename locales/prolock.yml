@@ -151,14 +151,14 @@ Unprotected header:
   en: Unverschlüsselter Eintragskopf
   de: Unverschlüsselter Eintragskopf
 _about_1:
-  en: ProLock is a tool for securely storing secrets in a password-protected file.
-  de: ProLock ist ein Werkzeug um Geheimnisse wie Passwörter verschlüsselt in einer passwortgeschützten Datei zu speichern.
+  en: ProLock is a tool for securely storing secrets (like passwords) in a password-protected file.
+  de: ProLock ist ein Werkzeug, um Geheimnisse (wie z.B. Passwörter) verschlüsselt in einer passwortgeschützten Datei zu speichern.
 _about_2:
-  en: ProLock is written in rust.
-  de: ProLock ist in rust geschrieben.
+  en: For security reasons, ProLock is written in rust.
+  de: ProLock ist sicherheitshalber in rust geschrieben.
 _about_3:
-  en: 'Repository, README, suggestions, wishes, complaints:'
-  de: 'Repository, README, Vorschläge, Wünsche, Beschwerden:'
+  en: 'README, suggestions, wishes, complaints:'
+  de: 'README, Vorschläge, Wünsche, Beschwerden:'
 Version:
   en: Version
   de: Version

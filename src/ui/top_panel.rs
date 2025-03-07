@@ -1,10 +1,10 @@
 use crate::{
     PlFile,
+    data::Settings,
     ui::{
         IMG_BURGER, VERY_LIGHT_GRAY,
         assets::{IMG_CHANGE_FILE, IMG_CHANGE_FILE_INACTIVE},
-        viz::V,
-        viz::{PlModal, Pw, PwFocus},
+        viz::{PlModal, Pw, PwFocus, V},
     },
 };
 use egui::{
@@ -14,7 +14,7 @@ use egui_extras::{Size, StripBuilder};
 
 use super::IMG_LOGO;
 
-pub fn top_panel(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
+pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context) {
     TopBottomPanel::top("file").show(ctx, |ui| {
         ui.horizontal(|ui| {
             StripBuilder::new(ui)
@@ -98,7 +98,7 @@ pub fn top_panel(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                         )
                         .clicked()
                     {
-                        v.lang.init(pl_file.language());
+                        v.lang.init(&settings.language);
                         v.pl_modal = PlModal::ChangeLanguage;
                         ui.close_menu();
                     }

@@ -1,5 +1,6 @@
 use crate::{
-    PlFile, SUPPORTED_LANGUAGES,
+    SUPPORTED_LANGUAGES,
+    data::Settings,
     ui::viz::{Lang, PlModal},
 };
 use egui::{Color32, ComboBox, Context, FontFamily, FontId, Modal, RichText, Sides};
@@ -7,7 +8,7 @@ use egui::{Color32, ComboBox, Context, FontFamily, FontId, Modal, RichText, Side
 pub fn change_language(
     lang: &mut Lang,
     pl_modal: &mut PlModal,
-    pl_file: &mut PlFile,
+    settings: &mut Settings,
     ctx: &Context,
 ) {
     let modal_response = Modal::new("change_language".into()).show(ctx, |ui| {
@@ -60,7 +61,7 @@ pub fn change_language(
                     )
                     .clicked()
                 {
-                    match pl_file.set_language(lang.selected.0) {
+                    match settings.set_language(lang.selected.0) {
                         Ok(()) => {
                             *pl_modal = PlModal::None;
                         }

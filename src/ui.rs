@@ -7,7 +7,7 @@ mod top_panel;
 mod viz;
 
 use crate::{
-    data::{FileList, PlFile},
+    data::{PlFile, Settings},
     ui::{
         actionable::panels_for_actionable_ui,
         assets::{
@@ -32,7 +32,7 @@ pub const VERY_LIGHT_GRAY: Color32 = Color32::from_rgb(235, 235, 235);
 
 pub struct Ui {
     v: V,
-    file_list: FileList,
+    settings: Settings,
     o_plfile: Option<PlFile>,
     colors: Colors,
 }
@@ -47,16 +47,16 @@ impl Ui {
             secret: Color32::DARK_RED,
         };
         let mut v = V::new();
-        match FileList::read_or_create() {
-            Ok(file_list) => {
-                v.file_selection.reset(file_list.current_file);
+        match Settings::read_or_create() {
+            Ok(settings) => {
+                v.file_selection.reset(settings.current_file);
                 Ok(Ui {
                     v,
                     o_plfile: Some(
-                        PlFile::read_or_create(file_list.current_file())
+                        PlFile::read_or_create(settings.current_file())
                             .context("File open error")?,
                     ),
-                    file_list,
+                    settings,
                     colors,
                 })
             }
@@ -65,7 +65,7 @@ impl Ui {
                 Ok(Ui {
                     v,
                     o_plfile: None,
-                    file_list: FileList::default()?,
+                    settings: Settings::default()?,
                     colors,
                 })
             }
@@ -83,20 +83,18 @@ impl App for Ui {
         if let Some(file_action) = &self.v.file_selection.o_action {
             match file_action {
                 FileAction::SwitchToKnown(idx) => {
-                    self.file_list.set_current_file(*idx).unwrap();
+                    self.settings.set_current_file(*idx).unwrap();
                 }
                 FileAction::SwitchToNew(path) => {
-                    self.file_list
-                        .add_and_set_file(PathBuf::from(path))
-                        .unwrap();
+                    self.settings.add_and_set_file(PathBuf::from(path)).unwrap();
                 }
             }
-            let pl_file = PlFile::read_or_create(self.file_list.current_file())
+            let pl_file = PlFile::read_or_create(self.settings.current_file())
                 .context("File open error")
                 .unwrap();
             self.o_plfile = Some(pl_file);
             self.v = V::new();
-            self.v.file_selection.reset(self.file_list.current_file);
+            self.v.file_selection.reset(self.settings.current_file);
         }
 
         if let Some(pl_file) = &mut self.o_plfile {
@@ -109,7 +107,7 @@ impl App for Ui {
             }
 
             // UI
-            top_panel(pl_file, &mut self.v, ctx);
+            top_panel(&self.settings, pl_file, &mut self.v, ctx);
 
             match self.v.pl_modal.clone() {
                 PlModal::CreateBundle => {
@@ -142,12 +140,17 @@ impl App for Ui {
                     change_file(
                         &mut self.v.pl_modal,
                         &mut self.v.file_selection,
-                        &mut self.file_list,
+                        &mut self.settings,
                         ctx,
                     );
                 }
                 PlModal::ChangeLanguage => {
-                    change_language(&mut self.v.lang, &mut self.v.pl_modal, pl_file, ctx);
+                    change_language(
+                        &mut self.v.lang,
+                        &mut self.v.pl_modal,
+                        &mut self.settings,
+                        ctx,
+                    );
                 }
                 PlModal::None | PlModal::ShowPrintable => {
                     // TODO ShowPrintable
@@ -163,7 +166,7 @@ impl App for Ui {
             change_file(
                 &mut self.v.pl_modal,
                 &mut self.v.file_selection,
-                &mut self.file_list,
+                &mut self.settings,
                 ctx,
             );
         }

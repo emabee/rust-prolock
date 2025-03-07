@@ -1,5 +1,5 @@
 use crate::{
-    data::FileList,
+    data::Settings,
     ui::{
         assets::IMG_CHANGE_FILE,
         viz::{FileAction, FileSelection, PlModal},
@@ -10,7 +10,7 @@ use egui::{Color32, Context, Image, Modal, RichText, Sides, TextEdit, TextStyle}
 pub fn change_file(
     pl_modal: &mut PlModal,
     file_selection: &mut FileSelection,
-    file_list: &mut FileList,
+    settings: &mut Settings,
     ctx: &Context,
 ) {
     let modal_response = Modal::new("change_file".into()).show(ctx, |ui| {
@@ -39,7 +39,7 @@ pub fn change_file(
                     ui.add_space(15.);
                 }
 
-                for (i, s) in file_list.files.iter().enumerate() {
+                for (i, s) in settings.files.iter().enumerate() {
                     ui.radio_value(
                         &mut file_selection.current,
                         i,
@@ -48,7 +48,7 @@ pub fn change_file(
                 }
 
                 ui.horizontal(|ui| {
-                    ui.radio_value(&mut file_selection.current, file_list.files.len(), "");
+                    ui.radio_value(&mut file_selection.current, settings.files.len(), "");
                     ui.add(
                         TextEdit::singleline(&mut file_selection.new)
                             .hint_text(t!("File path"))
@@ -69,7 +69,7 @@ pub fn change_file(
                     .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
                     .clicked()
                 {
-                    file_selection.o_action = if file_selection.current < file_list.files.len() {
+                    file_selection.o_action = if file_selection.current < settings.files.len() {
                         Some(FileAction::SwitchToKnown(file_selection.current))
                     } else {
                         Some(FileAction::SwitchToNew(file_selection.new.clone()))

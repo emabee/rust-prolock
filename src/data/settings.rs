@@ -1,46 +1,60 @@
 use anyhow::{Context, Result};
 use fd_lock::RwLock as FdRwLock;
+use oxilangtag::LanguageTag;
 use std::{
     fs::{File, OpenOptions, create_dir_all},
     io::{Read, Write},
     path::{Path, PathBuf},
 };
 
-const FILE_LIST_FILE: &str = "files";
+const SETTINGS_FILE: &str = "settings";
 const PROD_DOC_FOLDER: &str = ".prolock";
 const TEST_DOC_FOLDER: &str = ".prolock_test";
 const PROD_DOC_FILE: &str = "secrets";
 const TEMP_DOC_FILE: &str = "secrets_temp";
+const DEFAULT_LOCALE: &str = "en";
 
 #[derive(Deserialize, Serialize)]
-pub struct FileList {
+pub struct Settings {
     pub files: Vec<PathBuf>,
     pub current_file: usize,
+    pub language: String,
 }
 
-impl FileList {
+fn default_language() -> String {
+    let locale = sys_locale::get_locale().unwrap_or(DEFAULT_LOCALE.to_string());
+    LanguageTag::parse(locale)
+        .unwrap_or_else(|_e| LanguageTag::parse(DEFAULT_LOCALE.to_string()).unwrap(/*OK*/))
+        .primary_language()
+        .to_string()
+}
+impl Settings {
     pub fn default() -> Result<Self> {
         Ok(Self {
             files: vec![Self::prod_document_path()?],
             current_file: 0,
+            language: default_language(),
         })
     }
     pub fn read_or_create() -> Result<Self> {
-        let flf = Self::my_file()?;
-        if std::fs::exists(&flf)? {
-            Self::lock_and_read(&flf)
+        let my_file = Self::my_file()?;
+        let settings = if std::fs::exists(&my_file)? {
+            Self::lock_and_read(&my_file)?
         } else {
             create_dir_all(
-                flf.parent()
+                my_file
+                    .parent()
                     .context("cannot determine folder for storage")?,
             )?;
 
-            let file_list = FileList::default()?;
-            FileList::lock_for_write(&flf)?
-                .write()?
-                .write_all(serde_json::ser::to_string_pretty(&file_list)?.as_bytes())?;
-            Ok(file_list)
-        }
+            let settings = Settings::default()?;
+            settings.save()?;
+            settings
+        };
+
+        rust_i18n::set_locale(&settings.language);
+        rust_i18n::i18n!("locales", fallback = "en");
+        Ok(settings)
     }
 
     fn lock_for_write(file_path: &Path) -> Result<FdRwLock<File>> {
@@ -54,10 +68,11 @@ impl FileList {
         ))
     }
     fn save(&self) -> Result<()> {
-        let flf = Self::my_file()?;
-        FileList::lock_for_write(&flf)?
-            .write()?
-            .write_all(serde_json::ser::to_string_pretty(&self)?.as_bytes())?;
+        let my_file = Self::my_file()?;
+        let mut file_guard = Settings::lock_for_write(&my_file)?;
+        let mut locked_file = file_guard.write()?;
+        locked_file.write_all(serde_json::ser::to_string_pretty(&self)?.as_bytes())?;
+        locked_file.write_all(b"\n")?;
         Ok(())
     }
 
@@ -69,7 +84,7 @@ impl FileList {
         }
     }
 
-    fn read_stored(file_lock: &mut FdRwLock<File>, file_path: &Path) -> Result<FileList> {
+    fn read_stored(file_lock: &mut FdRwLock<File>, file_path: &Path) -> Result<Settings> {
         let mut file_content = String::with_capacity(1024);
         let mut write_guard = file_lock
             .write()
@@ -105,9 +120,15 @@ impl FileList {
         self.save()
     }
 
+    pub fn set_language(&mut self, lang: &str) -> Result<()> {
+        self.language.clear();
+        self.language.push_str(lang);
+        self.save()
+    }
+
     fn my_file() -> Result<PathBuf> {
         let mut file_path = Self::document_folder()?;
-        file_path.push(FILE_LIST_FILE);
+        file_path.push(SETTINGS_FILE);
         Ok(file_path)
     }
 

@@ -25,19 +25,23 @@ jobs:
     - name: Build
       run: cargo build --release
 
-    - name: Archive the release
+    - name: Archive release for Windows
       if: matrix.os == 'windows-latest'
       run: |
         mkdir -p release
         cp target/release/*.exe release/
         cd release
         zip windows-binary.zip *.exe
+
+    - name: Archive release for Linux
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p release
         cp target/release/* release/
         cd release
         tar -czvf linux-binary.tar.gz *
+
+    - name: Archive release for macOS
       if: matrix.os == 'macos-latest' || matrix.os == 'macos-11'
       run: |
         mkdir -p release
@@ -50,7 +54,7 @@ jobs:
       with:
         name: ${{ matrix.os }}-binary
         path: release/*
-  
+
   release:
     needs: build
     runs-on: ubuntu-latest

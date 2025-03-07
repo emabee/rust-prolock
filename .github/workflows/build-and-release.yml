@@ -1,0 +1,77 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-11, windows-latest]
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Build
+      run: cargo build --release
+
+    - name: Archive the release
+      if: matrix.os == 'windows-latest'
+      run: |
+        mkdir -p release
+        cp target/release/*.exe release/
+        cd release
+        zip windows-binary.zip *.exe
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        mkdir -p release
+        cp target/release/* release/
+        cd release
+        tar -czvf linux-binary.tar.gz *
+      if: matrix.os == 'macos-latest' || matrix.os == 'macos-11'
+      run: |
+        mkdir -p release
+        cp target/release/* release/
+        cd release
+        tar -czvf macos-binary.tar.gz *
+
+    - name: Upload Release Asset
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}-binary
+        path: release/*
+  
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release/*
+        asset_name: binary-${{ runner.os }}.zip
+        asset_content_type: application/zip

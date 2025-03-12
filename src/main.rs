@@ -10,6 +10,7 @@ extern crate rust_i18n;
 
 i18n!("locales", fallback = "en");
 
+mod args;
 mod data;
 mod ui;
 
@@ -21,6 +22,8 @@ use crate::{
     },
 };
 use anyhow::{Result, anyhow};
+use args::Args;
+use data::Settings;
 use eframe::{NativeOptions, run_native};
 use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
@@ -51,6 +54,30 @@ fn run() -> Result<()> {
     //     unsafe { std::env::set_var("RUST_BACKTRACE", "1") }
     // }
 
+    let mut settings = Settings::read_or_create()?;
+
+    let args = Args::from_command_line();
+    if let Some(file) = args.file() {
+        settings.add_and_set_file(&PathBuf::from(file))?;
+    }
+
+    if args.list_known_files() {
+        settings.files.iter().enumerate().for_each(|(idx, f)| {
+            println!(
+                "{} {}{}",
+                f.display(),
+                settings.default_marker(idx),
+                settings.current_marker(idx)
+            );
+        });
+        return Ok(());
+    }
+
+    if let Some(file) = args.forget_file() {
+        settings.forget_file(&PathBuf::from(file))?;
+        return Ok(());
+    }
+
     run_native(
         "ProLock",
         NativeOptions {
@@ -69,7 +96,7 @@ fn run() -> Result<()> {
             Ok(Box::new(
                 // build UiApp (which implements egui::App) and hand it over to eframe::run_native,
                 // which will then call its method `update()` in an endless loop
-                Ui::new()?,
+                Ui::new(settings)?,
             ))
         }),
     )

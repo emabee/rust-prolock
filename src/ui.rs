@@ -41,35 +41,21 @@ pub struct Colors {
     pub secret: Color32,
 }
 impl Ui {
-    pub fn new() -> Result<Self> {
+    pub fn new(settings: Settings) -> Result<Self> {
         let colors = Colors {
             user: Color32::DARK_BLUE,
             secret: Color32::DARK_RED,
         };
         let mut v = V::new();
-        match Settings::read_or_create() {
-            Ok(settings) => {
-                v.file_selection.reset(settings.current_file);
-                Ok(Ui {
-                    v,
-                    o_plfile: Some(
-                        PlFile::read_or_create(settings.current_file())
-                            .context("File open error")?,
-                    ),
-                    settings,
-                    colors,
-                })
-            }
-            Err(e) => {
-                v.file_selection.err = Some(e.to_string());
-                Ok(Ui {
-                    v,
-                    o_plfile: None,
-                    settings: Settings::default()?,
-                    colors,
-                })
-            }
-        }
+        v.file_selection.reset(settings.current_file);
+        Ok(Ui {
+            v,
+            o_plfile: Some(
+                PlFile::read_or_create(settings.current_file()).context("File open error")?,
+            ),
+            settings,
+            colors,
+        })
     }
 }
 
@@ -86,7 +72,9 @@ impl App for Ui {
                     self.settings.set_current_file(*idx).unwrap();
                 }
                 FileAction::SwitchToNew(path) => {
-                    self.settings.add_and_set_file(PathBuf::from(path)).unwrap();
+                    self.settings
+                        .add_and_set_file(&PathBuf::from(path))
+                        .unwrap();
                 }
             }
             let pl_file = PlFile::read_or_create(self.settings.current_file())
@@ -151,6 +139,7 @@ impl App for Ui {
                         &mut self.settings,
                         ctx,
                     );
+                    return;
                 }
                 PlModal::None | PlModal::ShowPrintable => {
                     // TODO ShowPrintable

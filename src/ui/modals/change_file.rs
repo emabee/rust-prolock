@@ -13,7 +13,7 @@ pub fn change_file(
     settings: &mut Settings,
     ctx: &Context,
 ) {
-    let modal_response = Modal::new("change_file".into()).show(ctx, |ui| {
+    Modal::new("change_file".into()).show(ctx, |ui| {
         ui.set_width(500.0);
 
         ui.horizontal(|ui| {
@@ -49,11 +49,16 @@ pub fn change_file(
 
                 ui.horizontal(|ui| {
                     ui.radio_value(&mut file_selection.current, settings.files.len(), "");
-                    ui.add(
-                        TextEdit::singleline(&mut file_selection.new)
-                            .hint_text(t!("File path"))
-                            .font(TextStyle::Monospace),
-                    );
+                    if ui
+                        .add(
+                            TextEdit::singleline(&mut file_selection.new)
+                                .hint_text(t!("File path"))
+                                .font(TextStyle::Monospace),
+                        )
+                        .has_focus()
+                    {
+                        file_selection.current = settings.files.len();
+                    }
                 });
                 ui.add_space(20.);
             });
@@ -85,7 +90,4 @@ pub fn change_file(
             },
         );
     });
-    if modal_response.should_close() {
-        *pl_modal = PlModal::None;
-    }
 }

@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use fd_lock::RwLock as FdRwLock;
 use oxilangtag::LanguageTag;
 use std::{
@@ -38,8 +38,9 @@ impl Settings {
     }
     pub fn read_or_create() -> Result<Self> {
         let my_file = Self::my_file()?;
-        let settings = if std::fs::exists(&my_file)? {
-            Self::lock_and_read(&my_file)?
+        let context = format!("reading {}", my_file.display());
+        let settings = if std::fs::exists(&my_file).context(context.clone())? {
+            Self::lock_and_read(&my_file).context(context.clone())?
         } else {
             create_dir_all(
                 my_file
@@ -114,16 +115,53 @@ impl Settings {
         self.current_file = idx;
         self.save()
     }
-    pub fn add_and_set_file(&mut self, file: PathBuf) -> Result<()> {
-        self.files.push(file);
-        self.current_file = self.files.len() - 1;
-        self.save()
+
+    pub fn add_and_set_file(&mut self, file: &Path) -> Result<()> {
+        let canonfile = canonicalize(file)?;
+        if let Some(pos) = self.files.iter().position(|f| f == &canonfile) {
+            self.current_file = pos;
+            self.save()
+        } else {
+            self.files.push(canonfile);
+            self.current_file = self.files.len() - 1;
+            self.save()
+        }
+    }
+    pub fn forget_file(&mut self, file: &Path) -> Result<()> {
+        if let Some(pos) = self.files.iter().position(|f| f == file) {
+            if pos == 0 {
+                return Err(anyhow!("Cannot forget default file"));
+            }
+            self.files.remove(pos);
+            if pos <= self.current_file {
+                self.current_file = self.current_file.saturating_sub(1);
+            }
+            self.save()
+        } else {
+            Ok(())
+        }
+    }
+
+    #[allow(clippy::unused_self)]
+    pub fn default_marker(&self, idx: usize) -> &'static str {
+        if idx == 0 { "(default)" } else { "" }
+    }
+    pub fn current_marker(&self, idx: usize) -> &'static str {
+        if idx == self.current_file {
+            "(current)"
+        } else {
+            ""
+        }
     }
 
     pub fn set_language(&mut self, lang: &str) -> Result<()> {
         self.language.clear();
         self.language.push_str(lang);
-        self.save()
+        self.save()?;
+
+        rust_i18n::set_locale(&self.language);
+        rust_i18n::i18n!("locales", fallback = "en");
+        Ok(())
     }
 
     fn my_file() -> Result<PathBuf> {
@@ -151,4 +189,19 @@ impl Settings {
         file_path.push(TEMP_DOC_FILE);
         Ok(file_path)
     }
+}
+
+fn canonicalize(file: &Path) -> Result<PathBuf> {
+    let mut parent = file.parent().context("parent folder")?.to_owned();
+    if parent.to_string_lossy().is_empty() {
+        parent = PathBuf::from(".");
+    }
+    if !parent.exists() {
+        create_dir_all(parent.clone()).context("creating parent folder")?;
+    }
+
+    Ok(parent
+        .canonicalize()
+        .context("canonicalizing parent folder")?
+        .join(file.file_name().context("file name")?))
 }

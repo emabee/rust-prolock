@@ -79,6 +79,16 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
                         v.pl_modal = PlModal::About;
                         ui.close_menu();
                     }
+
+                    if ui
+                        .add(Button::new(format!("🌐 {}", t!("Change language"))))
+                        .clicked()
+                    {
+                        v.lang.init(&settings.language);
+                        v.pl_modal = PlModal::ChangeLanguage;
+                        ui.close_menu();
+                    }
+
                     if ui
                         .add_enabled(
                             pl_file.is_actionable(),
@@ -91,17 +101,7 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
                         v.pw.focus = PwFocus::PwOld;
                         ui.close_menu();
                     }
-                    if ui
-                        .add_enabled(
-                            pl_file.is_actionable(),
-                            Button::new(format!("🌐 {}", t!("Change language"))),
-                        )
-                        .clicked()
-                    {
-                        v.lang.init(&settings.language);
-                        v.pl_modal = PlModal::ChangeLanguage;
-                        ui.close_menu();
-                    }
+
                     if ui
                         .add_enabled(
                             false, //self.pl_file.is_actionable(),

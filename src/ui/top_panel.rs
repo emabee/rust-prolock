@@ -46,7 +46,7 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
                         }
 
                         ui.label(
-                            RichText::new(pl_file.file_path.display().to_string())
+                            RichText::new(pl_file.file_path())
                                 .family(FontFamily::Monospace)
                                 .color(Color32::DARK_GRAY)
                                 .background_color(VERY_LIGHT_GRAY),
@@ -59,8 +59,8 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
 
             ui.label(t!(
                 "entries_with_secrets %{n1} %{n2}",
-                n1 = pl_file.stored.readable.bundles.len(),
-                n2 = pl_file.stored.readable.bundles.count_secrets()
+                n1 = pl_file.bundles().len(),
+                n2 = pl_file.bundles().count_secrets()
             ));
 
             ui.add_space(ui.available_width() - 80.);

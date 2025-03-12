@@ -59,7 +59,7 @@ pub fn create_bundle(
                     )
                     .clicked()
                 {
-                    let (_orig_name, name, bundle) = edit_bundle.as_bundle();
+                    let (_orig_name, name, bundle) = edit_bundle.as_oldname_newname_bundle();
                     match pl_file.save_with_added_bundle(name, bundle) {
                         Ok(()) => {
                             *pl_modal = PlModal::None;

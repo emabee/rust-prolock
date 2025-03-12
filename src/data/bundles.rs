@@ -1,6 +1,9 @@
 use crate::data::{Bundle, Secret, Transient};
 use anyhow::{Result, anyhow};
-use std::collections::{BTreeMap, btree_map::Entry};
+use std::collections::{
+    BTreeMap,
+    btree_map::{Entry, Iter},
+};
 
 // All bundles in the file.
 //
@@ -13,7 +16,7 @@ use std::collections::{BTreeMap, btree_map::Entry};
 //     - remove all bundles from secret that do not appear in the list
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub struct Bundles(pub BTreeMap<String, Bundle>);
+pub(crate) struct Bundles(BTreeMap<String, Bundle>);
 
 impl Bundles {
     pub fn new() -> Self {
@@ -24,12 +27,20 @@ impl Bundles {
         self.0.len()
     }
 
+    pub fn iter(&self) -> Iter<'_, std::string::String, Bundle> {
+        self.0.iter()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
+    pub fn get(&self, key: &str) -> Option<&Bundle> {
+        self.0.get(key)
+    }
+
     pub fn count_secrets(&self) -> usize {
-        self.0.values().map(|bundle| bundle.creds.len()).sum()
+        self.0.values().map(|bundle| bundle.creds().len()).sum()
     }
 
     pub fn contains_key(&self, key: &str) -> bool {
@@ -41,11 +52,6 @@ impl Bundles {
         left_refs.sort_unstable();
         left_refs
     }
-
-    // #[cfg(test)]
-    // pub fn get(&self, key: &str) -> Option<&Bundle> {
-    //     self.0.get(key)
-    // }
 
     pub fn add<S>(&mut self, key: S, mut bundle: Bundle, transient: &mut Transient) -> Result<()>
     where
@@ -92,7 +98,7 @@ impl Bundles {
         match self.0.remove_entry(key.as_ref()) {
             None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
             Some((_key, bundle)) => {
-                for cred in bundle.creds {
+                for cred in bundle.creds() {
                     if let Secret::Ref(idx) = cred.name {
                         transient.remove_secret(idx);
                     }

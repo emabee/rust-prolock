@@ -36,9 +36,9 @@ impl V {
             .into_iter()
             .map(|(name, bundle)| VBundle {
                 name: name.to_string(),
-                description: bundle.description.clone(),
+                description: bundle.description().to_string(),
                 v_creds: bundle
-                    .creds
+                    .creds()
                     .iter()
                     .map(|cred| VCred {
                         name: cred.name(transient),
@@ -47,7 +47,7 @@ impl V {
                         copied_at: None,
                     })
                     .collect(),
-                last_changed: bundle.last_changed_at.clone(),
+                last_changed: bundle.last_changed_at().clone(),
             })
             .collect();
     }
@@ -184,14 +184,13 @@ pub struct VEditBundle {
 }
 
 impl VEditBundle {
-    pub fn as_bundle(&self) -> (String, String, Bundle) {
+    pub fn as_oldname_newname_bundle(&self) -> (String, String, Bundle) {
         (
             self.orig_name.to_string(),
             self.name.to_string(),
-            Bundle {
-                description: self.description.clone(),
-                creds: self
-                    .v_creds
+            Bundle::new(
+                self.description.clone(),
+                self.v_creds
                     .iter()
                     .filter_map(|vns| {
                         if vns.name.trim().is_empty() && vns.secret.trim().is_empty() {
@@ -201,8 +200,7 @@ impl VEditBundle {
                         }
                     })
                     .collect(),
-                last_changed_at: Zoned::now(),
-            },
+            ),
         )
     }
 

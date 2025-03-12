@@ -20,31 +20,31 @@ const PREFACE: &str = "\
 
 // Describes the status and content of the prolock file
 #[derive(Clone, Debug)]
-pub struct PlFile {
-    pub file_path: PathBuf,
-    pub stored: Stored,
+pub(crate) struct PlFile {
+    file_path: PathBuf,
+    stored: Stored,
     o_transient: Option<Transient>,
 }
 
 // This is the structure that is serialized to the file (after the preface);
 // it consists of a readable section and an encrypted section
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Stored {
-    pub readable: Readable,
-    pub cipher: String,
+pub(crate) struct Stored {
+    readable: Readable,
+    cipher: String,
 }
 
 // The readable section is written in clear and also used as auth-tag for the encrypted section
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Readable {
-    pub header: FileHeader,
-    pub bundles: Bundles,
+pub(crate) struct Readable {
+    header: FileHeader,
+    bundles: Bundles,
 }
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub struct FileHeader {
-    pub format_version: u8,
-    pub update_counter: Sequence<usize>,
+struct FileHeader {
+    format_version: u8,
+    update_counter: Sequence<usize>,
 }
 
 impl PlFile {
@@ -115,10 +115,6 @@ impl PlFile {
         serde_json::from_str(semantic_content).context(t!("parsing PlFile"))
     }
 
-    // #[cfg(test)]
-    // pub fn len(&self) -> usize {
-    //     self.stored.readable.bundles.len()
-    // }
     pub fn is_empty(&self) -> bool {
         self.stored.readable.bundles.is_empty()
     }
@@ -126,12 +122,21 @@ impl PlFile {
     pub fn transient(&self) -> Option<&Transient> {
         self.o_transient.as_ref()
     }
-    // #[cfg(test)]
-    // pub fn bundles(&self) -> Iter<'_, String, Bundle> {
-    //     self.stored.readable.bundles.into_iter()
-    // }
+
+    pub fn bundles(&self) -> &Bundles {
+        &self.stored.readable.bundles
+    }
+
+    pub fn update_counter(&self) -> &Sequence<usize> {
+        &self.stored.readable.header.update_counter
+    }
+
     pub fn has_bundle(&self, name: &str) -> bool {
         self.stored.readable.bundles.contains_key(name)
+    }
+
+    pub fn file_path(&self) -> String {
+        self.file_path.display().to_string()
     }
 
     pub fn is_actionable(&self) -> bool {
@@ -230,7 +235,6 @@ impl PlFile {
         self.stored
             .readable
             .bundles
-            .0
             .get(key)
             .unwrap_or_else(|| panic!("no bundle for key {key}"))
             .refs()
@@ -326,13 +330,12 @@ impl PlFile {
         self.stored
             .readable
             .bundles
-            .0
             .iter()
-            .zip(&other.stored.readable.bundles.0)
+            .zip(other.stored.readable.bundles.iter())
             .all(|((s1, b1), (s2, b2))| {
                 *s1 == *s2
-                    && b1.description == b2.description
-                    && b1.creds.iter().zip(&b2.creds).all(|(my, other)| {
+                    && b1.description() == b2.description()
+                    && b1.creds().iter().zip(b2.creds().iter()).all(|(my, other)| {
                         my.name(my_transient) == other.name(other_transient)
                             && my.secret(my_transient) == other.secret(other_transient)
                     })
@@ -392,7 +395,7 @@ impl PlFile {
 
         // garbage-collect all now redundant secrets
         // - remove from old_refs all refs that are still in bundle
-        for cred in &bundle.creds {
+        for cred in bundle.creds() {
             if let Secret::Ref(reff) = &cred.name {
                 if let Ok(index) = old_refs.binary_search(reff) {
                     old_refs.remove(index);

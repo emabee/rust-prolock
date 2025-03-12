@@ -1,6 +1,5 @@
-use jiff::Zoned;
-
 use crate::data::{Transient, secret::Secret};
+use jiff::Zoned;
 
 // A bundle.
 //
@@ -9,18 +8,28 @@ use crate::data::{Transient, secret::Secret};
 // A bundle can only be serialized (i.e., written to the file)
 // if each Secret it contains has Variant Ref.
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub struct Bundle {
-    pub description: String,
-    pub creds: Vec<Cred>,
-    // compatibility to pl-files where last_changed_at was not yet implemented:
-    #[serde(default)]
-    #[serde(skip_serializing_if = "is_default")]
-    pub last_changed_at: Zoned,
-}
-fn is_default(t: &Zoned) -> bool {
-    t == Zoned::default()
+pub(crate) struct Bundle {
+    description: String,
+    creds: Vec<Cred>,
+    last_changed_at: Zoned,
 }
 impl Bundle {
+    pub(crate) fn new(description: String, creds: Vec<Cred>) -> Self {
+        Self {
+            description,
+            creds,
+            last_changed_at: Zoned::now(),
+        }
+    }
+    pub(crate) fn description(&self) -> &str {
+        &self.description
+    }
+    pub(crate) fn creds(&self) -> &[Cred] {
+        &self.creds
+    }
+    pub(crate) fn last_changed_at(&self) -> &Zoned {
+        &self.last_changed_at
+    }
     pub(super) fn convert_new_secrets_to_refs(&mut self, transient: &mut Transient) {
         for cred in &mut self.creds {
             if let Secret::New(s) = &cred.name {
@@ -75,9 +84,6 @@ impl Cred {
             secret: Secret::New(password),
         }
     }
-    // pub fn is_storable(&self) -> bool {
-    //     self.name.is_ref() && self.secret.is_ref()
-    // }
     pub fn name(&self, transient: &Transient) -> String {
         self.name.disclose(transient)
     }

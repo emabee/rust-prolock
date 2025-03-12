@@ -3,8 +3,6 @@ use anyhow::{Context, Result};
 use pwsec::{ChachaB64, CipherB64};
 use secstr::SecUtf8;
 use sequential::Sequence;
-// #[cfg(test)]
-// use std::fmt::Write;
 
 const PBKDF2_ROUNDS: u32 = 91_232;
 

@@ -84,7 +84,7 @@ pub(super) fn active_buttons_save_and_cancel(
         })
         .clicked()
     {
-        let (orig_name, name, bundle) = edit_bundle.as_bundle();
+        let (orig_name, name, bundle) = edit_bundle.as_oldname_newname_bundle();
         if let Err(e) = if edit_idx.is_mod() {
             pl_file.save_with_updated_bundle(&orig_name, name, &bundle)
         } else {

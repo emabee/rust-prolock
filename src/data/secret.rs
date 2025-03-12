@@ -1,5 +1,5 @@
 use crate::data::Transient;
-use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Visitor};
 
 #[derive(Clone, Debug)]
 pub enum Secret {
@@ -26,10 +26,10 @@ impl Default for Secret {
         Secret::New(String::new())
     }
 }
-impl serde::ser::Serialize for Secret {
+impl Serialize for Secret {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer,
+        S: Serializer,
     {
         match self {
             Secret::New(_) => unreachable!("Secret::New"),
@@ -37,10 +37,10 @@ impl serde::ser::Serialize for Secret {
         }
     }
 }
-impl<'de> serde::de::Deserialize<'de> for Secret {
+impl<'de> Deserialize<'de> for Secret {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de>,
+        D: Deserializer<'de>,
     {
         let visitor = PwVisitor;
         deserializer.deserialize_u64(visitor)

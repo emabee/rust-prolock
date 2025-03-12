@@ -12,7 +12,7 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
     });
 
     CentralPanel::default().show(ctx, |ui| {
-        if pl_file.stored.readable.header.update_counter.peek() == Some(0) {
+        if pl_file.update_counter().peek() == Some(0) {
             // this is the first start, so ask twice
             ui.add_space(15.);
             ui.label(
@@ -105,7 +105,7 @@ fn switch_to_actionable(pl_file: &mut PlFile, v: &mut V) {
         Ok(()) => {
             v.pw.error = None;
             v.reset_bundles(
-                &pl_file.stored.readable.bundles,
+                &pl_file.bundles(),
                 pl_file.transient().unwrap(/*should never fail*/),
             );
             if pl_file.is_empty() {

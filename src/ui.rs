@@ -88,7 +88,7 @@ impl App for Ui {
         if let Some(pl_file) = &mut self.o_plfile {
             if self.v.need_refresh {
                 self.v.reset_bundles(
-                    &pl_file.stored.readable.bundles,
+                    &pl_file.bundles(),
                     pl_file.transient().unwrap(/*should never fail*/),
                 );
                 self.v.need_refresh = false;

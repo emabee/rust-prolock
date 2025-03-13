@@ -105,7 +105,7 @@ fn switch_to_actionable(pl_file: &mut PlFile, v: &mut V) {
         Ok(()) => {
             v.pw.error = None;
             v.reset_bundles(
-                &pl_file.bundles(),
+                pl_file.bundles(),
                 pl_file.transient().unwrap(/*should never fail*/),
             );
             if pl_file.is_empty() {

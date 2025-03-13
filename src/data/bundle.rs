@@ -1,4 +1,4 @@
-use crate::data::{Transient, secret::Secret};
+use crate::data::{Cred, Secret, Transient};
 use jiff::Zoned;
 
 // A bundle.
@@ -43,7 +43,7 @@ impl Bundle {
         }
     }
 
-    pub fn refs(&self) -> (Vec<u64>, bool) {
+    pub(super) fn refs(&self) -> (Vec<u64>, bool) {
         let mut found_non_reffed_secrets = false;
         (
             self.creds
@@ -69,25 +69,5 @@ impl Bundle {
             }
         }
         true
-    }
-}
-
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub struct Cred {
-    pub name: Secret,
-    pub secret: Secret,
-}
-impl Cred {
-    pub fn new(name: String, password: String) -> Self {
-        Self {
-            name: Secret::New(name),
-            secret: Secret::New(password),
-        }
-    }
-    pub fn name(&self, transient: &Transient) -> String {
-        self.name.disclose(transient)
-    }
-    pub fn secret(&self, transient: &Transient) -> String {
-        self.secret.disclose(transient)
     }
 }

@@ -1,5 +1,5 @@
 use crate::{
-    controller::Controller,
+    controller::{Action, Controller},
     ui::{
         Colors, IMG_CANCEL, IMG_SAVE,
         sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
@@ -57,7 +57,7 @@ pub fn create_bundle(
                     )
                     .clicked()
                 {
-                    controller.finalize_add();
+                    controller.set_action(Action::FinalizeAdd);
                 }
 
                 if ui
@@ -72,7 +72,7 @@ pub fn create_bundle(
                     )
                     .clicked()
                 {
-                    controller.cancel();
+                    controller.set_action(Action::Cancel);
                 }
             },
         );

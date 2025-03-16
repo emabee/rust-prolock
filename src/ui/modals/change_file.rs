@@ -1,5 +1,5 @@
 use crate::{
-    controller::Controller,
+    controller::{Action, Controller},
     data::Settings,
     ui::{assets::IMG_CHANGE_FILE, viz::FileSelection},
 };
@@ -73,16 +73,16 @@ pub fn change_file(
                     .clicked()
                 {
                     if file_selection.current < settings.files.len() {
-                        controller.switch_to_known_file(file_selection.current);
+                        controller.set_action(Action::SwitchToKnownFile(file_selection.current));
                     } else {
-                        controller.switch_to_new_file(file_selection.new.clone());
+                        controller.set_action(Action::SwitchToNewFile(file_selection.new.clone()));
                     }
                 }
                 if ui
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
                     .clicked()
                 {
-                    controller.cancel();
+                    controller.set_action(Action::Cancel);
                 }
             },
         );

@@ -1,5 +1,5 @@
 use crate::{
-    controller::Controller,
+    controller::{Action, Controller},
     ui::{IMG_LOGO, IMG_RUST_LOGO},
 };
 use egui::{Color32, Context, FontFamily, FontId, Image, Modal, RichText, Sides, Vec2};
@@ -60,12 +60,12 @@ pub fn show_about(controller: &mut Controller, ctx: &Context) {
                     )
                     .clicked()
                 {
-                    controller.cancel();
+                    controller.set_action(Action::Cancel);
                 }
             },
         );
     });
     if modal_response.should_close() {
-        controller.cancel();
+        controller.set_action(Action::Cancel);
     }
 }

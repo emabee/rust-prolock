@@ -1,6 +1,6 @@
 use crate::{
     PlFile,
-    controller::Controller,
+    controller::{Action, Controller},
     ui::{
         IMG_BURGER, VERY_LIGHT_GRAY,
         assets::{IMG_CHANGE_FILE, IMG_CHANGE_FILE_INACTIVE},
@@ -42,7 +42,7 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
                             )
                             .clicked()
                         {
-                            controller.start_change_file();
+                            controller.set_action(Action::StartChangeFile);
                         }
 
                         ui.label(
@@ -76,7 +76,7 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
                         ))
                         .clicked()
                     {
-                        controller.show_about();
+                        controller.set_action(Action::ShowAbout);
                         ui.close_menu();
                     }
 
@@ -84,7 +84,7 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
                         .add(Button::new(format!("🌐 {}", t!("Change language"))))
                         .clicked()
                     {
-                        controller.show_change_language();
+                        controller.set_action(Action::StartChangeLanguage);
                         ui.close_menu();
                     }
 
@@ -95,7 +95,7 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
                         )
                         .clicked()
                     {
-                        controller.start_change_password();
+                        controller.set_action(Action::StartChangePassword);
                         ui.close_menu();
                     }
 

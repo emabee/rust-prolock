@@ -27,7 +27,7 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                 ui.add_space(50.);
                 ui.add(TextEdit::singleline(&mut t!("Password:")).desired_width(80.));
                 let response = ui.add(
-                    TextEdit::singleline(&mut v.pw.new1)
+                    TextEdit::singleline(&mut v.pw.pw1)
                         .desired_width(120.)
                         .password(true),
                 );
@@ -48,7 +48,7 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                 ui.add_space(50.);
                 ui.add(TextEdit::singleline(&mut t!("Repeat:")).desired_width(80.));
                 let response = ui.add(
-                    TextEdit::singleline(&mut v.pw.new2)
+                    TextEdit::singleline(&mut v.pw.pw2)
                         .desired_width(120.)
                         .password(true),
                 );
@@ -63,7 +63,7 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                     go_forward = true;
                 }
                 if go_forward {
-                    if v.pw.new1 == v.pw.new2 {
+                    if v.pw.pw1 == v.pw.pw2 {
                         switch_to_actionable(pl_file, v);
                     } else {
                         v.pw.error = Some(t!("The passwords don't match").to_string());
@@ -77,7 +77,7 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                 ui.add_space(50.);
                 ui.add(TextEdit::singleline(&mut t!("Password:")).desired_width(80.));
                 let response = ui.add(
-                    TextEdit::singleline(&mut v.pw.new1)
+                    TextEdit::singleline(&mut v.pw.pw1)
                         .desired_width(120.)
                         .password(true),
                 );
@@ -101,7 +101,7 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
 }
 
 fn switch_to_actionable(pl_file: &mut PlFile, v: &mut V) {
-    match pl_file.set_actionable(v.pw.new1.clone()) {
+    match pl_file.set_actionable(v.pw.pw1.clone()) {
         Ok(()) => {
             v.pw.error = None;
             v.reset_bundles(pl_file.bundles());

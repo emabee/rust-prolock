@@ -1,4 +1,8 @@
-use crate::{SUPPORTED_LANGUAGES, controller::Controller, ui::viz::Lang};
+use crate::{
+    SUPPORTED_LANGUAGES,
+    controller::{Action, Controller},
+    ui::viz::Lang,
+};
 use egui::{Color32, ComboBox, Context, FontFamily, FontId, Modal, RichText, Sides};
 
 pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Context) {
@@ -52,7 +56,7 @@ pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Conte
                     )
                     .clicked()
                 {
-                    controller.finalize_change_language();
+                    controller.set_action(Action::FinalizeChangeLanguage);
                 }
                 if ui
                     .button(
@@ -61,12 +65,12 @@ pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Conte
                     )
                     .clicked()
                 {
-                    controller.cancel();
+                    controller.set_action(Action::Cancel);
                 }
             },
         );
     });
     if modal_response.should_close() {
-        controller.cancel();
+        controller.set_action(Action::Cancel);
     }
 }

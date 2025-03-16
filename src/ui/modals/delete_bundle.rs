@@ -1,4 +1,4 @@
-use crate::controller::Controller;
+use crate::controller::{Action, Controller};
 use egui::{Color32, Context, Modal, RichText, Sides};
 
 pub fn delete_bundle(name: &str, controller: &mut Controller, ctx: &Context) {
@@ -19,13 +19,13 @@ pub fn delete_bundle(name: &str, controller: &mut Controller, ctx: &Context) {
                     .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
                     .clicked()
                 {
-                    controller.finalize_delete(name.to_string());
+                    controller.set_action(Action::FinalizeDelete(name.to_string()));
                 }
                 if ui
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
                     .clicked()
                 {
-                    controller.cancel();
+                    controller.set_action(Action::Cancel);
                 }
             },
         );

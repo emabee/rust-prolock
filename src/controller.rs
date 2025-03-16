@@ -16,63 +16,25 @@ pub struct Controller {
     current_modal: PlModal,
 }
 impl Controller {
-    pub fn start_add(&mut self, v: &mut V) {
-        self.current_modal = PlModal::CreateBundle;
-        v.edit_bundle.prepare_for_create();
-    }
-    pub fn start_change_password(&mut self) {
-        self.next_action = Action::StartChangePassword;
-    }
-    pub fn start_change_file(&mut self) {
-        self.next_action = Action::StartChangeFile;
-    }
-    pub fn show_about(&mut self) {
-        self.current_modal = PlModal::About;
-    }
-    pub fn show_change_language(&mut self) {
-        self.current_modal = PlModal::ChangeLanguage;
-        self.next_action = Action::StartChangeLanguage;
-    }
-    pub fn finalize_change_language(&mut self) {
-        self.next_action = Action::FinalizeChangeLanguage;
-    }
-    pub fn finalize_change_password(&mut self, old: String, new: String) {
-        self.next_action = Action::FinalizeChangePassword { old, new };
-    }
-    pub fn switch_to_known_file(&mut self, idx: usize) {
-        self.next_action = Action::SwitchToKnownFile(idx);
-    }
-    pub fn switch_to_new_file(&mut self, path: String) {
-        self.next_action = Action::SwitchToNewFile(path);
-    }
-    pub fn finalize_add(&mut self) {
-        self.next_action = Action::FinalizeAdd;
-    }
-    pub fn start_modify(&mut self, index: usize, name: String) {
-        self.next_action = Action::StartModify(index, name);
-    }
-    pub fn finalize_modify(&mut self) {
-        self.next_action = Action::FinalizeModify;
-    }
-    pub fn start_delete(&mut self, name: String) {
-        self.next_action = Action::StartDelete(name);
-    }
-    pub fn finalize_delete(&mut self, name: String) {
-        self.next_action = Action::FinalizeDelete(name);
-    }
-    pub fn cancel(&mut self) {
-        self.next_action = Action::Cancel;
+    // this is called in many places of the UI code
+    pub fn set_action(&mut self, action: Action) {
+        self.next_action = action;
     }
 
+    // this is called in the main loop
     #[allow(clippy::too_many_lines)]
     pub fn act(&mut self, o_plfile: &mut Option<PlFile>, v: &mut V, settings: &mut Settings) {
         // println!("{:?}", self.next_action);
         match std::mem::take(&mut self.next_action) {
             Action::None => {}
 
+            Action::ShowAbout => {
+                self.current_modal = PlModal::About;
+            }
+
             Action::StartChangePassword => {
-                self.current_modal = PlModal::ChangePassword;
                 v.pw = Pw::default();
+                self.current_modal = PlModal::ChangePassword;
             }
             Action::FinalizeChangePassword { old, new } => {
                 match o_plfile.as_mut().unwrap(/*OK*/).change_password(&old, new) {
@@ -85,10 +47,15 @@ impl Controller {
                 }
             }
 
+            Action::StartAdd => {
+                v.edit_bundle.prepare_for_create();
+                self.current_modal = PlModal::CreateBundle;
+            }
             Action::FinalizeAdd => {
                 let pl_file = o_plfile.as_mut().unwrap(/*OK*/);
-                let transient = pl_file.transient_mut().unwrap(/*OK*/);
-                let (_orig_name, name, bundle) = v.edit_bundle.as_oldname_newname_bundle(transient);
+                let (_orig_name, name, bundle) = v
+                    .edit_bundle
+                    .as_oldname_newname_bundle(pl_file.transient_mut().unwrap(/*OK*/));
                 match pl_file.save_with_added_bundle(name, bundle) {
                     Ok(()) => {
                         self.current_modal = PlModal::None;
@@ -101,13 +68,13 @@ impl Controller {
             }
 
             Action::StartChangeFile => {
-                self.current_modal = PlModal::ChangeFile;
                 v.file_selection.reset(settings.current_file);
+                self.current_modal = PlModal::ChangeFile;
             }
             Action::SwitchToKnownFile(idx) => match settings.set_current_file(idx) {
                 Ok(()) => {
-                    self.current_modal = PlModal::None;
                     switch_to_current_file(o_plfile, v, settings);
+                    self.current_modal = PlModal::None;
                 }
                 Err(e) => {
                     v.file_selection.err =
@@ -117,8 +84,8 @@ impl Controller {
             Action::SwitchToNewFile(path) => {
                 match settings.add_and_set_file(&PathBuf::from(path)) {
                     Ok(()) => {
-                        self.current_modal = PlModal::None;
                         switch_to_current_file(o_plfile, v, settings);
+                        self.current_modal = PlModal::None;
                     }
                     Err(e) => {
                         v.file_selection.err =
@@ -186,6 +153,7 @@ impl Controller {
                 if let Err(e) = o_plfile.as_mut().unwrap(/*OK*/).save_with_deleted_bundle(name) {
                     println!("TODO 'FinalizeDelete' failed with {e:?}");
                 }
+                self.current_modal = PlModal::None;
             }
 
             Action::Cancel => {
@@ -210,9 +178,11 @@ fn switch_to_current_file(o_plfile: &mut Option<PlFile>, v: &mut V, settings: &m
 }
 
 #[derive(Default, Debug)]
-enum Action {
+pub(crate) enum Action {
     #[default]
     None,
+
+    ShowAbout,
 
     StartChangeFile,
     SwitchToKnownFile(usize),
@@ -227,6 +197,7 @@ enum Action {
     StartChangeLanguage,
     FinalizeChangeLanguage,
 
+    StartAdd,
     FinalizeAdd,
 
     StartModify(usize, String),

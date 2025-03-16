@@ -88,11 +88,16 @@ impl EditIdx {
         }
     }
 }
+
+// Is used for
+// - plain PW entry
+// - initial PW entry (twice)
+// - changing the PW (old, and twice new)
 #[derive(Default)]
 pub struct Pw {
-    pub new1: String,
-    pub new2: String,
-    pub old: String,
+    pub pw1: String,
+    pub pw2: String,
+    pub pw3: String,
     pub error: Option<String>,
     pub focus: PwFocus,
 }
@@ -101,9 +106,9 @@ pub struct Pw {
 pub enum PwFocus {
     None,
     #[default]
-    PwOld,
     Pw1,
     Pw2,
+    Pw3,
 }
 
 #[derive(Default)]

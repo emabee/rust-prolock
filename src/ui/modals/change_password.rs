@@ -1,5 +1,5 @@
 use crate::{
-    controller::Controller,
+    controller::{Action, Controller},
     ui::viz::{Pw, PwFocus},
 };
 use egui::{Color32, Context, FontFamily, FontId, Key, Modal, RichText, Sides, TextEdit};
@@ -34,32 +34,7 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                             .desired_width(170.),
                     );
                     let response = ui.add(
-                        TextEdit::singleline(&mut pw.old)
-                            .desired_width(120.)
-                            .password(true),
-                    );
-                    if matches!(pw.focus, PwFocus::PwOld) {
-                        response.request_focus();
-                        pw.focus = PwFocus::None;
-                    }
-                    if response.lost_focus()
-                        && ui.input(|i| i.key_pressed(Key::Enter) || i.key_pressed(Key::Tab))
-                    {
-                        pw.focus = PwFocus::Pw1;
-                    }
-                });
-
-                // ask twice for new PW
-                ui.add_space(15.);
-                ui.horizontal(|ui| {
-                    ui.add_space(8.);
-                    ui.add(
-                        TextEdit::singleline(&mut t!("New password:"))
-                            .background_color(Color32::TRANSPARENT)
-                            .desired_width(170.),
-                    );
-                    let response = ui.add(
-                        TextEdit::singleline(&mut pw.new1)
+                        TextEdit::singleline(&mut pw.pw1)
                             .desired_width(120.)
                             .password(true),
                     );
@@ -74,6 +49,31 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                     }
                 });
 
+                // ask twice for new PW
+                ui.add_space(15.);
+                ui.horizontal(|ui| {
+                    ui.add_space(8.);
+                    ui.add(
+                        TextEdit::singleline(&mut t!("New password:"))
+                            .background_color(Color32::TRANSPARENT)
+                            .desired_width(170.),
+                    );
+                    let response = ui.add(
+                        TextEdit::singleline(&mut pw.pw2)
+                            .desired_width(120.)
+                            .password(true),
+                    );
+                    if matches!(pw.focus, PwFocus::Pw2) {
+                        response.request_focus();
+                        pw.focus = PwFocus::None;
+                    }
+                    if response.lost_focus()
+                        && ui.input(|i| i.key_pressed(Key::Enter) || i.key_pressed(Key::Tab))
+                    {
+                        pw.focus = PwFocus::Pw3;
+                    }
+                });
+
                 ui.horizontal(|ui| {
                     ui.add_space(8.);
                     ui.add(
@@ -82,11 +82,11 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                             .desired_width(170.),
                     );
                     let response = ui.add(
-                        TextEdit::singleline(&mut pw.new2)
+                        TextEdit::singleline(&mut pw.pw3)
                             .desired_width(120.)
                             .password(true),
                     );
-                    if matches!(pw.focus, PwFocus::Pw2) {
+                    if matches!(pw.focus, PwFocus::Pw3) {
                         response.request_focus();
                         pw.focus = PwFocus::None;
                     }
@@ -119,20 +119,23 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
                     .clicked()
                 {
-                    controller.cancel();
+                    controller.set_action(Action::Cancel);
                 }
             },
         );
 
         if go_for_it {
-            if pw.new1 == pw.new2 {
-                controller.finalize_change_password(pw.old.clone(), pw.new1.clone());
+            if pw.pw2 == pw.pw3 {
+                controller.set_action(Action::FinalizeChangePassword {
+                    old: pw.pw1.clone(),
+                    new: pw.pw2.clone(),
+                });
             } else {
                 pw.error = Some(t!("_passwords_dont_match").to_string());
             }
         }
     });
     if modal_response.should_close() {
-        controller.cancel();
+        controller.set_action(Action::Cancel);
     }
 }

@@ -3,7 +3,7 @@ pub mod edit_bundle;
 mod show_bundle;
 
 use crate::{
-    controller::Controller,
+    controller::{Action, Controller},
     data::{Bundle, Bundles, Transient},
     ui::{
         Colors, IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_SEARCH,
@@ -60,7 +60,7 @@ fn top_panel_header(v: &mut V, controller: &mut Controller, ctx: &Context) {
                 })
                 .clicked()
             {
-                controller.start_add(v);
+                controller.set_action(Action::StartAdd);
             }
 
             ui.add_space(

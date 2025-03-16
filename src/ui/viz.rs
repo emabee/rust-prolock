@@ -2,68 +2,36 @@ use crate::{
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
     data::{Bundle, Bundles, Cred, Transient},
 };
-use jiff::Zoned;
 use std::time::Instant;
 
+#[derive(Default)]
 pub struct V {
     pub pw: Pw,
     pub file_selection: FileSelection,
+    pub name_for_delete: String,
     pub search: String,
-    pub pl_modal: PlModal,
     pub bundles: Vec<VBundle>,
     pub edit_idx: EditIdx,
     pub edit_bundle: VEditBundle,
-    pub need_refresh: bool,
     pub lang: Lang,
 }
 impl V {
-    pub fn new() -> Self {
-        Self {
-            pw: Pw::default(),
-            file_selection: FileSelection::default(),
-            search: String::default(),
-            pl_modal: PlModal::default(),
-            bundles: Vec::<VBundle>::default(),
-            edit_idx: EditIdx::default(),
-            edit_bundle: VEditBundle::default(),
-            need_refresh: bool::default(),
-            lang: Lang::default(),
-        }
-    }
-
-    pub fn reset_bundles(&mut self, bundles: &Bundles, transient: &Transient) {
+    pub fn reset_bundles(&mut self, bundles: &Bundles) {
+        // TODO simplify
         self.bundles = bundles
             .into_iter()
-            .map(|(name, bundle)| VBundle {
-                name: name.to_string(),
-                description: bundle.description().to_string(),
+            .map(|(_name, bundle)| VBundle {
                 v_creds: bundle
                     .creds()
                     .iter()
-                    .map(|cred| VCred {
-                        name: cred.name(transient),
-                        secret: cred.secret(transient),
+                    .map(|_cred| VCred {
                         show_secret: false,
                         copied_at: None,
                     })
                     .collect(),
-                last_changed: bundle.last_changed_at().clone(),
             })
             .collect();
     }
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Eq)]
-pub enum PlModal {
-    #[default]
-    None,
-    CreateBundle,
-    DeleteBundle(String),
-    About,
-    ChangePassword,
-    ChangeFile,
-    ChangeLanguage,
-    ShowPrintable,
 }
 
 pub struct Lang {
@@ -91,6 +59,7 @@ impl Lang {
     }
 }
 
+// FIXME
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EditIdx {
     #[default]
@@ -121,8 +90,8 @@ impl EditIdx {
 }
 #[derive(Default)]
 pub struct Pw {
-    pub pw1: String,
-    pub pw2: String,
+    pub new1: String,
+    pub new2: String,
     pub old: String,
     pub error: Option<String>,
     pub focus: PwFocus,
@@ -132,9 +101,9 @@ pub struct Pw {
 pub enum PwFocus {
     None,
     #[default]
+    PwOld,
     Pw1,
     Pw2,
-    PwOld,
 }
 
 #[derive(Default)]
@@ -142,34 +111,21 @@ pub struct FileSelection {
     pub err: Option<String>,
     pub current: usize,
     pub new: String,
-    pub o_action: Option<FileAction>,
 }
 impl FileSelection {
     pub fn reset(&mut self, current: usize) {
         self.err = None;
         self.current = current;
         self.new.clear();
-        self.o_action = None;
     }
-}
-
-pub enum FileAction {
-    SwitchToKnown(usize),
-    SwitchToNew(String),
 }
 
 #[derive(Default)]
 pub struct VBundle {
-    pub name: String,
-    pub description: String,
     pub v_creds: Vec<VCred>,
-    pub last_changed: Zoned,
 }
 
-#[derive(Clone, Default)]
 pub struct VCred {
-    pub name: String,
-    pub secret: String,
     pub show_secret: bool,
     pub copied_at: Option<Instant>,
 }
@@ -179,24 +135,30 @@ pub struct VEditBundle {
     pub orig_name: String,
     pub name: String,
     pub description: String,
-    pub v_creds: Vec<VCred>,
+    pub v_edit_creds: Vec<VEditCred>,
     pub err: Option<String>,
 }
 
+#[derive(Clone, Default)]
+pub struct VEditCred {
+    pub name: String,
+    pub secret: String,
+}
+
 impl VEditBundle {
-    pub fn as_oldname_newname_bundle(&self) -> (String, String, Bundle) {
+    pub fn as_oldname_newname_bundle(&self, transient: &mut Transient) -> (String, String, Bundle) {
         (
             self.orig_name.to_string(),
             self.name.to_string(),
             Bundle::new(
                 self.description.clone(),
-                self.v_creds
+                self.v_edit_creds
                     .iter()
                     .filter_map(|vns| {
                         if vns.name.trim().is_empty() && vns.secret.trim().is_empty() {
                             None
                         } else {
-                            Some(Cred::new(vns.name.clone(), vns.secret.clone()))
+                            Some(Cred::new(vns.name.clone(), vns.secret.clone(), transient))
                         }
                     })
                     .collect(),
@@ -206,9 +168,9 @@ impl VEditBundle {
 
     pub fn prepare_for_create(&mut self) {
         *self = Self::default();
-        self.v_creds.push(VCred::default());
-        self.v_creds.push(VCred::default());
-        self.v_creds.push(VCred::default());
-        self.v_creds.push(VCred::default());
+        self.v_edit_creds.push(VEditCred::default());
+        self.v_edit_creds.push(VEditCred::default());
+        self.v_edit_creds.push(VEditCred::default());
+        self.v_edit_creds.push(VEditCred::default());
     }
 }

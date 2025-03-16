@@ -1,10 +1,10 @@
 use crate::{
     PlFile,
-    data::Settings,
+    controller::Controller,
     ui::{
         IMG_BURGER, VERY_LIGHT_GRAY,
         assets::{IMG_CHANGE_FILE, IMG_CHANGE_FILE_INACTIVE},
-        viz::{PlModal, Pw, PwFocus, V},
+        viz::V,
     },
 };
 use egui::{
@@ -14,7 +14,7 @@ use egui_extras::{Size, StripBuilder};
 
 use super::IMG_LOGO;
 
-pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context) {
+pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: &Context) {
     TopBottomPanel::top("file").show(ctx, |ui| {
         ui.horizontal(|ui| {
             StripBuilder::new(ui)
@@ -42,7 +42,7 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
                             )
                             .clicked()
                         {
-                            v.pl_modal = PlModal::ChangeFile;
+                            controller.start_change_file();
                         }
 
                         ui.label(
@@ -76,7 +76,7 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
                         ))
                         .clicked()
                     {
-                        v.pl_modal = PlModal::About;
+                        controller.show_about();
                         ui.close_menu();
                     }
 
@@ -84,8 +84,7 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
                         .add(Button::new(format!("🌐 {}", t!("Change language"))))
                         .clicked()
                     {
-                        v.lang.init(&settings.language);
-                        v.pl_modal = PlModal::ChangeLanguage;
+                        controller.show_change_language();
                         ui.close_menu();
                     }
 
@@ -96,9 +95,7 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
                         )
                         .clicked()
                     {
-                        v.pl_modal = PlModal::ChangePassword;
-                        v.pw = Pw::default();
-                        v.pw.focus = PwFocus::PwOld;
+                        controller.start_change_password();
                         ui.close_menu();
                     }
 
@@ -109,7 +106,6 @@ pub fn top_panel(settings: &Settings, pl_file: &PlFile, v: &mut V, ctx: &Context
                         )
                         .clicked()
                     {
-                        v.pl_modal = PlModal::ShowPrintable;
                         ui.close_menu();
                     }
                 },

@@ -1,16 +1,14 @@
 use crate::{
+    controller::Controller,
     data::Settings,
-    ui::{
-        assets::IMG_CHANGE_FILE,
-        viz::{FileAction, FileSelection, PlModal},
-    },
+    ui::{assets::IMG_CHANGE_FILE, viz::FileSelection},
 };
 use egui::{Color32, Context, Image, Modal, RichText, Sides, TextEdit, TextStyle};
 
 pub fn change_file(
-    pl_modal: &mut PlModal,
-    file_selection: &mut FileSelection,
     settings: &mut Settings,
+    file_selection: &mut FileSelection,
+    controller: &mut Controller,
     ctx: &Context,
 ) {
     Modal::new("change_file".into()).show(ctx, |ui| {
@@ -74,18 +72,17 @@ pub fn change_file(
                     .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
                     .clicked()
                 {
-                    file_selection.o_action = if file_selection.current < settings.files.len() {
-                        Some(FileAction::SwitchToKnown(file_selection.current))
+                    if file_selection.current < settings.files.len() {
+                        controller.switch_to_known_file(file_selection.current);
                     } else {
-                        Some(FileAction::SwitchToNew(file_selection.new.clone()))
-                    };
-                    *pl_modal = PlModal::None;
+                        controller.switch_to_new_file(file_selection.new.clone());
+                    }
                 }
                 if ui
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
                     .clicked()
                 {
-                    *pl_modal = PlModal::None;
+                    controller.cancel();
                 }
             },
         );

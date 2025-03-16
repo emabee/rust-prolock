@@ -1,11 +1,11 @@
 use crate::{
-    PlFile,
-    ui::viz::{PlModal, Pw, PwFocus},
+    controller::Controller,
+    ui::viz::{Pw, PwFocus},
 };
 use egui::{Color32, Context, FontFamily, FontId, Key, Modal, RichText, Sides, TextEdit};
 
 #[allow(clippy::too_many_lines)]
-pub fn change_password(pw: &mut Pw, pl_modal: &mut PlModal, pl_file: &mut PlFile, ctx: &Context) {
+pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("change_password".into()).show(ctx, |ui| {
         let mut go_for_it = false;
 
@@ -59,7 +59,7 @@ pub fn change_password(pw: &mut Pw, pl_modal: &mut PlModal, pl_file: &mut PlFile
                             .desired_width(170.),
                     );
                     let response = ui.add(
-                        TextEdit::singleline(&mut pw.pw1)
+                        TextEdit::singleline(&mut pw.new1)
                             .desired_width(120.)
                             .password(true),
                     );
@@ -82,7 +82,7 @@ pub fn change_password(pw: &mut Pw, pl_modal: &mut PlModal, pl_file: &mut PlFile
                             .desired_width(170.),
                     );
                     let response = ui.add(
-                        TextEdit::singleline(&mut pw.pw2)
+                        TextEdit::singleline(&mut pw.new2)
                             .desired_width(120.)
                             .password(true),
                     );
@@ -119,32 +119,20 @@ pub fn change_password(pw: &mut Pw, pl_modal: &mut PlModal, pl_file: &mut PlFile
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
                     .clicked()
                 {
-                    *pl_modal = PlModal::None;
+                    controller.cancel();
                 }
             },
         );
 
         if go_for_it {
-            match pl_file.check_password(&pw.old) {
-                Err(e) => pw.error = Some(e.to_string()),
-                Ok(()) => {
-                    if pw.pw1 == pw.pw2 {
-                        match pl_file.change_password(&pw.old, pw.pw1.clone()) {
-                            Ok(()) => {
-                                *pl_modal = PlModal::None;
-                            }
-                            Err(e) => {
-                                pw.error = Some(e.to_string());
-                            }
-                        }
-                    } else {
-                        pw.error = Some(t!("The passwords don't match").to_string());
-                    }
-                }
+            if pw.new1 == pw.new2 {
+                controller.finalize_change_password(pw.old.clone(), pw.new1.clone());
+            } else {
+                pw.error = Some(t!("_passwords_dont_match").to_string());
             }
         }
     });
     if modal_response.should_close() {
-        *pl_modal = PlModal::None;
+        controller.cancel();
     }
 }

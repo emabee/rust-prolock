@@ -1,20 +1,14 @@
 use crate::{
-    data::PlFile,
-    ui::{
-        IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK,
-        viz::{EditIdx, PlModal, VBundle, VCred, VEditBundle},
-    },
+    controller::Controller,
+    ui::{IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK},
 };
-use anyhow::anyhow;
 use egui::{Button, Color32, Image, Ui};
 
 pub(super) fn active_buttons_edit_and_delete(
     ui: &mut Ui,
     index: usize,
-    pl_modal: &mut PlModal,
-    v_bundle: &VBundle,
-    edit_idx: &mut EditIdx,
-    edit_bundle: &mut VEditBundle,
+    name: &str,
+    controller: &mut Controller,
 ) {
     if ui
         .add(
@@ -30,17 +24,7 @@ pub(super) fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        *edit_idx = EditIdx::Mod(index);
-        *edit_bundle = VEditBundle {
-            orig_name: v_bundle.name.clone(),
-            name: v_bundle.name.clone(),
-            description: v_bundle.description.to_string(),
-            v_creds: v_bundle.v_creds.clone(),
-            err: None,
-        };
-        while edit_bundle.v_creds.len() < 4 {
-            edit_bundle.v_creds.push(VCred::default());
-        }
+        controller.start_modify(index, name.to_string());
     }
 
     ui.add_space(5.);
@@ -59,17 +43,11 @@ pub(super) fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        *pl_modal = PlModal::DeleteBundle(v_bundle.name.clone());
+        controller.start_delete(name.to_string());
     }
 }
 
-pub(super) fn active_buttons_save_and_cancel(
-    ui: &mut Ui,
-    pl_file: &mut PlFile,
-    edit_bundle: &mut VEditBundle,
-    edit_idx: &mut EditIdx,
-    need_refresh: &mut bool,
-) {
+pub(super) fn active_buttons_save_and_cancel(ui: &mut Ui, controller: &mut Controller) {
     if ui
         .add(
             Button::image(
@@ -84,16 +62,7 @@ pub(super) fn active_buttons_save_and_cancel(
         })
         .clicked()
     {
-        let (orig_name, name, bundle) = edit_bundle.as_oldname_newname_bundle();
-        if let Err(e) = if edit_idx.is_mod() {
-            pl_file.save_with_updated_bundle(&orig_name, name, &bundle)
-        } else {
-            Err(anyhow!("save: only mod is expected"))
-        } {
-            println!("TODO 'Save changes' failed with {e:?}");
-        }
-        *edit_idx = EditIdx::None;
-        *need_refresh = true;
+        controller.finalize_modify();
     }
     ui.add_space(5.);
 
@@ -111,7 +80,7 @@ pub(super) fn active_buttons_save_and_cancel(
         })
         .clicked()
     {
-        *edit_idx = EditIdx::None;
+        controller.cancel();
     }
 }
 

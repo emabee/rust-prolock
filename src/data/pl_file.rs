@@ -1,4 +1,4 @@
-use crate::data::{Bundle, Bundles, Secret, Secrets, Settings, Transient};
+use crate::data::{Bundle, Bundles, Secrets, Settings, Transient};
 use anyhow::{Context, Result, anyhow};
 use fd_lock::RwLock as FdRwLock;
 use sequential::Sequence;
@@ -123,6 +123,10 @@ impl PlFile {
         self.o_transient.as_ref()
     }
 
+    pub fn transient_mut(&mut self) -> Option<&mut Transient> {
+        self.o_transient.as_mut()
+    }
+
     pub fn bundles(&self) -> &Bundles {
         &self.stored.readable.bundles
     }
@@ -186,31 +190,14 @@ impl PlFile {
                 b = key.as_ref()
             )))
         } else {
-            match self.o_transient {
-                None => Err(anyhow!(t!("password_not_available"))),
-                Some(ref mut transient) => self.stored.readable.bundles.add(key, bundle, transient),
-            }
+            self.stored.readable.bundles.add(key, bundle)?;
+            Ok(())
         }
     }
 
-    // #[cfg(test)]
-    // pub fn get_bundle(&self, key: &str) -> Result<Bundle> {
-    //     self.stored
-    //         .readable
-    //         .bundles
-    //         .get(key)
-    //         .cloned()
-    //         .ok_or(anyhow!("get_bundle: bundle '{key}' does not exist"))
-    // }
-
     fn modify_bundle(&mut self, key: String, bundle: Bundle) -> Result<()> {
         if self.stored.readable.bundles.contains_key(&key) {
-            match self.o_transient {
-                None => Err(anyhow!(t!("password_not_available"))),
-                Some(ref mut transient) => {
-                    self.stored.readable.bundles.modify(key, bundle, transient)
-                }
-            }
+            self.stored.readable.bundles.modify(key, bundle)
         } else {
             Err(anyhow!("modify_bundle: bundle '{key}' does not exist"))
         }
@@ -231,7 +218,7 @@ impl PlFile {
         }
     }
 
-    fn refs(&self, key: &str) -> (Vec<u64>, bool) {
+    fn refs(&self, key: &str) -> Vec<u64> {
         self.stored
             .readable
             .bundles
@@ -273,12 +260,6 @@ impl PlFile {
 
         if self.o_transient.is_none() {
             return Err(anyhow!(t!("Cannot save because the password is not set")));
-        }
-
-        if !self.stored.readable.bundles.is_storable() {
-            return Err(anyhow!(t!(
-                "Cannot save because not all secrets are in correct state"
-            )));
         }
 
         // prepare for save
@@ -379,11 +360,7 @@ impl PlFile {
         }
 
         // remember all previously used refs
-        let (mut old_refs, found_non_reffed_secrets) = self.refs(orig_name);
-        assert!(
-            !found_non_reffed_secrets,
-            "internal error: can't save non-reffed Secrets"
-        );
+        let mut old_refs = self.refs(orig_name);
         old_refs.sort_unstable();
 
         if name == orig_name {
@@ -396,15 +373,11 @@ impl PlFile {
         // garbage-collect all now redundant secrets
         // - remove from old_refs all refs that are still in bundle
         for cred in bundle.creds() {
-            if let Secret::Ref(reff) = &cred.name {
-                if let Ok(index) = old_refs.binary_search(reff) {
-                    old_refs.remove(index);
-                }
+            if let Ok(index) = old_refs.binary_search(&cred.name.0) {
+                old_refs.remove(index);
             }
-            if let Secret::Ref(reff) = &cred.secret {
-                if let Ok(index) = old_refs.binary_search(reff) {
-                    old_refs.remove(index);
-                }
+            if let Ok(index) = old_refs.binary_search(&cred.secret.0) {
+                old_refs.remove(index);
             }
         }
 
@@ -432,160 +405,3 @@ fn skip_over_comments_and_empty_lines(file_content: &str) -> &str {
     }
     &file_content[start..]
 }
-
-// #[cfg(test)]
-// mod test {
-//     use crate::data::bundle::Bundle;
-
-//     use super::TEST_DOC_FOLDER;
-//     use anyhow::Context;
-
-//     #[test]
-//     fn good_cycle() {
-//         // ensure that the doc file does not exist (to not get confused with prev test runs)
-//         let file = super::prod_document_path().unwrap();
-//         let doc_dir = file.parent().unwrap();
-//         if doc_dir.exists() {
-//             assert!(
-//                 doc_dir.ends_with(TEST_DOC_FOLDER),
-//                 "doc_dir = {}",
-//                 doc_dir.display()
-//             );
-//             std::fs::remove_dir(doc_dir).ok();
-//         }
-
-//         // test open then save
-//         let mut f = super::PlFile::read_or_create().context("open").unwrap();
-//         f.set_actionable("password".to_string()).unwrap();
-
-//         let key = format!("dummy{}", f.len());
-//         let mut bundle = Bundle::new(
-//             "some longer description\n\
-//         some longer description\n\
-//         some longer description\n\
-//         some longer description\n\
-//         some longer description\nsome longer description\n"
-//                 .to_string(),
-//         );
-//         bundle.add_cred("user1".to_string(), "SeCreT1".to_string());
-//         bundle.add_cred("user2".to_string(), "SeCreT2".to_string());
-//         f.add_bundle(&key, bundle).unwrap();
-//         f.save().context("save").unwrap();
-//         assert!(file.exists());
-
-//         // test open then check creds
-//         let mut f = super::PlFile::read_or_create().context("open").unwrap();
-//         f.set_actionable("password".to_string()).unwrap();
-//         let transient = f.o_transient.as_ref().unwrap();
-
-//         for (_id, bundle) in f.bundles() {
-//             assert_eq!(bundle.len(), 2);
-//             assert_eq!(bundle.secret_value("user1", transient), "SeCreT1");
-//             assert_eq!(bundle.secret_value("user2", transient), "SeCreT2");
-//         }
-//     }
-
-//     #[test]
-//     fn test_skip_over_comments_and_empty_lines() {
-//         assert_eq!(
-//             super::skip_over_comments_and_empty_lines(
-//                 r"
-
-//     # dasdsad
-//     # dasdsadertdtr
-
-//        # adasdsad
-
-// Hello
-// world!"
-//             ),
-//             "Hello\nworld!"
-//         );
-
-//         assert_eq!(
-//             super::skip_over_comments_and_empty_lines("Hello\nworld!"),
-//             "Hello\nworld!"
-//         );
-//     }
-
-//     use crate::data::{secret::Secret, PlFile};
-//     const TEST_PASSWORD: &str = "skudfh";
-
-//     #[test]
-//     fn test_modify_bundle() {
-//         // initialize
-//         let mut pl_file = PlFile::read_or_create().unwrap();
-//         pl_file.set_actionable(TEST_PASSWORD.to_string()).unwrap();
-
-//         // load test data
-//         pl_file.add_test_bundles(false).unwrap();
-//         let pl_file_clone = pl_file.clone();
-//         assert!(pl_file.content_is_equal_to(&pl_file_clone));
-
-//         let mut bundle = pl_file.get_bundle("ddd").unwrap();
-//         {
-//             // modify ddd bundle to have the same content as given by modified_bundle()
-//             bundle.description = "modified description".to_string();
-//             *bundle.creds.get_mut("ddd_cn1").unwrap() = Secret::New("ddd_cs1mod".to_string());
-//             bundle.creds.remove("ddd_cn2");
-//             bundle
-//                 .creds
-//                 .insert("ddd_cn4".to_string(), Secret::New("ddd_cs4".to_string()));
-//         }
-//         pl_file.modify_bundle("ddd".to_string(), bundle).unwrap();
-
-//         // verify
-//         let mut pl_file2 = PlFile::read_or_create().unwrap();
-//         pl_file2.set_actionable(TEST_PASSWORD.to_string()).unwrap();
-
-//         // load test data
-//         pl_file2.add_test_bundles(true).unwrap();
-//         if pl_file.print_content(false) != pl_file2.print_content(false) {
-//             println!(
-//                 "assert_eq failed, left: {}, \nright: {}",
-//                 pl_file.print_content(false),
-//                 pl_file2.print_content(false)
-//             );
-//             assert!(false, "Comparison failed");
-//         }
-//     }
-
-//     #[test]
-//     fn test_rename_bundle() {
-//         // initialize
-//         let mut pl_file = PlFile::read_or_create().unwrap();
-//         pl_file.set_actionable(TEST_PASSWORD.to_string()).unwrap();
-
-//         // load test data
-//         pl_file.add_test_bundles(false).unwrap();
-//         let pl_file_clone = pl_file.clone();
-//         assert!(pl_file.content_is_equal_to(&pl_file_clone));
-
-//         let mut bundle = pl_file.get_bundle("ddd").unwrap();
-//         {
-//             // modify ddd bundle to have the same content as given by modified_bundle()
-//             bundle.description = "modified description".to_string();
-//             *bundle.creds.get_mut("ddd_cn1").unwrap() = Secret::New("ddd_cs1mod".to_string());
-//             bundle.creds.remove("ddd_cn2");
-//             bundle
-//                 .creds
-//                 .insert("ddd_cn4".to_string(), Secret::New("ddd_cs4".to_string()));
-//         }
-//         pl_file.modify_bundle("ddd".to_string(), bundle).unwrap();
-
-//         // verify
-//         let mut pl_file2 = PlFile::read_or_create().unwrap();
-//         pl_file2.set_actionable(TEST_PASSWORD.to_string()).unwrap();
-
-//         // load test data
-//         pl_file2.add_test_bundles(true).unwrap();
-//         if pl_file.print_content(false) != pl_file2.print_content(false) {
-//             println!(
-//                 "assert_eq failed, left: {}, \nright: {}",
-//                 pl_file.print_content(false),
-//                 pl_file2.print_content(false)
-//             );
-//             assert!(false, "Comparison failed");
-//         }
-//     }
-// }

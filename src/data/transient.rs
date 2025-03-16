@@ -47,7 +47,7 @@ impl Transient {
         self.secrets.remove(idx);
     }
 
-    pub fn get_secret(&self, idx: u64) -> Option<&String> {
+    pub fn get_secret(&self, idx: u64) -> Option<&str> {
         self.secrets.get(idx)
     }
 

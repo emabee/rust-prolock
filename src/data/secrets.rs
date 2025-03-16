@@ -1,5 +1,5 @@
-use rand::{distr::StandardUniform, rng, Rng};
-use std::collections::{hash_map::Keys, HashMap};
+use rand::{Rng, distr::StandardUniform, rng};
+use std::collections::{HashMap, hash_map::Keys};
 
 // A map from u64 to String, containing the secret values, keyed by some number.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -30,7 +30,7 @@ impl Secrets {
     }
 
     #[must_use]
-    pub fn get(&self, idx: u64) -> Option<&String> {
-        self.content.get(&idx)
+    pub fn get(&self, idx: u64) -> Option<&str> {
+        self.content.get(&idx).map(String::as_str)
     }
 }

@@ -1,7 +1,10 @@
-use crate::ui::{IMG_LOGO, IMG_RUST_LOGO, viz::PlModal};
+use crate::{
+    controller::Controller,
+    ui::{IMG_LOGO, IMG_RUST_LOGO},
+};
 use egui::{Color32, Context, FontFamily, FontId, Image, Modal, RichText, Sides, Vec2};
 
-pub fn show_about(pl_modal: &mut PlModal, ctx: &Context) {
+pub fn show_about(controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("show_about".into()).show(ctx, |ui| {
         ui.set_width(500.0);
         ui.horizontal(|ui| {
@@ -57,12 +60,12 @@ pub fn show_about(pl_modal: &mut PlModal, ctx: &Context) {
                     )
                     .clicked()
                 {
-                    *pl_modal = PlModal::None;
+                    controller.cancel();
                 }
             },
         );
     });
     if modal_response.should_close() {
-        *pl_modal = PlModal::None;
+        controller.cancel();
     }
 }

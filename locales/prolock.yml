@@ -63,8 +63,8 @@ The current password is not correct:
 'Specify the password to secure your prolock file:':
   en: 'Specify the password to secure your prolock file:'
   de: 'Passwort für die Prolock Datei:'
-The passwords don't match:
-  en: The passwords don't match
+_passwords_dont_match:
+  en: The entries for the new password are not consistent
   de: Die Eingaben für das neue Passwort stimmen nicht überein
 'entries_with_secrets %{n1} %{n2}':
   en: '%{n1} entries with %{n2} secrets'

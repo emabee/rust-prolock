@@ -1,23 +1,23 @@
 use crate::data::Transient;
 use crate::data::secret::Secret;
 
-#[derive(Clone, Default, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub(crate) struct Cred {
     pub(crate) name: Secret,
     pub(crate) secret: Secret,
 }
 
 impl Cred {
-    pub(crate) fn new(name: String, password: String) -> Self {
+    pub(crate) fn new(name: String, password: String, transient: &mut Transient) -> Self {
         Self {
-            name: Secret::New(name),
-            secret: Secret::New(password),
+            name: Secret(transient.add_secret(name)),
+            secret: Secret(transient.add_secret(password)),
         }
     }
-    pub(crate) fn name(&self, transient: &Transient) -> String {
+    pub(crate) fn name<'t>(&self, transient: &'t Transient) -> &'t str {
         self.name.disclose(transient)
     }
-    pub(crate) fn secret(&self, transient: &Transient) -> String {
+    pub(crate) fn secret<'t>(&self, transient: &'t Transient) -> &'t str {
         self.secret.disclose(transient)
     }
 }

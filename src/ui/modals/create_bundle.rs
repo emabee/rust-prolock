@@ -1,9 +1,9 @@
 use crate::{
-    PlFile,
+    controller::Controller,
     ui::{
         Colors, IMG_CANCEL, IMG_SAVE,
         sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
-        viz::{PlModal, VCred, VEditBundle},
+        viz::{VEditBundle, VEditCred},
     },
 };
 use egui::{
@@ -14,9 +14,7 @@ use egui_extras::{Size, StripBuilder};
 
 pub fn create_bundle(
     edit_bundle: &mut VEditBundle,
-    pl_modal: &mut PlModal,
-    pl_file: &mut PlFile,
-    need_refresh: &mut bool,
+    controller: &mut Controller,
     colors: &Colors,
     ctx: &Context,
 ) {
@@ -59,16 +57,7 @@ pub fn create_bundle(
                     )
                     .clicked()
                 {
-                    let (_orig_name, name, bundle) = edit_bundle.as_oldname_newname_bundle();
-                    match pl_file.save_with_added_bundle(name, bundle) {
-                        Ok(()) => {
-                            *pl_modal = PlModal::None;
-                            *need_refresh = true;
-                        }
-                        Err(e) => {
-                            edit_bundle.err = Some(e.to_string());
-                        }
-                    }
+                    controller.finalize_add();
                 }
 
                 if ui
@@ -83,7 +72,7 @@ pub fn create_bundle(
                     )
                     .clicked()
                 {
-                    *pl_modal = PlModal::None;
+                    controller.cancel();
                 }
             },
         );
@@ -151,7 +140,7 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
 
 fn right_part(colors: &Colors, edit_bundle: &mut VEditBundle, right_builder: StripBuilder<'_>) {
     right_builder
-        .sizes(Size::exact(20.), edit_bundle.v_creds.len() + 1)
+        .sizes(Size::exact(20.), edit_bundle.v_edit_creds.len() + 1)
         .vertical(|mut right_strip| {
             right_strip.cell(|ui| {
                 ui.centered_and_justified(|ui| {
@@ -167,22 +156,22 @@ fn right_part(colors: &Colors, edit_bundle: &mut VEditBundle, right_builder: Str
                 });
                 ui.add_space(3.);
             });
-            for v_cred in &mut edit_bundle.v_creds {
+            for v_edit_cred in &mut edit_bundle.v_edit_creds {
                 right_strip.strip(|cred_builder| {
-                    single_cred(colors, v_cred, cred_builder);
+                    single_cred(colors, v_edit_cred, cred_builder);
                 });
             }
         });
 }
 
-fn single_cred(colors: &Colors, v_cred: &mut VCred, cred_builder: StripBuilder<'_>) {
+fn single_cred(colors: &Colors, v_edit_cred: &mut VEditCred, cred_builder: StripBuilder<'_>) {
     cred_builder
         .size(Size::exact(210.))
         .size(Size::exact(170.))
         .horizontal(|mut cred_strip| {
             cred_strip.cell(|ui| {
                 ui.add(
-                    TextEdit::singleline(&mut v_cred.name)
+                    TextEdit::singleline(&mut v_edit_cred.name)
                         .hint_text(t!("_hint_username"))
                         .desired_width(200.)
                         .clip_text(true)
@@ -199,28 +188,25 @@ fn single_cred(colors: &Colors, v_cred: &mut VCred, cred_builder: StripBuilder<'
                 );
             });
             cred_strip.cell(|ui| {
-                let response = ui
-                    .add(
-                        TextEdit::singleline(&mut v_cred.secret)
-                            .hint_text(t!("_hint_secret"))
-                            .desired_width(160.)
-                            .clip_text(true)
-                            .text_color(colors.secret)
-                            .background_color(
-                                egui::lerp(
-                                    Rgba::from(Color32::DARK_BLUE)
-                                        ..=Rgba::from(ui.visuals().window_fill()),
-                                    0.91,
-                                )
-                                .into(),
+                ui.add(
+                    TextEdit::singleline(&mut v_edit_cred.secret)
+                        .hint_text(t!("_hint_secret"))
+                        .desired_width(160.)
+                        .clip_text(true)
+                        .text_color(colors.secret)
+                        .background_color(
+                            egui::lerp(
+                                Rgba::from(Color32::DARK_BLUE)
+                                    ..=Rgba::from(ui.visuals().window_fill()),
+                                0.91,
                             )
-                            .password(!v_cred.show_secret)
-                            .interactive(true),
-                    )
-                    .on_hover_ui(|ui| {
-                        ui.style_mut().interaction.selectable_labels = true;
-                    });
-                v_cred.show_secret = response.hovered();
+                            .into(),
+                        )
+                        .interactive(true),
+                )
+                .on_hover_ui(|ui| {
+                    ui.style_mut().interaction.selectable_labels = true;
+                });
             });
         });
 }

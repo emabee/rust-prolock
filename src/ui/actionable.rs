@@ -3,14 +3,15 @@ pub mod edit_bundle;
 mod show_bundle;
 
 use crate::{
-    PlFile,
+    controller::Controller,
+    data::{Bundle, Bundles, Transient},
     ui::{
         Colors, IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_SEARCH,
         sizes::{
             BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
             EGUI_DEFAULT_SPACE, SEARCH_TEXT_WIDTH, WIN_WIDTH,
         },
-        viz::{EditIdx, PlModal, V, VBundle, VEditBundle},
+        viz::{EditIdx, V, VBundle, VEditBundle},
     },
 };
 use bundle_buttons::{
@@ -24,17 +25,19 @@ use egui::{
 use egui_extras::{Size, StripBuilder};
 
 pub(super) fn panels_for_actionable_ui(
-    pl_file: &mut PlFile,
+    bundles: &Bundles,
+    transient: &Transient,
     v: &mut V,
+    controller: &mut Controller,
     colors: &Colors,
     ctx: &Context,
 ) {
-    top_panel_header(v, ctx);
+    top_panel_header(v, controller, ctx);
 
-    central_panel_bundles(pl_file, v, colors, ctx);
+    central_panel_bundles(bundles, transient, v, colors, controller, ctx);
 }
 
-fn top_panel_header(v: &mut V, ctx: &Context) {
+fn top_panel_header(v: &mut V, controller: &mut Controller, ctx: &Context) {
     TopBottomPanel::top("header").show(ctx, |ui| {
         ui.add_space(4.);
         ui.horizontal(|ui| {
@@ -57,8 +60,7 @@ fn top_panel_header(v: &mut V, ctx: &Context) {
                 })
                 .clicked()
             {
-                v.pl_modal = PlModal::CreateBundle;
-                v.edit_bundle.prepare_for_create();
+                controller.start_add(v);
             }
 
             ui.add_space(
@@ -89,9 +91,16 @@ fn top_panel_header(v: &mut V, ctx: &Context) {
     });
 }
 
-fn central_panel_bundles(pl_file: &mut PlFile, v: &mut V, colors: &Colors, ctx: &Context) {
+fn central_panel_bundles(
+    bundles: &Bundles,
+    transient: &Transient,
+    v: &mut V,
+    colors: &Colors,
+    controller: &mut Controller,
+    ctx: &Context,
+) {
     CentralPanel::default().show(ctx, |ui| {
-        if v.bundles.is_empty() {
+        if bundles.is_empty() {
             ui.horizontal(|ui| {
                 ui.label(RichText::from("⬆ ").color(Color32::DARK_GRAY).size(22.));
                 ui.label(
@@ -106,19 +115,16 @@ fn central_panel_bundles(pl_file: &mut PlFile, v: &mut V, colors: &Colors, ctx: 
                 .scroll_bar_visibility(ScrollBarVisibility::AlwaysVisible)
                 .show(ui, |ui| {
                     StripBuilder::new(ui)
-                        .sizes(Size::exact(BUNDLE_HEIGHT), usize::max(1, v.bundles.len()))
+                        .sizes(Size::exact(BUNDLE_HEIGHT), usize::max(1, bundles.len()))
                         .vertical(|mut bundle_strip| {
-                            for (index, v_bundle) in &mut v.bundles.iter_mut().enumerate() {
+                            for (index, (name, bundle)) in bundles.iter().enumerate() {
                                 let edit_idx = v.edit_idx;
                                 if edit_idx.is_mod_with(index) {
                                     bundle_strip.strip(|bundle_builder| {
                                         edit_a_bundle_with_buttons(
-                                            ctx,
                                             bundle_builder,
-                                            pl_file,
-                                            &mut v.edit_idx,
                                             &mut v.edit_bundle,
-                                            &mut v.need_refresh,
+                                            controller,
                                             colors,
                                         );
                                     });
@@ -128,11 +134,13 @@ fn central_panel_bundles(pl_file: &mut PlFile, v: &mut V, colors: &Colors, ctx: 
                                         show_a_bundle_with_buttons(
                                             ctx,
                                             bundle_builder,
-                                            &mut v.pl_modal,
                                             index,
-                                            v_bundle,
+                                            bundle,
+                                            &mut v.bundles[index],
+                                            name,
+                                            transient,
                                             &mut v.edit_idx,
-                                            &mut v.edit_bundle,
+                                            controller,
                                             colors,
                                         );
                                     });
@@ -145,12 +153,9 @@ fn central_panel_bundles(pl_file: &mut PlFile, v: &mut V, colors: &Colors, ctx: 
 }
 
 fn edit_a_bundle_with_buttons(
-    ctx: &Context,
     bundle_builder: StripBuilder<'_>,
-    pl_file: &mut PlFile,
-    edit_idx: &mut EditIdx,
     edit_bundle: &mut VEditBundle,
-    need_refresh: &mut bool,
+    controller: &mut Controller,
     colors: &Colors,
 ) {
     bundle_builder
@@ -159,9 +164,9 @@ fn edit_a_bundle_with_buttons(
         .size(Size::exact(BUNDLE_WIDTH_RIGHT))
         .horizontal(|mut inner_bundle_strip| {
             inner_bundle_strip.cell(|ui| {
-                active_buttons_save_and_cancel(ui, pl_file, edit_bundle, edit_idx, need_refresh);
+                active_buttons_save_and_cancel(ui, controller);
             });
-            edit_bundle::ui(ctx, colors, edit_bundle, &mut inner_bundle_strip);
+            edit_bundle::ui(colors, edit_bundle, &mut inner_bundle_strip);
         });
 }
 
@@ -169,11 +174,13 @@ fn edit_a_bundle_with_buttons(
 fn show_a_bundle_with_buttons(
     ctx: &Context,
     bundle_builder: StripBuilder<'_>,
-    pl_modal: &mut PlModal,
     index: usize,
+    bundle: &Bundle,
     v_bundle: &mut VBundle,
+    name: &str,
+    transient: &Transient,
     edit_idx: &mut EditIdx,
-    edit_bundle: &mut VEditBundle,
+    controller: &mut Controller,
     colors: &Colors,
 ) {
     bundle_builder
@@ -183,18 +190,20 @@ fn show_a_bundle_with_buttons(
         .horizontal(|mut inner_bundle_strip| {
             inner_bundle_strip.cell(|ui| {
                 if edit_idx.is_none() {
-                    active_buttons_edit_and_delete(
-                        ui,
-                        index,
-                        pl_modal,
-                        v_bundle,
-                        edit_idx,
-                        edit_bundle,
-                    );
+                    active_buttons_edit_and_delete(ui, index, name, controller);
                 } else {
                     inactive_buttons_edit_and_delete(ui);
                 }
             });
-            show_bundle::ui(ctx, colors, index, v_bundle, &mut inner_bundle_strip);
+            show_bundle::ui(
+                ctx,
+                colors,
+                index,
+                bundle,
+                v_bundle,
+                name,
+                transient,
+                &mut inner_bundle_strip,
+            );
         });
 }

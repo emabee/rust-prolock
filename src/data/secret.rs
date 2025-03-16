@@ -2,28 +2,10 @@ use crate::data::Transient;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Visitor};
 
 #[derive(Clone, Debug)]
-pub enum Secret {
-    New(String),
-    Ref(u64),
-}
+pub struct Secret(pub u64);
 impl Secret {
-    pub fn is_ref(&self) -> bool {
-        matches!(self, Secret::Ref(_))
-    }
-
-    pub fn disclose(&self, transient: &Transient) -> String {
-        match self {
-            Secret::New(s) => s.clone(),
-            Secret::Ref(i) => transient
-                .get_secret(*i)
-                .expect("wrong secret ref")
-                .to_string(),
-        }
-    }
-}
-impl Default for Secret {
-    fn default() -> Self {
-        Secret::New(String::new())
+    pub fn disclose<'t>(&self, transient: &'t Transient) -> &'t str {
+        transient.get_secret(self.0).expect("wrong secret ref")
     }
 }
 impl Serialize for Secret {
@@ -31,10 +13,7 @@ impl Serialize for Secret {
     where
         S: Serializer,
     {
-        match self {
-            Secret::New(_) => unreachable!("Secret::New"),
-            Secret::Ref(idx) => serializer.serialize_u64(*idx),
-        }
+        serializer.serialize_u64(self.0)
     }
 }
 impl<'de> Deserialize<'de> for Secret {
@@ -55,7 +34,7 @@ impl Visitor<'_> for PwVisitor {
     where
         E: serde::de::Error,
     {
-        Ok(Secret::Ref(v))
+        Ok(Secret(v))
     }
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

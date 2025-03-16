@@ -1,4 +1,4 @@
-use crate::data::{Bundle, Secret, Transient};
+use crate::data::{Bundle, Transient};
 use anyhow::{Result, anyhow};
 use std::collections::{
     BTreeMap,
@@ -48,16 +48,15 @@ impl Bundles {
     }
 
     pub fn refs(&self) -> Vec<u64> {
-        let mut left_refs: Vec<u64> = self.0.values().flat_map(|bundle| bundle.refs().0).collect();
+        let mut left_refs: Vec<u64> = self.0.values().flat_map(Bundle::refs).collect();
         left_refs.sort_unstable();
         left_refs
     }
 
-    pub fn add<S>(&mut self, key: S, mut bundle: Bundle, transient: &mut Transient) -> Result<()>
+    pub fn add<S>(&mut self, key: S, bundle: Bundle) -> Result<()>
     where
         S: AsRef<str>,
     {
-        bundle.convert_new_secrets_to_refs(transient);
         let key = key.as_ref().to_string();
         if let Entry::Vacant(e) = self.0.entry(key.clone()) {
             e.insert(bundle);
@@ -67,27 +66,16 @@ impl Bundles {
         }
     }
 
-    pub fn modify<S>(
-        &mut self,
-        key: S,
-        mut modified_bundle: Bundle,
-        transient: &mut Transient,
-    ) -> Result<()>
+    pub fn modify<S>(&mut self, key: S, modified_bundle: Bundle) -> Result<()>
     where
         S: AsRef<str>,
     {
-        modified_bundle.convert_new_secrets_to_refs(transient);
-
-        if modified_bundle.is_storable() {
-            match self.0.get_mut(key.as_ref()) {
-                None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
-                Some(bundle) => {
-                    *bundle = modified_bundle;
-                    Ok(())
-                }
+        match self.0.get_mut(key.as_ref()) {
+            None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
+            Some(bundle) => {
+                *bundle = modified_bundle;
+                Ok(())
             }
-        } else {
-            Err(anyhow!("modify: Bundle not storable"))
         }
     }
 
@@ -99,25 +87,12 @@ impl Bundles {
             None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
             Some((_key, bundle)) => {
                 for cred in bundle.creds() {
-                    if let Secret::Ref(idx) = cred.name {
-                        transient.remove_secret(idx);
-                    }
-                    if let Secret::Ref(idx) = cred.secret {
-                        transient.remove_secret(idx);
-                    }
+                    transient.remove_secret(cred.name.0);
+                    transient.remove_secret(cred.secret.0);
                 }
                 Ok(())
             }
         }
-    }
-
-    pub fn is_storable(&self) -> bool {
-        for bundle in self.0.values() {
-            if !bundle.is_storable() {
-                return false;
-            }
-        }
-        true
     }
 }
 

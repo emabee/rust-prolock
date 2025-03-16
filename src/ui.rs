@@ -4,9 +4,10 @@ mod modals;
 mod password;
 pub mod sizes;
 mod top_panel;
-mod viz;
+pub mod viz;
 
 use crate::{
+    controller::{Controller, PlModal},
     data::{PlFile, Settings},
     ui::{
         actionable::panels_for_actionable_ui,
@@ -20,21 +21,21 @@ use crate::{
         },
         password::ask_for_password,
         top_panel::top_panel,
-        viz::{FileAction, PlModal, V},
+        viz::V,
     },
 };
 use anyhow::{Context as _, Result};
 use eframe::{App, Frame};
 use egui::{Color32, Context, Theme};
-use std::path::PathBuf;
 
 pub const VERY_LIGHT_GRAY: Color32 = Color32::from_rgb(235, 235, 235);
 
 pub struct Ui {
-    v: V,
-    settings: Settings,
     o_plfile: Option<PlFile>,
+    v: V,
+    controller: Controller,
     colors: Colors,
+    settings: Settings,
 }
 pub struct Colors {
     pub user: Color32,
@@ -46,15 +47,16 @@ impl Ui {
             user: Color32::DARK_BLUE,
             secret: Color32::DARK_RED,
         };
-        let mut v = V::new();
+        let mut v = V::default();
         v.file_selection.reset(settings.current_file);
         Ok(Ui {
-            v,
             o_plfile: Some(
                 PlFile::read_or_create(settings.current_file()).context("File open error")?,
             ),
-            settings,
+            v,
+            controller: Controller::default(),
             colors,
+            settings,
         })
     }
 }
@@ -66,96 +68,66 @@ impl App for Ui {
             Theme::Light => (Color32::DARK_BLUE, Color32::DARK_RED),
         };
 
-        if let Some(file_action) = &self.v.file_selection.o_action {
-            match file_action {
-                FileAction::SwitchToKnown(idx) => {
-                    self.settings.set_current_file(*idx).unwrap();
-                }
-                FileAction::SwitchToNew(path) => {
-                    self.settings
-                        .add_and_set_file(&PathBuf::from(path))
-                        .unwrap();
-                }
-            }
-            let pl_file = PlFile::read_or_create(self.settings.current_file())
-                .context("File open error")
-                .unwrap();
-            self.o_plfile = Some(pl_file);
-            self.v = V::new();
-            self.v.file_selection.reset(self.settings.current_file);
-        }
+        self.controller
+            .act(&mut self.o_plfile, &mut self.v, &mut self.settings);
 
         if let Some(pl_file) = &mut self.o_plfile {
-            if self.v.need_refresh {
-                self.v.reset_bundles(
-                    pl_file.bundles(),
-                    pl_file.transient().unwrap(/*should never fail*/),
-                );
-                self.v.need_refresh = false;
-            }
+            top_panel(pl_file, &mut self.v, &mut self.controller, ctx);
 
-            // UI
-            top_panel(&self.settings, pl_file, &mut self.v, ctx);
+            match self.controller.current_modal() {
+                PlModal::None => {}
 
-            match self.v.pl_modal.clone() {
                 PlModal::CreateBundle => {
                     create_bundle(
                         &mut self.v.edit_bundle,
-                        &mut self.v.pl_modal,
-                        pl_file,
-                        &mut self.v.need_refresh,
+                        &mut self.controller,
                         &self.colors,
                         ctx,
                     );
                 }
-                PlModal::DeleteBundle(ref name) => {
-                    delete_bundle(
-                        name,
-                        &mut self.v.pl_modal,
-                        pl_file,
-                        &mut self.v.edit_idx,
-                        &mut self.v.need_refresh,
-                        ctx,
-                    );
+                PlModal::DeleteBundle => {
+                    delete_bundle(&self.v.name_for_delete, &mut self.controller, ctx);
                 }
                 PlModal::About => {
-                    show_about(&mut self.v.pl_modal, ctx);
+                    show_about(&mut self.controller, ctx);
                 }
                 PlModal::ChangePassword => {
-                    change_password(&mut self.v.pw, &mut self.v.pl_modal, pl_file, ctx);
+                    change_password(&mut self.v.pw, &mut self.controller, ctx);
                 }
                 PlModal::ChangeFile => {
                     change_file(
-                        &mut self.v.pl_modal,
-                        &mut self.v.file_selection,
                         &mut self.settings,
+                        &mut self.v.file_selection,
+                        &mut self.controller,
                         ctx,
                     );
                 }
                 PlModal::ChangeLanguage => {
-                    change_language(
-                        &mut self.v.lang,
-                        &mut self.v.pl_modal,
-                        &mut self.settings,
-                        ctx,
-                    );
+                    change_language(&mut self.v.lang, &mut self.controller, ctx);
                     return;
-                }
-                PlModal::None | PlModal::ShowPrintable => {
-                    // TODO ShowPrintable
                 }
             }
 
-            if pl_file.is_actionable() {
-                panels_for_actionable_ui(pl_file, &mut self.v, &self.colors, ctx);
-            } else {
-                ask_for_password(pl_file, &mut self.v, ctx);
+            match pl_file.transient() {
+                Some(transient) => {
+                    panels_for_actionable_ui(
+                        pl_file.bundles(),
+                        transient,
+                        &mut self.v,
+                        &mut self.controller,
+                        &self.colors,
+                        ctx,
+                    );
+                }
+                None => {
+                    ask_for_password(pl_file, &mut self.v, ctx);
+                }
             }
         } else {
             change_file(
-                &mut self.v.pl_modal,
-                &mut self.v.file_selection,
                 &mut self.settings,
+                &mut self.v.file_selection,
+                &mut self.controller,
                 ctx,
             );
         }

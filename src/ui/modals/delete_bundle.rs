@@ -1,17 +1,7 @@
-use crate::{
-    PlFile,
-    ui::viz::{EditIdx, PlModal},
-};
+use crate::controller::Controller;
 use egui::{Color32, Context, Modal, RichText, Sides};
 
-pub fn delete_bundle(
-    name: &str,
-    pl_modal: &mut PlModal,
-    pl_file: &mut PlFile,
-    edit_idx: &mut EditIdx,
-    need_refresh: &mut bool,
-    ctx: &Context,
-) {
+pub fn delete_bundle(name: &str, controller: &mut Controller, ctx: &Context) {
     Modal::new("delete_bundle".into()).show(ctx, |ui| {
         ui.set_width(300.);
         ui.heading(t!("Delete entry"));
@@ -29,20 +19,13 @@ pub fn delete_bundle(
                     .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
                     .clicked()
                 {
-                    if let Err(e) = pl_file.save_with_deleted_bundle(name.to_string()) {
-                        println!("TODO 'Delete entry' failed with {e:?}");
-                    }
-                    *edit_idx = EditIdx::None;
-                    *pl_modal = PlModal::None;
-                    *need_refresh = true;
+                    controller.finalize_delete(name.to_string());
                 }
                 if ui
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
                     .clicked()
                 {
-                    *edit_idx = EditIdx::None;
-                    *pl_modal = PlModal::None;
-                    //
+                    controller.cancel();
                 }
             },
         );

@@ -1,16 +1,7 @@
-use crate::{
-    SUPPORTED_LANGUAGES,
-    data::Settings,
-    ui::viz::{Lang, PlModal},
-};
+use crate::{SUPPORTED_LANGUAGES, controller::Controller, ui::viz::Lang};
 use egui::{Color32, ComboBox, Context, FontFamily, FontId, Modal, RichText, Sides};
 
-pub fn change_language(
-    lang: &mut Lang,
-    pl_modal: &mut PlModal,
-    settings: &mut Settings,
-    ctx: &Context,
-) {
+pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("change_language".into()).show(ctx, |ui| {
         ui.set_width(420.0);
         ui.horizontal(|ui| {
@@ -61,14 +52,7 @@ pub fn change_language(
                     )
                     .clicked()
                 {
-                    match settings.set_language(lang.selected.0) {
-                        Ok(()) => {
-                            *pl_modal = PlModal::None;
-                        }
-                        Err(e) => {
-                            lang.err = Some(e.to_string());
-                        }
-                    }
+                    controller.finalize_change_language();
                 }
                 if ui
                     .button(
@@ -77,12 +61,12 @@ pub fn change_language(
                     )
                     .clicked()
                 {
-                    *pl_modal = PlModal::None;
+                    controller.cancel();
                 }
             },
         );
     });
     if modal_response.should_close() {
-        *pl_modal = PlModal::None;
+        controller.cancel();
     }
 }

@@ -1,13 +1,12 @@
 use crate::{
     PlFile, Settings,
-    ui::viz::{EditIdx, Pw, V, VEditBundle, VEditCred},
+    ui::viz::{Pw, V, VEditBundle, VEditCred},
 };
-use anyhow::{Context, anyhow};
+use anyhow::Context;
 use std::path::PathBuf;
 
 // Implements the controller for the application, i.e., the logic that decides what to do next.
-// The controller is a state machine that reacts to user input and decides what to do next.
-// The controller is the only place where the application data (FIXME state?) is modified.
+// The controller is the only place where the application data is modified.
 #[derive(Default)]
 pub struct Controller {
     // The next action to be taken by the controller.
@@ -111,7 +110,7 @@ impl Controller {
                 let pl_file = o_plfile.as_mut().unwrap(/*OK*/);
                 let transient = pl_file.transient().unwrap(/*OK*/);
                 let bundle = pl_file.bundles().get(&name).unwrap(/*OK*/);
-                v.edit_idx = EditIdx::Mod(index);
+                v.edit_idx = Some(index);
                 v.edit_bundle = VEditBundle {
                     orig_name: name.to_string(),
                     name: name.to_string(),
@@ -135,14 +134,10 @@ impl Controller {
                 let (orig_name, name, bundle) = v
                     .edit_bundle
                     .as_oldname_newname_bundle(pl_file.transient_mut().unwrap(/*OK*/));
-                if let Err(e) = if v.edit_idx.is_mod() {
-                    pl_file.save_with_updated_bundle(&orig_name, name, &bundle)
-                } else {
-                    Err(anyhow!("save: only mod is expected"))
-                } {
+                if let Err(e) = pl_file.save_with_updated_bundle(&orig_name, name, &bundle) {
                     println!("TODO 'FinalizeModify' failed with {e:?}");
                 }
-                v.edit_idx = EditIdx::None;
+                v.edit_idx = None;
             }
 
             Action::StartDelete(name) => {
@@ -158,7 +153,7 @@ impl Controller {
 
             Action::Cancel => {
                 self.current_modal = PlModal::None;
-                v.edit_idx = EditIdx::None;
+                v.edit_idx = None;
             }
         }
     }

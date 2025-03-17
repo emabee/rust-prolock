@@ -1,7 +1,7 @@
 use crate::{
     data::{Bundle, Cred, Transient},
     ui::{
-        Colors,
+        colors::{COLOR_SECRET, COLOR_USER},
         viz::{VBundle, VCred},
     },
 };
@@ -13,10 +13,8 @@ use egui_extras::{Size, Strip, StripBuilder};
 use either::Either;
 use jiff::Zoned;
 
-#[allow(clippy::too_many_arguments)] // TODO
 pub fn ui(
     ctx: &Context,
-    colors: &Colors,
     index: usize,
     bundle: &Bundle,
     v_bundle: &mut VBundle,
@@ -28,15 +26,7 @@ pub fn ui(
         ui_left_part(index, bundle, name, left_builder);
     });
     inner_bundle_strip.strip(|right_builder| {
-        ui_right_part(
-            index,
-            bundle,
-            transient,
-            v_bundle,
-            right_builder,
-            colors,
-            ctx,
-        );
+        ui_right_part(index, bundle, transient, v_bundle, right_builder, ctx);
     });
 }
 
@@ -100,7 +90,6 @@ fn ui_right_part(
     transient: &Transient,
     v_bundle: &mut VBundle,
     right_builder: StripBuilder<'_>,
-    colors: &Colors,
     ctx: &Context,
 ) {
     right_builder
@@ -109,23 +98,13 @@ fn ui_right_part(
             let mut first = true;
             for (cred, v_cred) in bundle.creds().iter().zip(v_bundle.v_creds.iter_mut()) {
                 right_strip.strip(|cred_builder| {
-                    show_cred(
-                        first,
-                        index,
-                        cred,
-                        transient,
-                        v_cred,
-                        cred_builder,
-                        colors,
-                        ctx,
-                    );
+                    show_cred(first, index, cred, transient, v_cred, cred_builder, ctx);
                     first = false;
                 });
             }
         });
 }
 
-#[allow(clippy::too_many_arguments)] // TODO
 pub fn show_cred(
     first: bool,
     index: usize,
@@ -133,7 +112,6 @@ pub fn show_cred(
     transient: &Transient,
     v_cred: &mut VCred,
     cred_builder: StripBuilder<'_>,
-    colors: &Colors,
     ctx: &Context,
 ) {
     let color_switch = if index % 2 == 0 {
@@ -153,7 +131,7 @@ pub fn show_cred(
                     TextEdit::singleline(&mut cred.name(transient))
                         .desired_width(200.)
                         .clip_text(true)
-                        .text_color(colors.user)
+                        .text_color(COLOR_USER)
                         .interactive(true),
                 )
                 .on_hover_text(t!("_hover_username"));
@@ -167,7 +145,7 @@ pub fn show_cred(
                         TextEdit::singleline(&mut cred.secret(transient))
                             .desired_width(160.)
                             .clip_text(true)
-                            .text_color(colors.secret)
+                            .text_color(COLOR_SECRET)
                             .password(!v_cred.show_secret)
                             .interactive(true),
                     )

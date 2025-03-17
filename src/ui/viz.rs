@@ -11,24 +11,16 @@ pub struct V {
     pub name_for_delete: String,
     pub search: String,
     pub bundles: Vec<VBundle>,
-    pub edit_idx: EditIdx,
+    pub edit_idx: Option<usize>,
     pub edit_bundle: VEditBundle,
     pub lang: Lang,
 }
 impl V {
     pub fn reset_bundles(&mut self, bundles: &Bundles) {
-        // TODO simplify
         self.bundles = bundles
-            .into_iter()
+            .iter()
             .map(|(_name, bundle)| VBundle {
-                v_creds: bundle
-                    .creds()
-                    .iter()
-                    .map(|_cred| VCred {
-                        show_secret: false,
-                        copied_at: None,
-                    })
-                    .collect(),
+                v_creds: vec![VCred::default(); bundle.creds().len()],
             })
             .collect();
     }
@@ -56,36 +48,6 @@ impl Lang {
             .unwrap_or(DEFAULT_LANGUAGE);
         self.selected = self.current;
         self.err = None;
-    }
-}
-
-// FIXME
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EditIdx {
-    #[default]
-    None,
-    Mod(usize),
-}
-impl EditIdx {
-    pub fn is_none(&self) -> bool {
-        matches!(self, Self::None)
-    }
-    pub fn is_mod(&self) -> bool {
-        matches!(self, Self::Mod(_))
-    }
-    pub fn is_mod_with(&self, idx: usize) -> bool {
-        if let Self::Mod(i) = self {
-            *i == idx
-        } else {
-            false
-        }
-    }
-    pub fn is_mod_not_with(&self, idx: usize) -> bool {
-        if let Self::Mod(i) = self {
-            *i != idx
-        } else {
-            false
-        }
     }
 }
 
@@ -125,11 +87,12 @@ impl FileSelection {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct VBundle {
     pub v_creds: Vec<VCred>,
 }
 
+#[derive(Default, Clone)]
 pub struct VCred {
     pub show_secret: bool,
     pub copied_at: Option<Instant>,

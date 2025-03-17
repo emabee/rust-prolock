@@ -1,5 +1,6 @@
 mod actionable;
 mod assets;
+pub mod colors;
 mod modals;
 mod password;
 pub mod sizes;
@@ -26,7 +27,7 @@ use crate::{
 };
 use anyhow::{Context as _, Result};
 use eframe::{App, Frame};
-use egui::{Color32, Context, Theme};
+use egui::{Color32, Context};
 
 pub const VERY_LIGHT_GRAY: Color32 = Color32::from_rgb(235, 235, 235);
 
@@ -34,19 +35,10 @@ pub struct Ui {
     o_plfile: Option<PlFile>,
     v: V,
     controller: Controller,
-    colors: Colors,
     settings: Settings,
-}
-pub struct Colors {
-    pub user: Color32,
-    pub secret: Color32,
 }
 impl Ui {
     pub fn new(settings: Settings) -> Result<Self> {
-        let colors = Colors {
-            user: Color32::DARK_BLUE,
-            secret: Color32::DARK_RED,
-        };
         let mut v = V::default();
         v.file_selection.reset(settings.current_file);
         Ok(Ui {
@@ -55,7 +47,6 @@ impl Ui {
             ),
             v,
             controller: Controller::default(),
-            colors,
             settings,
         })
     }
@@ -63,11 +54,6 @@ impl Ui {
 
 impl App for Ui {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
-        (self.colors.user, self.colors.secret) = match ctx.theme() {
-            Theme::Dark => (Color32::LIGHT_BLUE, Color32::LIGHT_RED),
-            Theme::Light => (Color32::DARK_BLUE, Color32::DARK_RED),
-        };
-
         self.controller
             .act(&mut self.o_plfile, &mut self.v, &mut self.settings);
 
@@ -78,12 +64,7 @@ impl App for Ui {
                 PlModal::None => {}
 
                 PlModal::CreateBundle => {
-                    create_bundle(
-                        &mut self.v.edit_bundle,
-                        &mut self.controller,
-                        &self.colors,
-                        ctx,
-                    );
+                    create_bundle(&mut self.v.edit_bundle, &mut self.controller, ctx);
                 }
                 PlModal::DeleteBundle => {
                     delete_bundle(&self.v.name_for_delete, &mut self.controller, ctx);
@@ -115,7 +96,6 @@ impl App for Ui {
                         transient,
                         &mut self.v,
                         &mut self.controller,
-                        &self.colors,
                         ctx,
                     );
                 }

@@ -6,12 +6,12 @@ use crate::{
     controller::{Action, Controller},
     data::{Bundle, Bundles, Transient},
     ui::{
-        Colors, IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_SEARCH,
+        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_SEARCH,
         sizes::{
             BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
             EGUI_DEFAULT_SPACE, SEARCH_TEXT_WIDTH, WIN_WIDTH,
         },
-        viz::{EditIdx, V, VBundle, VEditBundle},
+        viz::{V, VBundle, VEditBundle},
     },
 };
 use bundle_buttons::{
@@ -29,12 +29,11 @@ pub(super) fn panels_for_actionable_ui(
     transient: &Transient,
     v: &mut V,
     controller: &mut Controller,
-    colors: &Colors,
     ctx: &Context,
 ) {
     top_panel_header(v, controller, ctx);
 
-    central_panel_bundles(bundles, transient, v, colors, controller, ctx);
+    central_panel_bundles(bundles, transient, v, controller, ctx);
 }
 
 fn top_panel_header(v: &mut V, controller: &mut Controller, ctx: &Context) {
@@ -95,7 +94,6 @@ fn central_panel_bundles(
     bundles: &Bundles,
     transient: &Transient,
     v: &mut V,
-    colors: &Colors,
     controller: &mut Controller,
     ctx: &Context,
 ) {
@@ -118,18 +116,15 @@ fn central_panel_bundles(
                         .sizes(Size::exact(BUNDLE_HEIGHT), usize::max(1, bundles.len()))
                         .vertical(|mut bundle_strip| {
                             for (index, (name, bundle)) in bundles.iter().enumerate() {
-                                let edit_idx = v.edit_idx;
-                                if edit_idx.is_mod_with(index) {
+                                if v.edit_idx == Some(index) {
                                     bundle_strip.strip(|bundle_builder| {
                                         edit_a_bundle_with_buttons(
                                             bundle_builder,
                                             &mut v.edit_bundle,
                                             controller,
-                                            colors,
                                         );
                                     });
-                                }
-                                if edit_idx.is_none() || edit_idx.is_mod_not_with(index) {
+                                } else {
                                     bundle_strip.strip(|bundle_builder| {
                                         show_a_bundle_with_buttons(
                                             ctx,
@@ -139,9 +134,8 @@ fn central_panel_bundles(
                                             &mut v.bundles[index],
                                             name,
                                             transient,
-                                            &mut v.edit_idx,
+                                            v.edit_idx,
                                             controller,
-                                            colors,
                                         );
                                     });
                                 }
@@ -156,7 +150,6 @@ fn edit_a_bundle_with_buttons(
     bundle_builder: StripBuilder<'_>,
     edit_bundle: &mut VEditBundle,
     controller: &mut Controller,
-    colors: &Colors,
 ) {
     bundle_builder
         .size(Size::exact(BUNDLE_WIDTH_BUTTONS))
@@ -166,7 +159,7 @@ fn edit_a_bundle_with_buttons(
             inner_bundle_strip.cell(|ui| {
                 active_buttons_save_and_cancel(ui, controller);
             });
-            edit_bundle::ui(colors, edit_bundle, &mut inner_bundle_strip);
+            edit_bundle::ui(edit_bundle, &mut inner_bundle_strip);
         });
 }
 
@@ -179,9 +172,8 @@ fn show_a_bundle_with_buttons(
     v_bundle: &mut VBundle,
     name: &str,
     transient: &Transient,
-    edit_idx: &mut EditIdx,
+    edit_idx: Option<usize>,
     controller: &mut Controller,
-    colors: &Colors,
 ) {
     bundle_builder
         .size(Size::exact(BUNDLE_WIDTH_BUTTONS))
@@ -197,7 +189,6 @@ fn show_a_bundle_with_buttons(
             });
             show_bundle::ui(
                 ctx,
-                colors,
                 index,
                 bundle,
                 v_bundle,

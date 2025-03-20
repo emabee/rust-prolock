@@ -1,9 +1,8 @@
 use crate::data::{Bundle, Transient};
 use anyhow::{Result, anyhow};
-use std::collections::{
-    BTreeMap,
-    btree_map::{Entry, Iter},
-};
+use std::collections::{BTreeMap, btree_map::Entry};
+
+use super::BundleKey;
 
 // All bundles in the file.
 //
@@ -16,7 +15,7 @@ use std::collections::{
 //     - remove all bundles from secret that do not appear in the list
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub(crate) struct Bundles(BTreeMap<String, Bundle>);
+pub(crate) struct Bundles(BTreeMap<BundleKey, Bundle>);
 
 impl Bundles {
     pub fn new() -> Self {
@@ -27,8 +26,8 @@ impl Bundles {
         self.0.len()
     }
 
-    pub fn iter(&self) -> Iter<'_, std::string::String, Bundle> {
-        self.0.iter()
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &Bundle)> {
+        self.0.iter().map(|(k, v)| (k.as_str(), v))
     }
 
     pub fn is_empty(&self) -> bool {
@@ -36,7 +35,7 @@ impl Bundles {
     }
 
     pub fn get(&self, key: &str) -> Option<&Bundle> {
-        self.0.get(key)
+        self.0.get(&BundleKey::new(key))
     }
 
     pub fn count_secrets(&self) -> usize {
@@ -44,7 +43,7 @@ impl Bundles {
     }
 
     pub fn contains_key(&self, key: &str) -> bool {
-        self.0.contains_key(key)
+        self.0.contains_key(&BundleKey::new(key))
     }
 
     pub fn refs(&self) -> Vec<u64> {
@@ -57,12 +56,14 @@ impl Bundles {
     where
         S: AsRef<str>,
     {
-        let key = key.as_ref().to_string();
-        if let Entry::Vacant(e) = self.0.entry(key.clone()) {
-            e.insert(bundle);
-            Ok(())
-        } else {
-            Err(anyhow!("bundle {key} exists already"))
+        match self.0.entry(BundleKey::new(key.as_ref())) {
+            Entry::Vacant(vacant_entry) => {
+                vacant_entry.insert(bundle);
+                Ok(())
+            }
+            Entry::Occupied(occupied_entry) => {
+                Err(anyhow!("bundle {} exists already", occupied_entry.key()))
+            }
         }
     }
 
@@ -70,7 +71,7 @@ impl Bundles {
     where
         S: AsRef<str>,
     {
-        match self.0.get_mut(key.as_ref()) {
+        match self.0.get_mut(&BundleKey::new(key.as_ref())) {
             None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
             Some(bundle) => {
                 *bundle = modified_bundle;
@@ -83,7 +84,7 @@ impl Bundles {
     where
         S: AsRef<str>,
     {
-        match self.0.remove_entry(key.as_ref()) {
+        match self.0.remove_entry(&BundleKey::new(key.as_ref())) {
             None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
             Some((_key, bundle)) => {
                 for cred in bundle.creds() {
@@ -93,15 +94,5 @@ impl Bundles {
                 Ok(())
             }
         }
-    }
-}
-
-impl<'a> IntoIterator for &'a Bundles {
-    type Item = (&'a String, &'a Bundle);
-
-    type IntoIter = std::collections::btree_map::Iter<'a, String, Bundle>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
     }
 }

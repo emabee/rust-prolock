@@ -54,9 +54,11 @@ impl Ui {
 
 impl App for Ui {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
+        // execute actions
         self.controller
             .act(&mut self.o_plfile, &mut self.v, &mut self.settings);
 
+        // update the UI
         if let Some(pl_file) = &mut self.o_plfile {
             top_panel(pl_file, &mut self.v, &mut self.controller, ctx);
 
@@ -89,19 +91,17 @@ impl App for Ui {
                 }
             }
 
-            match pl_file.transient() {
-                Some(transient) => {
-                    panels_for_actionable_ui(
-                        pl_file.bundles(),
-                        transient,
-                        &mut self.v,
-                        &mut self.controller,
-                        ctx,
-                    );
-                }
-                None => {
-                    ask_for_password(pl_file, &mut self.v, ctx);
-                }
+            if let Some(transient) = pl_file.transient() {
+                panels_for_actionable_ui(
+                    pl_file.bundles(),
+                    transient,
+                    &mut self.v,
+                    &mut self.controller,
+                    ctx,
+                );
+            } else {
+                let is_first_start = pl_file.update_counter().peek() == Some(0);
+                ask_for_password(is_first_start, &mut self.v, &mut self.controller, ctx);
             }
         } else {
             change_file(

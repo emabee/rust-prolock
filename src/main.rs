@@ -28,9 +28,10 @@ use data::Settings;
 use eframe::{NativeOptions, run_native};
 use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
-use image::{ImageError, ImageReader};
+use image::{ImageError, ImageFormat, ImageReader};
 use std::{
-    path::{Path, PathBuf},
+    io::{BufReader, Cursor},
+    path::PathBuf,
     process::ExitCode,
 };
 
@@ -87,9 +88,7 @@ fn run() -> Result<()> {
                 .with_inner_size([WIN_WIDTH, WIN_HEIGHT])
                 .with_min_inner_size([WIN_WIDTH, WIN_MIN_HEIGHT])
                 .with_app_id("ProLock")
-                .with_icon(
-                    load_icon_from_path(&PathBuf::from("./src/ui/assets/logo.png")).unwrap(),
-                ),
+                .with_icon(pl_load_icon()),
             ..Default::default()
         },
         Box::new(|cc| {
@@ -104,11 +103,18 @@ fn run() -> Result<()> {
     .map_err(|e| anyhow!("Couldn't start GUI, caused by {e}"))
 }
 
-fn load_icon_from_path(path: &Path) -> Result<IconData, ImageError> {
-    let image = ImageReader::open(path)?.decode()?;
-    Ok(IconData {
-        rgba: image.to_rgba8().as_flat_samples().as_slice().to_vec(),
-        width: image.width(),
-        height: image.height(),
-    })
+fn pl_load_icon() -> IconData {
+    if let Ok(image) = read_logo() {
+        return IconData {
+            rgba: image.to_rgba8().as_flat_samples().as_slice().to_vec(),
+            width: image.width(),
+            height: image.height(),
+        };
+    } else {
+        IconData::default()
+    }
+}
+fn read_logo() -> Result<image::DynamicImage, ImageError> {
+    let bytes = include_bytes!("ui/assets/logo.png");
+    ImageReader::with_format(BufReader::new(Cursor::new(bytes)), ImageFormat::Png).decode()
 }

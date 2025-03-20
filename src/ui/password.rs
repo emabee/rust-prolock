@@ -1,10 +1,15 @@
 use crate::{
-    PlFile,
+    controller::{Action, Controller},
     ui::viz::{PwFocus, V},
 };
 use egui::{CentralPanel, Color32, Context, RichText, TextEdit, TopBottomPanel};
 
-pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
+pub(super) fn ask_for_password(
+    is_first_start: bool,
+    v: &mut V,
+    controller: &mut Controller,
+    ctx: &Context,
+) {
     TopBottomPanel::top("pw error").show(ctx, |ui| {
         if let Some(e) = &v.pw.error {
             ui.label(RichText::new(e).color(Color32::RED));
@@ -12,7 +17,7 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
     });
 
     CentralPanel::default().show(ctx, |ui| {
-        if pl_file.update_counter().peek() == Some(0) {
+        if is_first_start {
             // this is the first start, so ask twice
             ui.add_space(15.);
             ui.label(
@@ -64,7 +69,7 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                 }
                 if go_forward {
                     if v.pw.pw1 == v.pw.pw2 {
-                        switch_to_actionable(pl_file, v);
+                        controller.set_action(Action::SwitchToActionable);
                     } else {
                         v.pw.error = Some(t!("The passwords don't match").to_string());
                     }
@@ -93,24 +98,9 @@ pub(super) fn ask_for_password(pl_file: &mut PlFile, v: &mut V, ctx: &Context) {
                 }
 
                 if go_forward {
-                    switch_to_actionable(pl_file, v);
+                    controller.set_action(Action::SwitchToActionable);
                 }
             });
         }
     });
-}
-
-fn switch_to_actionable(pl_file: &mut PlFile, v: &mut V) {
-    match pl_file.set_actionable(v.pw.pw1.clone()) {
-        Ok(()) => {
-            v.pw.error = None;
-            v.reset_bundles(pl_file.bundles());
-            if pl_file.is_empty() {
-                v.edit_bundle.prepare_for_create();
-            }
-        }
-        Err(e) => {
-            v.pw.error = Some(format!("{e}"));
-        }
-    }
 }

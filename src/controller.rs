@@ -23,20 +23,74 @@ impl Controller {
     // this is called in the main loop
     #[allow(clippy::too_many_lines)]
     pub fn act(&mut self, o_plfile: &mut Option<PlFile>, v: &mut V, settings: &mut Settings) {
-        // println!("{:?}", self.next_action);
-        match std::mem::take(&mut self.next_action) {
-            Action::None => {}
+        match (std::mem::take(&mut self.next_action), o_plfile) {
+            (Action::None, _) => {}
 
-            Action::ShowAbout => {
+            (Action::StartChangeFile, _) => {
+                v.file_selection.reset(settings.current_file);
+                self.current_modal = PlModal::ChangeFile;
+            }
+            (Action::SwitchToKnownFile(idx), o_plfile) => match settings.set_current_file(idx) {
+                Ok(()) => {
+                    switch_to_current_file(o_plfile, v, settings);
+                    self.current_modal = PlModal::None;
+                }
+                Err(e) => {
+                    v.file_selection.err =
+                        Some(format!("Error: {}, caused by {:?}", e, e.source()));
+                }
+            },
+            (Action::SwitchToNewFile(path), o_plfile) => {
+                match settings.add_and_set_file(&PathBuf::from(path)) {
+                    Ok(()) => {
+                        switch_to_current_file(o_plfile, v, settings);
+                        self.current_modal = PlModal::None;
+                    }
+                    Err(e) => {
+                        v.file_selection.err =
+                            Some(format!("Error: {}, caused by {:?}", e, e.source()));
+                    }
+                }
+            }
+
+            (Action::ShowAbout, _) => {
                 self.current_modal = PlModal::About;
             }
 
-            Action::StartChangePassword => {
+            (Action::StartChangeLanguage, _) => {
+                v.lang.init(&settings.language);
+                self.current_modal = PlModal::ChangeLanguage;
+            }
+            (Action::FinalizeChangeLanguage, _) => match settings.set_language(v.lang.selected.0) {
+                Ok(()) => {
+                    self.current_modal = PlModal::None;
+                }
+                Err(e) => {
+                    v.lang.err = Some(e.to_string());
+                }
+            },
+
+            (Action::SwitchToActionable, Some(pl_file)) => {
+                match pl_file.set_actionable(v.pw.pw1.clone()) {
+                    Ok(()) => {
+                        v.pw.error = None;
+                        v.reset_bundles(pl_file.bundles());
+                        if pl_file.is_empty() {
+                            v.edit_bundle.prepare_for_create();
+                        }
+                    }
+                    Err(e) => {
+                        v.pw.error = Some(format!("{e}"));
+                    }
+                }
+            }
+
+            (Action::StartChangePassword, _) => {
                 v.pw = Pw::default();
                 self.current_modal = PlModal::ChangePassword;
             }
-            Action::FinalizeChangePassword { old, new } => {
-                match o_plfile.as_mut().unwrap(/*OK*/).change_password(&old, new) {
+            (Action::FinalizeChangePassword { old, new }, Some(pl_file)) => {
+                match pl_file.change_password(&old, new) {
                     Ok(()) => {
                         self.current_modal = PlModal::None;
                     }
@@ -46,12 +100,11 @@ impl Controller {
                 }
             }
 
-            Action::StartAdd => {
+            (Action::StartAdd, _) => {
                 v.edit_bundle.prepare_for_create();
                 self.current_modal = PlModal::CreateBundle;
             }
-            Action::FinalizeAdd => {
-                let pl_file = o_plfile.as_mut().unwrap(/*OK*/);
+            (Action::FinalizeAdd, Some(pl_file)) => {
                 let (_orig_name, name, bundle) = v
                     .edit_bundle
                     .as_oldname_newname_bundle(pl_file.transient_mut().unwrap(/*OK*/));
@@ -66,48 +119,7 @@ impl Controller {
                 v.reset_bundles(pl_file.bundles());
             }
 
-            Action::StartChangeFile => {
-                v.file_selection.reset(settings.current_file);
-                self.current_modal = PlModal::ChangeFile;
-            }
-            Action::SwitchToKnownFile(idx) => match settings.set_current_file(idx) {
-                Ok(()) => {
-                    switch_to_current_file(o_plfile, v, settings);
-                    self.current_modal = PlModal::None;
-                }
-                Err(e) => {
-                    v.file_selection.err =
-                        Some(format!("Error: {}, caused by {:?}", e, e.source()));
-                }
-            },
-            Action::SwitchToNewFile(path) => {
-                match settings.add_and_set_file(&PathBuf::from(path)) {
-                    Ok(()) => {
-                        switch_to_current_file(o_plfile, v, settings);
-                        self.current_modal = PlModal::None;
-                    }
-                    Err(e) => {
-                        v.file_selection.err =
-                            Some(format!("Error: {}, caused by {:?}", e, e.source()));
-                    }
-                }
-            }
-
-            Action::StartChangeLanguage => {
-                v.lang.init(&settings.language);
-                self.current_modal = PlModal::ChangeLanguage;
-            }
-            Action::FinalizeChangeLanguage => match settings.set_language(v.lang.selected.0) {
-                Ok(()) => {
-                    self.current_modal = PlModal::None;
-                }
-                Err(e) => {
-                    v.lang.err = Some(e.to_string());
-                }
-            },
-
-            Action::StartModify(index, name) => {
-                let pl_file = o_plfile.as_mut().unwrap(/*OK*/);
+            (Action::StartModify(index, name), Some(pl_file)) => {
                 let transient = pl_file.transient().unwrap(/*OK*/);
                 let bundle = pl_file.bundles().get(&name).unwrap(/*OK*/);
                 v.edit_idx = Some(index);
@@ -129,8 +141,7 @@ impl Controller {
                     v.edit_bundle.v_edit_creds.push(VEditCred::default());
                 }
             }
-            Action::FinalizeModify => {
-                let pl_file = o_plfile.as_mut().unwrap(/*OK*/);
+            (Action::FinalizeModify, Some(pl_file)) => {
                 let (orig_name, name, bundle) = v
                     .edit_bundle
                     .as_oldname_newname_bundle(pl_file.transient_mut().unwrap(/*OK*/));
@@ -140,20 +151,24 @@ impl Controller {
                 v.edit_idx = None;
             }
 
-            Action::StartDelete(name) => {
+            (Action::StartDelete(name), _) => {
                 self.current_modal = PlModal::DeleteBundle;
                 v.name_for_delete = name;
             }
-            Action::FinalizeDelete(name) => {
-                if let Err(e) = o_plfile.as_mut().unwrap(/*OK*/).save_with_deleted_bundle(name) {
+            (Action::FinalizeDelete(name), Some(pl_file)) => {
+                if let Err(e) = pl_file.save_with_deleted_bundle(name) {
                     println!("TODO 'FinalizeDelete' failed with {e:?}");
                 }
                 self.current_modal = PlModal::None;
             }
 
-            Action::Cancel => {
+            (Action::Cancel, _) => {
                 self.current_modal = PlModal::None;
                 v.edit_idx = None;
+            }
+
+            (action, &mut None) => {
+                unreachable!("Unexpected action {action:?} with no file open");
             }
         }
     }
@@ -188,6 +203,8 @@ pub(crate) enum Action {
         old: String,
         new: String,
     },
+
+    SwitchToActionable,
 
     StartChangeLanguage,
     FinalizeChangeLanguage,

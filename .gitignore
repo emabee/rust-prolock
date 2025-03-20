@@ -2,4 +2,5 @@
 /.private
 /examples/_*
 .DS_Store
+/src/.DS_Store
 locales/TODO.yml

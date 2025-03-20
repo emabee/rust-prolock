@@ -105,11 +105,11 @@ fn run() -> Result<()> {
 
 fn pl_load_icon() -> IconData {
     if let Ok(image) = read_logo() {
-        return IconData {
+        IconData {
             rgba: image.to_rgba8().as_flat_samples().as_slice().to_vec(),
             width: image.width(),
             height: image.height(),
-        };
+        }
     } else {
         IconData::default()
     }

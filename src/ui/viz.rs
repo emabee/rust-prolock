@@ -133,6 +133,7 @@ pub struct VEditBundle {
     pub name: String,
     pub description: String,
     pub v_edit_creds: Vec<VEditCred>,
+    pub request_focus: bool,
     pub err: Option<String>,
 }
 
@@ -169,5 +170,6 @@ impl VEditBundle {
         self.v_edit_creds.push(VEditCred::default());
         self.v_edit_creds.push(VEditCred::default());
         self.v_edit_creds.push(VEditCred::default());
+        self.request_focus = true;
     }
 }

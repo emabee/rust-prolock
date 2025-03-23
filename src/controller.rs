@@ -140,6 +140,7 @@ impl Controller {
                             secret: c.secret.disclose(transient).to_string(),
                         })
                         .collect(),
+                    request_focus: true,
                     err: None,
                 };
                 while v.edit_bundle.v_edit_creds.len() < 4 {

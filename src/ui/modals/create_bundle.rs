@@ -91,7 +91,7 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
             });
             //name
             left_strip.cell(|ui| {
-                ui.add(
+                let response = ui.add(
                     TextEdit::singleline(&mut edit_bundle.name)
                         .hint_text(t!("_unique_name"))
                         .desired_width(400.)
@@ -110,6 +110,10 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
                         )
                         .interactive(true),
                 );
+                if edit_bundle.request_focus {
+                    edit_bundle.request_focus = false;
+                    response.request_focus();
+                }
             });
 
             // description

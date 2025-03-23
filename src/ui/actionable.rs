@@ -6,10 +6,10 @@ use crate::{
     controller::{Action, Controller},
     data::{Bundle, Bundles, Transient},
     ui::{
-        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_SEARCH,
+        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE,
         sizes::{
             BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
-            EGUI_DEFAULT_SPACE, SEARCH_TEXT_WIDTH, WIN_WIDTH,
+            SEARCH_TEXT_WIDTH,
         },
         viz::{V, VBundle, VEditBundle},
     },
@@ -62,28 +62,17 @@ fn top_panel_header(v: &mut V, controller: &mut Controller, ctx: &Context) {
                 controller.set_action(Action::StartAdd);
             }
 
-            ui.add_space(
-                WIN_WIDTH
-                    - 4.
-                    - SEARCH_TEXT_WIDTH
-                    - 16.
-                    - (2. * EGUI_DEFAULT_SPACE)
-                    - (2. * 26.)
-                    - 58.,
+            let response = ui.add(
+                TextEdit::singleline(&mut v.find)
+                    .desired_width(SEARCH_TEXT_WIDTH)
+                    .hint_text(format!("🔍 {}", t!("_find"))),
             );
-            ui.add(TextEdit::singleline(&mut v.search).desired_width(SEARCH_TEXT_WIDTH));
-            if ui
-                .add(
-                    Button::image(
-                        Image::new(IMG_SEARCH)
-                            .maintain_aspect_ratio(true)
-                            .fit_to_original_size(0.22),
-                    )
-                    .fill(Color32::WHITE),
-                )
-                .clicked()
-            {
-                //
+            if v.find_request_focus {
+                response.request_focus();
+                v.find_request_focus = false;
+            }
+            if response.changed() {
+                controller.set_action(Action::StartFilter);
             }
         });
         ui.add_space(4.);
@@ -113,31 +102,34 @@ fn central_panel_bundles(
                 .scroll_bar_visibility(ScrollBarVisibility::AlwaysVisible)
                 .show(ui, |ui| {
                     StripBuilder::new(ui)
-                        .sizes(Size::exact(BUNDLE_HEIGHT), usize::max(1, bundles.len()))
+                        .sizes(Size::exact(BUNDLE_HEIGHT), usize::max(1, v.visible_len()))
                         .vertical(|mut bundle_strip| {
                             for (index, (name, bundle)) in bundles.iter().enumerate() {
-                                if v.edit_idx == Some(index) {
-                                    bundle_strip.strip(|bundle_builder| {
-                                        edit_a_bundle_with_buttons(
-                                            bundle_builder,
-                                            &mut v.edit_bundle,
-                                            controller,
-                                        );
-                                    });
-                                } else {
-                                    bundle_strip.strip(|bundle_builder| {
-                                        show_a_bundle_with_buttons(
-                                            ctx,
-                                            bundle_builder,
-                                            index,
-                                            bundle,
-                                            &mut v.bundles[index],
-                                            name,
-                                            transient,
-                                            v.edit_idx,
-                                            controller,
-                                        );
-                                    });
+                                let v_bundle = &mut v.bundles[index];
+                                if !v_bundle.suppressed {
+                                    if v.edit_idx == Some(index) {
+                                        bundle_strip.strip(|bundle_builder| {
+                                            edit_a_bundle_with_buttons(
+                                                bundle_builder,
+                                                &mut v.edit_bundle,
+                                                controller,
+                                            );
+                                        });
+                                    } else {
+                                        bundle_strip.strip(|bundle_builder| {
+                                            show_a_bundle_with_buttons(
+                                                ctx,
+                                                bundle_builder,
+                                                index,
+                                                bundle,
+                                                v_bundle,
+                                                name,
+                                                transient,
+                                                v.edit_idx,
+                                                controller,
+                                            );
+                                        });
+                                    }
                                 }
                             }
                         });

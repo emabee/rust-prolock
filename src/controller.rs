@@ -78,11 +78,16 @@ impl Controller {
                         if pl_file.is_empty() {
                             v.edit_bundle.prepare_for_create();
                         }
+                        v.find_request_focus = true;
                     }
                     Err(e) => {
                         v.pw.error = Some(format!("{e}"));
                     }
                 }
+            }
+
+            (Action::StartFilter, Some(pl_file)) => {
+                v.apply_filter(pl_file.bundles());
             }
 
             (Action::StartChangePassword, _) => {
@@ -149,6 +154,8 @@ impl Controller {
                     println!("TODO 'FinalizeModify' failed with {e:?}");
                 }
                 v.edit_idx = None;
+                // TODO replace with a minimal action:
+                v.reset_bundles(pl_file.bundles());
             }
 
             (Action::StartDelete(name), _) => {
@@ -205,6 +212,8 @@ pub(crate) enum Action {
     },
 
     SwitchToActionable,
+
+    StartFilter,
 
     StartChangeLanguage,
     FinalizeChangeLanguage,

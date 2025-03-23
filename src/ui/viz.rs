@@ -1,3 +1,5 @@
+use fuzzy_matcher::clangd::fuzzy_match;
+
 use crate::{
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
     data::{Bundle, Bundles, Cred, Transient},
@@ -9,7 +11,8 @@ pub struct V {
     pub pw: Pw,
     pub file_selection: FileSelection,
     pub name_for_delete: String,
-    pub search: String,
+    pub find: String,
+    pub find_request_focus: bool,
     pub bundles: Vec<VBundle>,
     pub edit_idx: Option<usize>,
     pub edit_bundle: VEditBundle,
@@ -20,9 +23,24 @@ impl V {
         self.bundles = bundles
             .iter()
             .map(|(_name, bundle)| VBundle {
+                suppressed: false,
                 v_creds: vec![VCred::default(); bundle.creds().len()],
             })
             .collect();
+        self.apply_filter(bundles);
+    }
+
+    pub fn visible_len(&self) -> usize {
+        self.bundles
+            .iter()
+            .filter(|bundle| !bundle.suppressed)
+            .count()
+    }
+
+    pub fn apply_filter(&mut self, bundles: &Bundles) {
+        for (vbundle, (name, bundle)) in self.bundles.iter_mut().zip(bundles.iter()) {
+            vbundle.apply_filter(name, bundle, &self.find);
+        }
     }
 }
 
@@ -89,7 +107,18 @@ impl FileSelection {
 
 #[derive(Default, Clone)]
 pub struct VBundle {
+    pub suppressed: bool,
     pub v_creds: Vec<VCred>,
+}
+impl VBundle {
+    // pub fn reset(&mut self, creds: &[Cred]) {
+    //     self.v_creds = creds.iter().map(|_cred| VCred::default()).collect();
+    // }
+    pub fn apply_filter(&mut self, name: &str, bundle: &Bundle, find: &str) {
+        // TODO should we check the score values?
+        self.suppressed =
+            fuzzy_match(name, find).is_none() && fuzzy_match(bundle.description(), find).is_none();
+    }
 }
 
 #[derive(Default, Clone)]

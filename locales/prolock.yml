@@ -186,3 +186,9 @@ File path:
 _last_update_at:
   en: 'Last update at:'
   de: 'Letzte Änderung:'
+The passwords don't match:
+  en: The passwords don't match
+  de: Die Passwörter stimmen nicht überein
+_find:
+  en: Find
+  de: Suchen

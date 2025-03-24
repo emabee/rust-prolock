@@ -6,7 +6,7 @@ use crate::{
     controller::{Action, Controller},
     data::{Bundle, Bundles, Transient},
     ui::{
-        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE,
+        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_CANCEL,
         sizes::{
             BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
             SEARCH_TEXT_WIDTH,
@@ -62,6 +62,7 @@ fn top_panel_header(v: &mut V, controller: &mut Controller, ctx: &Context) {
                 controller.set_action(Action::StartAdd);
             }
 
+            ui.add_space(2.);
             let response = ui.add(
                 TextEdit::singleline(&mut v.find)
                     .desired_width(SEARCH_TEXT_WIDTH)
@@ -73,6 +74,17 @@ fn top_panel_header(v: &mut V, controller: &mut Controller, ctx: &Context) {
             }
             if response.changed() {
                 controller.set_action(Action::StartFilter);
+            }
+
+            if !v.find.is_empty() {
+                ui.add_space(-30.);
+                if ui
+                    .add(Button::image(IMG_CANCEL).fill(Color32::WHITE))
+                    .clicked()
+                {
+                    v.find.clear();
+                    controller.set_action(Action::StartFilter);
+                }
             }
         });
         ui.add_space(4.);

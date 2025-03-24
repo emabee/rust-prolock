@@ -1,7 +1,7 @@
 use crate::{
     controller::{Action, Controller},
     data::Settings,
-    ui::{assets::IMG_CHANGE_FILE, viz::FileSelection},
+    ui::{assets::IMG_CHANGE_FILE, sizes::MODAL_WIDTH, viz::FileSelection},
 };
 use egui::{Color32, Context, Image, Modal, RichText, Sides, TextEdit, TextStyle};
 
@@ -12,7 +12,7 @@ pub fn change_file(
     ctx: &Context,
 ) {
     Modal::new("change_file".into()).show(ctx, |ui| {
-        ui.set_width(500.0);
+        ui.set_width(MODAL_WIDTH);
 
         ui.horizontal(|ui| {
             ui.add_space(20.);

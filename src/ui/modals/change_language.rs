@@ -1,13 +1,13 @@
 use crate::{
     SUPPORTED_LANGUAGES,
     controller::{Action, Controller},
-    ui::viz::Lang,
+    ui::{sizes::MODAL_WIDTH, viz::Lang},
 };
-use egui::{Color32, ComboBox, Context, FontFamily, FontId, Modal, RichText, Sides};
+use egui::{Color32, ComboBox, Context, FontFamily, FontId, Grid, Modal, RichText, Sides};
 
 pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("change_language".into()).show(ctx, |ui| {
-        ui.set_width(420.0);
+        ui.set_width(MODAL_WIDTH);
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
                 ui.set_width(140.);
@@ -15,17 +15,19 @@ pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Conte
                 ui.add_space(50.);
                 ui.label(RichText::new("🌐").font(FontId::new(128., FontFamily::Proportional)));
             });
+
             ui.vertical(|ui| {
                 ui.add_space(50.);
-                ui.label(RichText::new(t!("Change language")).size(24.));
+                ui.label(RichText::new(t!("Change language", locale = lang.selected.0)).size(24.));
 
                 ui.add_space(15.);
 
-                ui.horizontal(|ui| {
+                Grid::new("Change Password").num_columns(2).show(ui, |ui| {
                     ui.label(t!("Current language:", locale = lang.selected.0));
                     ui.label(lang.current.1);
-                });
-                ui.horizontal(|ui| {
+
+                    ui.end_row();
+
                     ui.label(t!("New language:", locale = lang.selected.0));
                     ComboBox::new("new language", "")
                         .selected_text(lang.selected.1.to_string())
@@ -42,7 +44,6 @@ pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Conte
             });
         });
 
-        ui.add_space(15.);
         ui.separator();
 
         Sides::new().show(

@@ -192,3 +192,15 @@ The passwords don't match:
 _find:
   en: Find
   de: Suchen
+_choose_other_file:
+  en: Choose other file
+  de: Andere Datei auswählen
+_opening_the_prolock_file:
+  en: Opening the prolock file
+  de: Prolock-Datei öffnen
+_specify_pw_to_open:
+  en: 'Specify the password to open the prolock file:'
+  de: 'Geben Sie das Passwort an, um die ProLock Datei zu öffnen:'
+_specify_pw_to_secure:
+  en: 'Specify the password to secure the prolock file:'
+  de: 'Geben Sie das Passwort an, mit dem die ProLock Datei gesichert werden soll:'

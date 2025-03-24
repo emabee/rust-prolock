@@ -11,7 +11,6 @@ img!(IMG_ADD_ENTRY_INACTIVE, "add_entry inactive.png");
 img!(IMG_ADD_ENTRY, "add_entry.png");
 img!(IMG_BURGER, "burger.png");
 img!(IMG_CANCEL, "cancel.png");
-img!(IMG_CHANGE_FILE_INACTIVE, "change_file inactive.png");
 img!(IMG_CHANGE_FILE, "change_file.png");
 img!(IMG_DELETE_INACTIVE, "delete inactive.png");
 img!(IMG_DELETE, "delete.png");

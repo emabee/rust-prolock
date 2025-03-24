@@ -1,15 +1,18 @@
 use crate::{
     controller::{Action, Controller},
-    ui::viz::{Pw, PwFocus},
+    ui::{
+        sizes::MODAL_WIDTH,
+        viz::{Pw, PwFocus},
+    },
 };
-use egui::{Color32, Context, FontFamily, FontId, Key, Modal, RichText, Sides, TextEdit};
+use egui::{Color32, Context, FontFamily, FontId, Grid, Key, Modal, RichText, Sides, TextEdit};
 
 #[allow(clippy::too_many_lines)]
 pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("change_password".into()).show(ctx, |ui| {
         let mut go_for_it = false;
 
-        ui.set_width(500.0);
+        ui.set_width(MODAL_WIDTH);
 
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
@@ -22,17 +25,10 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                 ui.add_space(50.);
                 ui.label(RichText::new(t!("Change password")).size(24.));
 
-                ui.add_space(15.);
+                ui.add_space(30.);
 
-                // ask for old PW
-                ui.add_space(15.);
-                ui.horizontal(|ui| {
-                    ui.add_space(8.);
-                    ui.add(
-                        TextEdit::singleline(&mut t!("Current password:"))
-                            .background_color(Color32::TRANSPARENT)
-                            .desired_width(170.),
-                    );
+                Grid::new("Change Password").num_columns(2).show(ui, |ui| {
+                    ui.label(t!("Current password:"));
                     let response = ui.add(
                         TextEdit::singleline(&mut pw.pw1)
                             .desired_width(120.)
@@ -47,17 +43,10 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                     {
                         pw.focus = PwFocus::Pw2;
                     }
-                });
+                    ui.end_row();
+                    ui.end_row();
 
-                // ask twice for new PW
-                ui.add_space(15.);
-                ui.horizontal(|ui| {
-                    ui.add_space(8.);
-                    ui.add(
-                        TextEdit::singleline(&mut t!("New password:"))
-                            .background_color(Color32::TRANSPARENT)
-                            .desired_width(170.),
-                    );
+                    ui.label(t!("New password:"));
                     let response = ui.add(
                         TextEdit::singleline(&mut pw.pw2)
                             .desired_width(120.)
@@ -72,15 +61,9 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                     {
                         pw.focus = PwFocus::Pw3;
                     }
-                });
+                    ui.end_row();
 
-                ui.horizontal(|ui| {
-                    ui.add_space(8.);
-                    ui.add(
-                        TextEdit::singleline(&mut t!("Repeat new password:"))
-                            .background_color(Color32::TRANSPARENT)
-                            .desired_width(170.),
-                    );
+                    ui.label(t!("Repeat new password:"));
                     let response = ui.add(
                         TextEdit::singleline(&mut pw.pw3)
                             .desired_width(120.)
@@ -93,6 +76,7 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                     if response.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter)) {
                         go_for_it = true;
                     }
+                    ui.end_row();
                 });
 
                 if let Some(e) = &pw.error {

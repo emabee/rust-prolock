@@ -1,12 +1,12 @@
 use crate::{
     controller::{Action, Controller},
-    ui::{IMG_LOGO, IMG_RUST_LOGO},
+    ui::{IMG_LOGO, IMG_RUST_LOGO, sizes::MODAL_WIDTH},
 };
 use egui::{Color32, Context, FontFamily, FontId, Image, Modal, RichText, Sides, Vec2};
 
 pub fn show_about(controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("show_about".into()).show(ctx, |ui| {
-        ui.set_width(500.0);
+        ui.set_width(MODAL_WIDTH);
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
                 ui.set_width(220.);

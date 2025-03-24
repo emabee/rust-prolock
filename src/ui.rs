@@ -29,6 +29,7 @@ use anyhow::{Context as _, Result};
 use eframe::{App, Frame};
 use egui::{Color32, Context};
 
+pub const LIGHT_GRAY: Color32 = Color32::from_rgb(230, 230, 230);
 pub const VERY_LIGHT_GRAY: Color32 = Color32::from_rgb(235, 235, 235);
 
 pub struct Ui {

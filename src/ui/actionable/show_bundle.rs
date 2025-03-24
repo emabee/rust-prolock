@@ -6,8 +6,8 @@ use crate::{
     },
 };
 use egui::{
-    Button, Color32, Context, FontFamily, FontId, Rgba, RichText, ScrollArea, TextEdit, TextStyle,
-    Ui,
+    Align, Button, Color32, Context, FontFamily, FontId, Rgba, RichText, ScrollArea, TextEdit,
+    TextStyle, Ui,
 };
 use egui_extras::{Size, Strip, StripBuilder};
 use either::Either;
@@ -23,14 +23,20 @@ pub fn ui(
     inner_bundle_strip: &mut Strip<'_, '_>,
 ) {
     inner_bundle_strip.strip(|left_builder| {
-        ui_left_part(index, bundle, name, left_builder);
+        ui_left_part(index, bundle, name, v_bundle, left_builder);
     });
     inner_bundle_strip.strip(|right_builder| {
         ui_right_part(index, bundle, transient, v_bundle, right_builder, ctx);
     });
 }
 
-fn ui_left_part(index: usize, bundle: &Bundle, name: &str, left_builder: StripBuilder<'_>) {
+fn ui_left_part(
+    index: usize,
+    bundle: &Bundle,
+    name: &str,
+    v_bundle: &mut VBundle,
+    left_builder: StripBuilder<'_>,
+) {
     let mut name2 = name;
     let color = if index % 2 == 0 {
         Either::Left(())
@@ -45,14 +51,19 @@ fn ui_left_part(index: usize, bundle: &Bundle, name: &str, left_builder: StripBu
             //name
             left_strip.cell(|ui| {
                 set_faded_bg_color(ui, 95., color, true);
-                ui.add(
-                    TextEdit::singleline(&mut name2)
-                        .desired_width(330.)
-                        .clip_text(true)
-                        .font(TextStyle::Heading)
-                        .interactive(true),
-                )
-                .on_hover_text(t!("Name of the entry"));
+                let response = ui
+                    .add(
+                        TextEdit::singleline(&mut name2)
+                            .desired_width(330.)
+                            .clip_text(true)
+                            .font(TextStyle::Heading)
+                            .interactive(true),
+                    )
+                    .on_hover_text(t!("Name of the entry"));
+                if v_bundle.scroll_to {
+                    v_bundle.scroll_to = false;
+                    response.scroll_to_me(Some(Align::Center));
+                }
             });
 
             // description

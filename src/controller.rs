@@ -74,7 +74,7 @@ impl Controller {
                 match pl_file.set_actionable(v.pw.pw1.clone()) {
                     Ok(()) => {
                         v.pw.error = None;
-                        v.reset_bundles(pl_file.bundles());
+                        v.reset_bundles(pl_file.bundles(), None);
                         if pl_file.is_empty() {
                             v.edit_bundle.prepare_for_create();
                         }
@@ -113,7 +113,7 @@ impl Controller {
                 let (_orig_name, name, bundle) = v
                     .edit_bundle
                     .as_oldname_newname_bundle(pl_file.transient_mut().unwrap(/*OK*/));
-                match pl_file.save_with_added_bundle(name, bundle) {
+                match pl_file.save_with_added_bundle(name.clone(), bundle) {
                     Ok(()) => {
                         self.current_modal = PlModal::None;
                     }
@@ -121,7 +121,7 @@ impl Controller {
                         v.edit_bundle.err = Some(e.to_string());
                     }
                 }
-                v.reset_bundles(pl_file.bundles());
+                v.reset_bundles(pl_file.bundles(), Some(&name));
             }
 
             (Action::StartModify(index, name), Some(pl_file)) => {
@@ -155,8 +155,8 @@ impl Controller {
                     println!("TODO 'FinalizeModify' failed with {e:?}");
                 }
                 v.edit_idx = None;
-                // TODO replace with a minimal action:
-                v.reset_bundles(pl_file.bundles());
+                // TODO could be replaced with a minimal update:
+                v.reset_bundles(pl_file.bundles(), None);
             }
 
             (Action::StartDelete(name), _) => {

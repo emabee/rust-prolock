@@ -19,11 +19,16 @@ pub struct V {
     pub lang: Lang,
 }
 impl V {
-    pub fn reset_bundles(&mut self, bundles: &Bundles) {
+    pub fn reset_bundles(&mut self, bundles: &Bundles, o_scroll_to: Option<&str>) {
         self.bundles = bundles
             .iter()
-            .map(|(_name, bundle)| VBundle {
+            .map(|(name, bundle)| VBundle {
                 suppressed: false,
+                scroll_to: if let Some(s) = o_scroll_to {
+                    s == name
+                } else {
+                    false
+                },
                 v_creds: vec![VCred::default(); bundle.creds().len()],
             })
             .collect();
@@ -108,12 +113,10 @@ impl FileSelection {
 #[derive(Default, Clone)]
 pub struct VBundle {
     pub suppressed: bool,
+    pub scroll_to: bool,
     pub v_creds: Vec<VCred>,
 }
 impl VBundle {
-    // pub fn reset(&mut self, creds: &[Cred]) {
-    //     self.v_creds = creds.iter().map(|_cred| VCred::default()).collect();
-    // }
     pub fn apply_filter(&mut self, name: &str, bundle: &Bundle, find: &str) {
         // TODO should we check the score values?
         self.suppressed =

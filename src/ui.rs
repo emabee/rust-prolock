@@ -87,7 +87,6 @@ impl App for Ui {
                 }
                 PlModal::ChangeLanguage => {
                     change_language(&mut self.v.lang, &mut self.controller, ctx);
-                    return;
                 }
             }
 

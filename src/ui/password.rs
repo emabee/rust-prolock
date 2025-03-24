@@ -2,7 +2,7 @@ use crate::{
     controller::{Action, Controller},
     ui::viz::{PwFocus, V},
 };
-use egui::{CentralPanel, Color32, Context, Grid, Key, RichText, TextEdit, TopBottomPanel};
+use egui::{CentralPanel, Color32, Context, Grid, Key, RichText, TextEdit};
 
 pub(super) fn ask_for_password(
     is_first_start: bool,
@@ -10,12 +10,6 @@ pub(super) fn ask_for_password(
     controller: &mut Controller,
     ctx: &Context,
 ) {
-    TopBottomPanel::top("pw error").show(ctx, |ui| {
-        if let Some(e) = &v.pw.error {
-            ui.label(RichText::new(e).color(Color32::RED));
-        }
-    });
-
     CentralPanel::default().show(ctx, |ui| {
         if is_first_start {
             // this is the first start, so ask twice
@@ -115,6 +109,13 @@ pub(super) fn ask_for_password(
                     ui.end_row();
                 });
             });
+        }
+
+        if let Some(e) = &v.pw.error {
+            ui.add_space(20.);
+            ui.separator();
+            ui.add_space(10.);
+            ui.label(RichText::new(e).color(Color32::RED));
         }
     });
 }

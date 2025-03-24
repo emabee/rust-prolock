@@ -204,3 +204,12 @@ _specify_pw_to_open:
 _specify_pw_to_secure:
   en: 'Specify the password to secure the prolock file:'
   de: 'Geben Sie das Passwort an, mit dem die ProLock Datei gesichert werden soll:'
+_decryption_failed:
+  en: 'Decryption failed.'
+  de: 'Entschlüsselung fehlgeschlagen.'
+_decryption_failed_note1:
+  en: 'This is typically caused by a wrong password - try again with the correct password.'
+  de: 'Wahrscheinliche Ursache ist ein falsches Passwort - versuchen Sie es bitte erneut mit dem korrekten Passwort.'
+_decryption_failed_note2:
+  en: 'Note that decryption will fail inevitably if the ProLock file was manually edited: do not edit the file directly, not even in the unencrypted section.'
+  de: 'Hinweis: die Entschlüsselung schlägt auch dann fehl, wenn die Prolock Datei manuell verändert wurde: auch der unverschlüsselte Bereich darf ncht verändert werden.'

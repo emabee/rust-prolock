@@ -168,6 +168,7 @@ impl Controller {
                     println!("TODO 'FinalizeDelete' failed with {e:?}");
                 }
                 self.current_modal = PlModal::None;
+                v.reset_bundles(pl_file.bundles(), None);
             }
 
             (Action::Cancel, _) => {

@@ -1,21 +1,19 @@
-use fuzzy_matcher::clangd::fuzzy_match;
-
 use crate::{
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
     data::{Bundle, Bundles, Cred, Transient},
 };
+use fuzzy_matcher::clangd::fuzzy_match;
 use std::time::Instant;
 
 #[derive(Default)]
 pub struct V {
+    pub bundles: Vec<VBundle>,
     pub pw: Pw,
     pub file_selection: FileSelection,
-    pub name_for_delete: String,
+    pub delete: Delete,
     pub find: String,
     pub find_request_focus: bool,
-    pub bundles: Vec<VBundle>,
-    pub edit_idx: Option<usize>,
-    pub edit_bundle: VEditBundle,
+    pub edit: Edit,
     pub lang: Lang,
 }
 impl V {
@@ -49,17 +47,24 @@ impl V {
     }
 }
 
+#[derive(Default)]
+pub struct Edit {
+    pub idx: Option<usize>,
+    pub bundle: VEditBundle,
+    pub error: Option<String>,
+}
+
 pub struct Lang {
     pub current: &'static (&'static str, &'static str),
     pub selected: &'static (&'static str, &'static str),
-    pub err: Option<String>,
+    pub error: Option<String>,
 }
 impl Default for Lang {
     fn default() -> Self {
         Self {
             current: DEFAULT_LANGUAGE,
             selected: DEFAULT_LANGUAGE,
-            err: None,
+            error: None,
         }
     }
 }
@@ -70,8 +75,14 @@ impl Lang {
             .find(|(short, _long)| lang_short == *short)
             .unwrap_or(DEFAULT_LANGUAGE);
         self.selected = self.current;
-        self.err = None;
+        self.error = None;
     }
+}
+
+#[derive(Default)]
+pub struct Delete {
+    pub name: String,
+    pub error: Option<String>,
 }
 
 // Is used for
@@ -98,13 +109,13 @@ pub enum PwFocus {
 
 #[derive(Default)]
 pub struct FileSelection {
-    pub err: Option<String>,
+    pub error: Option<String>,
     pub current: usize,
     pub new: String,
 }
 impl FileSelection {
     pub fn reset(&mut self, current: usize) {
-        self.err = None;
+        self.error = None;
         self.current = current;
         self.new.clear();
     }
@@ -117,10 +128,9 @@ pub struct VBundle {
     pub v_creds: Vec<VCred>,
 }
 impl VBundle {
-    pub fn apply_filter(&mut self, name: &str, bundle: &Bundle, find: &str) {
-        // TODO should we check the score values?
-        self.suppressed =
-            fuzzy_match(name, find).is_none() && fuzzy_match(bundle.description(), find).is_none();
+    pub fn apply_filter(&mut self, name: &str, bundle: &Bundle, pattern: &str) {
+        self.suppressed = fuzzy_match(name, pattern).is_none()
+            && fuzzy_match(bundle.description(), pattern).is_none();
     }
 }
 
@@ -137,7 +147,28 @@ pub struct VEditBundle {
     pub description: String,
     pub v_edit_creds: Vec<VEditCred>,
     pub request_focus: bool,
-    pub err: Option<String>,
+}
+impl VEditBundle {
+    pub fn from_bundle(name: &str, bundle: &Bundle, transient: &Transient) -> Self {
+        let mut result = VEditBundle {
+            orig_name: name.to_string(),
+            name: name.to_string(),
+            description: bundle.description().to_string(),
+            v_edit_creds: bundle
+                .creds()
+                .iter()
+                .map(|c| VEditCred {
+                    name: c.name.disclose(transient).to_string(),
+                    secret: c.secret.disclose(transient).to_string(),
+                })
+                .collect(),
+            request_focus: true,
+        };
+        while result.v_edit_creds.len() < 4 {
+            result.v_edit_creds.push(VEditCred::default());
+        }
+        result
+    }
 }
 
 #[derive(Clone, Default)]

@@ -1,20 +1,21 @@
 use crate::ui::{
     colors::{COLOR_SECRET, COLOR_USER},
-    viz::{VEditBundle, VEditCred},
+    show_error,
+    viz::{Edit, VEditBundle, VEditCred},
 };
 use egui::{FontFamily, FontId, ScrollArea, TextEdit};
 use egui_extras::{Size, Strip, StripBuilder};
 
-pub fn ui(edit_bundle: &mut VEditBundle, inner_bundle_strip: &mut Strip<'_, '_>) {
+pub fn ui(edit: &mut Edit, inner_bundle_strip: &mut Strip<'_, '_>) {
     inner_bundle_strip.strip(|left_builder| {
-        left_part(edit_bundle, left_builder);
+        left_part(edit, left_builder);
     });
     inner_bundle_strip.strip(|right_builder| {
-        right_part(edit_bundle, right_builder);
+        right_part(&mut edit.bundle, right_builder);
     });
 }
 
-fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
+fn left_part(edit: &mut Edit, left_builder: StripBuilder<'_>) {
     left_builder
         .size(Size::exact(15.))
         .size(Size::exact(40.))
@@ -23,7 +24,7 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
             //name
             left_strip.cell(|ui| {
                 let response = ui.add(
-                    TextEdit::singleline(&mut edit_bundle.name)
+                    TextEdit::singleline(&mut edit.bundle.name)
                         .hint_text(t!("_unique_name"))
                         .desired_width(400.)
                         .clip_text(true)
@@ -33,8 +34,8 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
                         })
                         .interactive(true),
                 );
-                if edit_bundle.request_focus {
-                    edit_bundle.request_focus = false;
+                if edit.bundle.request_focus {
+                    edit.bundle.request_focus = false;
                     response.request_focus();
                 }
             });
@@ -44,11 +45,14 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
                 ScrollArea::vertical().show(ui, |ui| {
                     ui.add_sized(
                         [400., 80.],
-                        TextEdit::multiline(&mut edit_bundle.description)
+                        TextEdit::multiline(&mut edit.bundle.description)
                             .hint_text(t!("Further description (optional)"))
                             .interactive(true),
                     );
                 });
+                if let Some(e) = &edit.error {
+                    show_error(e, ui);
+                }
             });
         });
 }
@@ -88,10 +92,7 @@ pub fn single_cred(v_edit_cred: &mut VEditCred, cred_builder: StripBuilder<'_>) 
                         .clip_text(true)
                         .text_color(COLOR_SECRET)
                         .interactive(true),
-                )
-                .on_hover_ui(|ui| {
-                    ui.style_mut().interaction.selectable_labels = true;
-                });
+                );
             });
         });
 }

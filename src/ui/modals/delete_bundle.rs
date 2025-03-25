@@ -1,10 +1,10 @@
 use crate::{
     controller::{Action, Controller},
-    ui::{IMG_DELETE, sizes::MODAL_WIDTH},
+    ui::{IMG_DELETE, show_error, sizes::MODAL_WIDTH, viz::Delete},
 };
 use egui::{Color32, Context, FontId, Image, Modal, RichText, Sides};
 
-pub fn delete_bundle(name: &str, controller: &mut Controller, ctx: &Context) {
+pub fn delete_bundle(delete: &Delete, controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("delete_bundle".into()).show(ctx, |ui| {
         ui.set_width(MODAL_WIDTH);
 
@@ -26,7 +26,7 @@ pub fn delete_bundle(name: &str, controller: &mut Controller, ctx: &Context) {
 
                 ui.add_space(15.);
                 ui.label(
-                    RichText::new(t!("_really_delete", name = name))
+                    RichText::new(t!("_really_delete", name = &delete.name))
                         .font(FontId::proportional(14.0))
                         .color(Color32::DARK_RED),
                 );
@@ -37,6 +37,10 @@ pub fn delete_bundle(name: &str, controller: &mut Controller, ctx: &Context) {
             });
         });
 
+        if let Some(e) = &delete.error {
+            show_error(e, ui);
+        }
+
         Sides::new().show(
             ui,
             |_ui| {},
@@ -45,7 +49,7 @@ pub fn delete_bundle(name: &str, controller: &mut Controller, ctx: &Context) {
                     .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
                     .clicked()
                 {
-                    controller.set_action(Action::FinalizeDelete(name.to_string()));
+                    controller.set_action(Action::FinalizeDelete(delete.name.to_string()));
                 }
                 if ui
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))

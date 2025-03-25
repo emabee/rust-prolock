@@ -51,15 +51,13 @@ fn ui_left_part(
             //name
             left_strip.cell(|ui| {
                 set_faded_bg_color(ui, 95., color, true);
-                let response = ui
-                    .add(
-                        TextEdit::singleline(&mut name2)
-                            .desired_width(330.)
-                            .clip_text(true)
-                            .font(TextStyle::Heading)
-                            .interactive(true),
-                    )
-                    .on_hover_text(t!("Name of the entry"));
+                let response = ui.add(
+                    TextEdit::singleline(&mut name2)
+                        .desired_width(330.)
+                        .clip_text(true)
+                        .font(TextStyle::Heading)
+                        .interactive(true),
+                );
                 if v_bundle.scroll_to {
                     v_bundle.scroll_to = false;
                     response.scroll_to_me(Some(Align::Center));
@@ -70,10 +68,9 @@ fn ui_left_part(
             left_strip.cell(|ui| {
                 ScrollArea::vertical().show(ui, |ui| {
                     ui.add_sized(
-                        [380., 80.],
+                        [380., 65.],
                         TextEdit::multiline(&mut bundle.description()).interactive(true),
-                    )
-                    .on_hover_text(t!("Description"));
+                    );
                 });
             });
             left_strip.cell(|ui| {
@@ -144,8 +141,7 @@ pub fn show_cred(
                         .clip_text(true)
                         .text_color(COLOR_USER)
                         .interactive(true),
-                )
-                .on_hover_text(t!("_hover_username"));
+                );
             });
             cred_strip.cell(|ui| {
                 if first {
@@ -179,8 +175,7 @@ pub fn show_cred(
                                 }
                             }
                         }
-                    })
-                    .on_hover_text(t!("Secret"));
+                    });
                 v_cred.show_secret = response.hovered();
             });
         });

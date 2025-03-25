@@ -1,7 +1,7 @@
 use crate::{
     controller::{Action, Controller},
     data::Settings,
-    ui::{assets::IMG_CHANGE_FILE, sizes::MODAL_WIDTH, viz::FileSelection},
+    ui::{assets::IMG_CHANGE_FILE, show_error, sizes::MODAL_WIDTH, viz::FileSelection},
 };
 use egui::{Color32, Context, Image, Modal, RichText, Sides, TextEdit, TextStyle};
 
@@ -32,9 +32,8 @@ pub fn change_file(
 
                 ui.add_space(15.);
 
-                if let Some(e) = &file_selection.err {
-                    ui.label(RichText::new(e).color(Color32::RED));
-                    ui.add_space(15.);
+                if let Some(e) = &file_selection.error {
+                    show_error(e, ui);
                 }
 
                 for (i, s) in settings.files.iter().enumerate() {

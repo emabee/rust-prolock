@@ -71,7 +71,7 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
 
                                 if ui
                                     .add_enabled(
-                                        v.edit_idx.is_none(),
+                                        v.edit.idx.is_none(),
                                         Button::image_and_text(
                                             Image::new(IMG_CHANGE_FILE),
                                             format!("{}…", t!("_choose_other_file")),
@@ -85,7 +85,7 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
 
                                 if ui
                                     .add_enabled(
-                                        pl_file.is_actionable() && v.edit_idx.is_none(),
+                                        pl_file.is_actionable() && v.edit.idx.is_none(),
                                         Button::new(format!("🔐 {}…", t!("Change password"))),
                                     )
                                     .clicked()

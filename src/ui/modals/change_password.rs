@@ -1,6 +1,7 @@
 use crate::{
     controller::{Action, Controller},
     ui::{
+        show_error,
         sizes::MODAL_WIDTH,
         viz::{Pw, PwFocus},
     },
@@ -80,8 +81,7 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                 });
 
                 if let Some(e) = &pw.error {
-                    ui.add_space(15.);
-                    ui.label(RichText::new(e).color(Color32::RED));
+                    show_error(e, ui);
                 }
             });
         });

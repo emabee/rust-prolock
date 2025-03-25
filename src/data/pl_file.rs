@@ -1,4 +1,7 @@
-use crate::data::{Bundle, Bundles, Secrets, Settings, Transient};
+use crate::{
+    data::{Bundle, Bundles, Secrets, Settings, Transient},
+    ui::viz::VEditBundle,
+};
 use anyhow::{Context, Result, anyhow};
 use fd_lock::RwLock as FdRwLock;
 use sequential::Sequence;
@@ -149,7 +152,8 @@ impl PlFile {
     pub fn set_actionable(&mut self, password: String) -> Result<()> {
         if self.stored.cipher.is_empty() {
             self.o_transient = Some(Transient::new(password, Secrets::default()));
-            self.save()?;
+            let lock = self.lock_for_save()?;
+            self.save(lock)?;
         } else {
             self.o_transient = Some(
                 Transient::from_cipher(password, &self.stored.readable, &self.stored.cipher)
@@ -166,22 +170,18 @@ impl PlFile {
     }
 
     pub fn change_password(&mut self, old_pw: &str, new_pw: String) -> Result<()> {
-        self.check_password(old_pw)?;
+        let lock = self.lock_for_save()?;
+
         if let Some(ref mut transient) = self.o_transient {
+            if transient.get_storage_password() != old_pw {
+                return Err(anyhow!(
+                    t!("The current password is not correct").to_string()
+                ));
+            }
             transient.set_storage_password(new_pw);
-            self.save()?;
+            self.save(lock)?;
         }
         Ok(())
-    }
-
-    pub fn check_password(&mut self, old_pw: &str) -> Result<()> {
-        if self.transient().unwrap(/*ok*/).get_storage_password() == old_pw {
-            Ok(())
-        } else {
-            Err(anyhow!(
-                t!("The current password is not correct").to_string()
-            ))
-        }
     }
 
     fn add_bundle<S>(&mut self, key: S, bundle: Bundle) -> Result<()>
@@ -231,12 +231,16 @@ impl PlFile {
             .refs()
     }
 
-    fn save(&mut self) -> Result<()> {
+    fn lock_for_save(&mut self) -> Result<FdRwLock<File>> {
         let used_refs = self.stored.readable.bundles.refs();
         let provided_refs = self.transient().as_ref().unwrap().refs();
         assert_eq!(used_refs, provided_refs);
 
-        let mut prod_lock = if *self
+        if self.o_transient.is_none() {
+            return Err(anyhow!(t!("Cannot save because the password is not set")));
+        }
+
+        if *self
             .stored
             .readable
             .header
@@ -246,7 +250,7 @@ impl PlFile {
             .unwrap()
             == 0
         {
-            Self::lock_and_create_empty(&self.file_path)?
+            Self::lock_and_create_empty(&self.file_path)
         } else {
             let (prod_lock, old_pl_file) = Self::lock_and_read(&self.file_path)?;
             // assert that the update_counter is not changed
@@ -257,9 +261,11 @@ impl PlFile {
                     "Cannot save because the file was updated concurrently"
                 )));
             }
-            prod_lock
-        };
+            Ok(prod_lock)
+        }
+    }
 
+    fn save(&mut self, mut prod_lock: FdRwLock<File>) -> Result<()> {
         let _prod_guard = prod_lock.write();
 
         if self.o_transient.is_none() {
@@ -303,7 +309,7 @@ impl PlFile {
         match std::fs::rename(temp_path, &self.file_path) {
             Ok(()) => Ok(()),
             Err(e) => {
-                // TODO rollback by discarding the temp file and re-reading the old file
+                // TODO? rollback by discarding the temp file and re-reading the old file?
                 Err(e.into())
             }
         }
@@ -327,17 +333,22 @@ impl PlFile {
             })
     }
 
-    pub fn save_with_added_bundle(&mut self, name: String, bundle: Bundle) -> Result<()> {
-        if name.is_empty() {
+    pub fn save_with_added_bundle(&mut self, edit_bundle: &VEditBundle) -> Result<()> {
+        if edit_bundle.name.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
-        if self.has_bundle(&name) {
-            return Err(anyhow!("a bundle with name {name} exists already"));
+        if self.has_bundle(&edit_bundle.name) {
+            return Err(anyhow!(
+                "a bundle with name {} exists already",
+                &edit_bundle.name
+            ));
         }
-        self.add_bundle(name, bundle)?;
+        let lock = self.lock_for_save()?;
+        let (_orig_name, name, bundle) =
+            edit_bundle.as_oldname_newname_bundle(self.transient_mut().unwrap(/*OK*/));
 
-        self.save()?;
-        Ok(())
+        self.add_bundle(name, bundle)?;
+        self.save(lock)
     }
 
     pub fn save_with_deleted_bundle(&mut self, name: String) -> Result<()> {
@@ -347,24 +358,30 @@ impl PlFile {
         if !self.has_bundle(&name) {
             return Err(anyhow!("a bundle with name {name} does not exist"));
         }
+        let lock = self.lock_for_save()?;
         self.delete_bundle(name)?;
-
-        self.save()?;
-        Ok(())
+        self.save(lock)
     }
 
-    pub fn save_with_updated_bundle(
-        &mut self,
-        orig_name: &str,
-        name: String,
-        bundle: &Bundle,
-    ) -> Result<()> {
-        if name.is_empty() {
+    pub fn save_with_updated_bundle(&mut self, edit_bundle: &VEditBundle) -> Result<()> {
+        let lock = self.lock_for_save()?;
+
+        if edit_bundle.name.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
 
+        if edit_bundle.name != edit_bundle.orig_name && self.has_bundle(&edit_bundle.name) {
+            return Err(anyhow!(t!(
+                "add_bundle: bundle %{b} exists already",
+                b = &edit_bundle.name
+            )));
+        }
+
+        let (orig_name, name, bundle) =
+            edit_bundle.as_oldname_newname_bundle(self.transient_mut().unwrap(/*OK*/));
+
         // remember all previously used refs
-        let mut old_refs = self.refs(orig_name);
+        let mut old_refs = self.refs(&orig_name);
         old_refs.sort_unstable();
 
         if name == orig_name {
@@ -392,9 +409,7 @@ impl PlFile {
             }
         }
 
-        self.save()?;
-
-        Ok(())
+        self.save(lock)
     }
 }
 

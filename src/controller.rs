@@ -1,6 +1,6 @@
 use crate::{
     PlFile, Settings,
-    ui::viz::{Pw, V, VEditBundle, VEditCred},
+    ui::viz::{Edit, Pw, V, VEditBundle},
 };
 use anyhow::Context;
 use std::path::PathBuf;
@@ -36,7 +36,7 @@ impl Controller {
                     self.current_modal = PlModal::None;
                 }
                 Err(e) => {
-                    v.file_selection.err =
+                    v.file_selection.error =
                         Some(format!("Error: {}, caused by {:?}", e, e.source()));
                 }
             },
@@ -47,7 +47,7 @@ impl Controller {
                         self.current_modal = PlModal::None;
                     }
                     Err(e) => {
-                        v.file_selection.err =
+                        v.file_selection.error =
                             Some(format!("Error: {}, caused by {:?}", e, e.source()));
                     }
                 }
@@ -66,7 +66,7 @@ impl Controller {
                     self.current_modal = PlModal::None;
                 }
                 Err(e) => {
-                    v.lang.err = Some(e.to_string());
+                    v.lang.error = Some(e.to_string());
                 }
             },
 
@@ -76,7 +76,7 @@ impl Controller {
                         v.pw.error = None;
                         v.reset_bundles(pl_file.bundles(), None);
                         if pl_file.is_empty() {
-                            v.edit_bundle.prepare_for_create();
+                            v.edit.bundle.prepare_for_create();
                         }
                         v.find_request_focus = true;
                     }
@@ -106,74 +106,66 @@ impl Controller {
             }
 
             (Action::StartAdd, _) => {
-                v.edit_bundle.prepare_for_create();
+                v.edit.bundle.prepare_for_create();
                 self.current_modal = PlModal::CreateBundle;
             }
             (Action::FinalizeAdd, Some(pl_file)) => {
-                let (_orig_name, name, bundle) = v
-                    .edit_bundle
-                    .as_oldname_newname_bundle(pl_file.transient_mut().unwrap(/*OK*/));
-                match pl_file.save_with_added_bundle(name.clone(), bundle) {
+                match pl_file.save_with_added_bundle(&v.edit.bundle) {
                     Ok(()) => {
                         self.current_modal = PlModal::None;
+                        let name = &v.edit.bundle.name.to_string();
+                        v.reset_bundles(pl_file.bundles(), Some(name));
                     }
                     Err(e) => {
-                        v.edit_bundle.err = Some(e.to_string());
+                        v.edit.error = Some(e.to_string());
                     }
                 }
-                v.reset_bundles(pl_file.bundles(), Some(&name));
             }
 
             (Action::StartModify(index, name), Some(pl_file)) => {
-                let transient = pl_file.transient().unwrap(/*OK*/);
-                let bundle = pl_file.bundles().get(&name).unwrap(/*OK*/);
-                v.edit_idx = Some(index);
-                v.edit_bundle = VEditBundle {
-                    orig_name: name.to_string(),
-                    name: name.to_string(),
-                    description: bundle.description().to_string(),
-                    v_edit_creds: bundle
-                        .creds()
-                        .iter()
-                        .map(|c| VEditCred {
-                            name: c.name.disclose(transient).to_string(),
-                            secret: c.secret.disclose(transient).to_string(),
-                        })
-                        .collect(),
-                    request_focus: true,
-                    err: None,
+                v.edit = Edit {
+                    idx: Some(index),
+                    bundle: VEditBundle::from_bundle(
+                        &name,
+                        pl_file.bundles().get(&name).unwrap(/*OK*/),
+                        pl_file.transient().unwrap(/*OK*/),
+                    ),
+                    error: None,
                 };
-                while v.edit_bundle.v_edit_creds.len() < 4 {
-                    v.edit_bundle.v_edit_creds.push(VEditCred::default());
-                }
             }
             (Action::FinalizeModify, Some(pl_file)) => {
-                let (orig_name, name, bundle) = v
-                    .edit_bundle
-                    .as_oldname_newname_bundle(pl_file.transient_mut().unwrap(/*OK*/));
-                if let Err(e) = pl_file.save_with_updated_bundle(&orig_name, name, &bundle) {
-                    println!("TODO 'FinalizeModify' failed with {e:?}");
+                match pl_file.save_with_updated_bundle(&v.edit.bundle) {
+                    Ok(()) => {
+                        self.current_modal = PlModal::None;
+                        v.edit.idx = None;
+                    }
+                    Err(e) => {
+                        v.edit.error = Some(e.to_string());
+                    }
                 }
-                v.edit_idx = None;
-                // TODO could be replaced with a minimal update:
+
                 v.reset_bundles(pl_file.bundles(), None);
             }
 
             (Action::StartDelete(name), _) => {
                 self.current_modal = PlModal::DeleteBundle;
-                v.name_for_delete = name;
+                v.delete.name = name;
             }
             (Action::FinalizeDelete(name), Some(pl_file)) => {
-                if let Err(e) = pl_file.save_with_deleted_bundle(name) {
-                    println!("TODO 'FinalizeDelete' failed with {e:?}");
+                match pl_file.save_with_deleted_bundle(name) {
+                    Ok(()) => {
+                        self.current_modal = PlModal::None;
+                        v.reset_bundles(pl_file.bundles(), None);
+                    }
+                    Err(e) => {
+                        v.delete.error = Some(e.to_string());
+                    }
                 }
-                self.current_modal = PlModal::None;
-                v.reset_bundles(pl_file.bundles(), None);
             }
 
             (Action::Cancel, _) => {
                 self.current_modal = PlModal::None;
-                v.edit_idx = None;
+                v.edit.idx = None;
             }
 
             (action, &mut None) => {

@@ -27,10 +27,18 @@ use crate::{
 };
 use anyhow::{Context as _, Result};
 use eframe::{App, Frame};
-use egui::{Color32, Context};
+use egui::{Color32, Context, RichText};
 
 pub const LIGHT_GRAY: Color32 = Color32::from_rgb(230, 230, 230);
 pub const VERY_LIGHT_GRAY: Color32 = Color32::from_rgb(235, 235, 235);
+
+pub fn show_error(e: &str, ui: &mut egui::Ui) {
+    ui.add_space(20.);
+    ui.separator();
+    ui.add_space(10.);
+    ui.label(RichText::new(e).color(Color32::RED));
+    ui.add_space(15.);
+}
 
 pub struct Ui {
     o_plfile: Option<PlFile>,
@@ -67,10 +75,10 @@ impl App for Ui {
                 PlModal::None => {}
 
                 PlModal::CreateBundle => {
-                    create_bundle(&mut self.v.edit_bundle, &mut self.controller, ctx);
+                    create_bundle(&mut self.v.edit, &mut self.controller, ctx);
                 }
                 PlModal::DeleteBundle => {
-                    delete_bundle(&self.v.name_for_delete, &mut self.controller, ctx);
+                    delete_bundle(&self.v.delete, &mut self.controller, ctx);
                 }
                 PlModal::About => {
                     show_about(&mut self.controller, ctx);
@@ -113,5 +121,3 @@ impl App for Ui {
         }
     }
 }
-
-impl Ui {}

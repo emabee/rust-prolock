@@ -11,7 +11,7 @@ use crate::{
             BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
             SEARCH_TEXT_WIDTH,
         },
-        viz::{V, VBundle, VEditBundle},
+        viz::{V, VBundle},
     },
 };
 use bundle_buttons::{
@@ -23,6 +23,8 @@ use egui::{
     scroll_area::ScrollBarVisibility,
 };
 use egui_extras::{Size, StripBuilder};
+
+use super::viz::Edit;
 
 pub(super) fn panels_for_actionable_ui(
     bundles: &Bundles,
@@ -42,9 +44,9 @@ fn top_panel_header(v: &mut V, controller: &mut Controller, ctx: &Context) {
         ui.horizontal(|ui| {
             if ui
                 .add_enabled(
-                    v.edit_idx.is_none(),
+                    v.edit.idx.is_none(),
                     Button::image(
-                        Image::new(if v.edit_idx.is_none() {
+                        Image::new(if v.edit.idx.is_none() {
                             IMG_ADD_ENTRY
                         } else {
                             IMG_ADD_ENTRY_INACTIVE
@@ -119,11 +121,11 @@ fn central_panel_bundles(
                             for (index, (name, bundle)) in bundles.iter().enumerate() {
                                 let v_bundle = &mut v.bundles[index];
                                 if !v_bundle.suppressed {
-                                    if v.edit_idx == Some(index) {
+                                    if v.edit.idx == Some(index) {
                                         bundle_strip.strip(|bundle_builder| {
                                             edit_a_bundle_with_buttons(
                                                 bundle_builder,
-                                                &mut v.edit_bundle,
+                                                &mut v.edit,
                                                 controller,
                                             );
                                         });
@@ -137,7 +139,7 @@ fn central_panel_bundles(
                                                 v_bundle,
                                                 name,
                                                 transient,
-                                                v.edit_idx,
+                                                v.edit.idx,
                                                 controller,
                                             );
                                         });
@@ -152,7 +154,7 @@ fn central_panel_bundles(
 
 fn edit_a_bundle_with_buttons(
     bundle_builder: StripBuilder<'_>,
-    edit_bundle: &mut VEditBundle,
+    edit: &mut Edit,
     controller: &mut Controller,
 ) {
     bundle_builder
@@ -163,7 +165,7 @@ fn edit_a_bundle_with_buttons(
             inner_bundle_strip.cell(|ui| {
                 active_buttons_save_and_cancel(ui, controller);
             });
-            edit_bundle::ui(edit_bundle, &mut inner_bundle_strip);
+            edit_bundle::ui(edit, &mut inner_bundle_strip);
         });
 }
 

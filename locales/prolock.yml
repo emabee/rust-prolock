@@ -80,7 +80,7 @@ Press this button to create an entry:
   de: 'Gewünschte Sprache:'
 'add_bundle: bundle %{b} exists already':
   en: 'entry %{b} exists already'
-  de: 'Eintrag %{bundle} existiert bereits'
+  de: 'Eintrag %{b} existiert bereits'
 Cannot save because not all secrets are in correct state:
   en: Cannot save because not all secrets are in correct state
   de: Speichern schlägt fehl, weil nicht alle Secrets im erwarteten Zustand sind

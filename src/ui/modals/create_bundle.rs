@@ -3,8 +3,9 @@ use crate::{
     ui::{
         IMG_CANCEL, IMG_SAVE,
         colors::{COLOR_SECRET, COLOR_USER},
+        show_error,
         sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
-        viz::{VEditBundle, VEditCred},
+        viz::{Edit, VEditBundle, VEditCred},
     },
 };
 use egui::{
@@ -13,7 +14,7 @@ use egui::{
 };
 use egui_extras::{Size, StripBuilder};
 
-pub fn create_bundle(edit_bundle: &mut VEditBundle, controller: &mut Controller, ctx: &Context) {
+pub fn create_bundle(edit: &mut Edit, controller: &mut Controller, ctx: &Context) {
     Modal::new("create_bundle".into()).show(ctx, |ui| {
         ui.vertical(|ui| {
             StripBuilder::new(ui)
@@ -25,18 +26,18 @@ pub fn create_bundle(edit_bundle: &mut VEditBundle, controller: &mut Controller,
                             .size(Size::exact(BUNDLE_WIDTH_RIGHT))
                             .horizontal(|mut inner_bundle_strip| {
                                 inner_bundle_strip.strip(|left_builder| {
-                                    left_part(edit_bundle, left_builder);
+                                    left_part(&mut edit.bundle, left_builder);
                                 });
                                 inner_bundle_strip.strip(|right_builder| {
-                                    right_part(edit_bundle, right_builder);
+                                    right_part(&mut edit.bundle, right_builder);
                                 });
                             });
                     });
                 });
         });
 
-        if let Some(e) = &edit_bundle.err {
-            ui.label(RichText::new(e).color(Color32::RED));
+        if let Some(e) = &edit.error {
+            show_error(e, ui);
         }
 
         Sides::new().show(

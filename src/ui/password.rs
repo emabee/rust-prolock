@@ -1,10 +1,11 @@
 use crate::{
     controller::{Action, Controller},
-    ui::viz::{PwFocus, V},
+    ui::{
+        show_error,
+        viz::{PwFocus, V},
+    },
 };
 use egui::{CentralPanel, Color32, Context, Grid, Key, RichText, TextEdit};
-
-use super::show_error;
 
 pub(super) fn ask_for_password(
     is_first_start: bool,

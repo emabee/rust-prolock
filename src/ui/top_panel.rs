@@ -1,14 +1,12 @@
 use crate::{
     PlFile,
     controller::{Action, Controller},
-    ui::{IMG_BURGER, VERY_LIGHT_GRAY, assets::IMG_CHANGE_FILE, viz::V},
+    ui::{IMG_BURGER, IMG_LOGO, LIGHT_GRAY, VERY_LIGHT_GRAY, assets::IMG_CHANGE_FILE, viz::V},
 };
 use egui::{
     Button, Color32, Context, FontFamily, Image, RichText, TopBottomPanel, menu::menu_custom_button,
 };
 use egui_extras::{Size, StripBuilder};
-
-use super::{IMG_LOGO, LIGHT_GRAY};
 
 pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: &Context) {
     TopBottomPanel::top("file").show(ctx, |ui| {

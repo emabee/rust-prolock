@@ -16,6 +16,7 @@ img!(IMG_DELETE_INACTIVE, "delete inactive.png");
 img!(IMG_DELETE, "delete.png");
 img!(IMG_EDIT_INACTIVE, "edit inactive.png");
 img!(IMG_EDIT, "edit.png");
+img!(IMG_ERASE, "erase.png");
 img!(IMG_LOGO, "logo.png");
 img!(IMG_OK, "ok.png");
 img!(IMG_RUST_LOGO, "rust-logo-64x64-blk.png");

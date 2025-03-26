@@ -11,8 +11,7 @@ pub struct V {
     pub pw: Pw,
     pub file_selection: FileSelection,
     pub delete: Delete,
-    pub find: String,
-    pub find_request_focus: bool,
+    pub find: Find,
     pub edit: Edit,
     pub lang: Lang,
 }
@@ -42,7 +41,7 @@ impl V {
 
     pub fn apply_filter(&mut self, bundles: &Bundles) {
         for (vbundle, (name, bundle)) in self.bundles.iter_mut().zip(bundles.iter()) {
-            vbundle.apply_filter(name, bundle, &self.find);
+            vbundle.apply_filter(name, bundle, &self.find.pattern);
         }
     }
 }
@@ -52,6 +51,12 @@ pub struct Edit {
     pub idx: Option<usize>,
     pub bundle: VEditBundle,
     pub error: Option<String>,
+}
+
+#[derive(Default)]
+pub struct Find {
+    pub pattern: String,
+    pub request_focus: bool,
 }
 
 pub struct Lang {

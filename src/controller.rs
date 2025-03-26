@@ -78,7 +78,7 @@ impl Controller {
                         if pl_file.is_empty() {
                             v.edit.bundle.prepare_for_create();
                         }
-                        v.find_request_focus = true;
+                        v.find.request_focus = true;
                     }
                     Err(e) => {
                         v.pw.error = Some(format!("{e}"));

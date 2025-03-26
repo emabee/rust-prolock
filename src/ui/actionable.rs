@@ -6,12 +6,12 @@ use crate::{
     controller::{Action, Controller},
     data::{Bundle, Bundles, Transient},
     ui::{
-        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_CANCEL,
+        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_ERASE,
         sizes::{
             BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT,
             SEARCH_TEXT_WIDTH,
         },
-        viz::{V, VBundle},
+        viz::{Edit, V, VBundle},
     },
 };
 use bundle_buttons::{
@@ -23,8 +23,6 @@ use egui::{
     scroll_area::ScrollBarVisibility,
 };
 use egui_extras::{Size, StripBuilder};
-
-use super::viz::Edit;
 
 pub(super) fn panels_for_actionable_ui(
     bundles: &Bundles,
@@ -66,25 +64,30 @@ fn top_panel_header(v: &mut V, controller: &mut Controller, ctx: &Context) {
 
             ui.add_space(2.);
             let response = ui.add(
-                TextEdit::singleline(&mut v.find)
+                TextEdit::singleline(&mut v.find.pattern)
                     .desired_width(SEARCH_TEXT_WIDTH)
                     .hint_text(format!("🔍 {}", t!("_find"))),
             );
-            if v.find_request_focus {
+            if v.find.request_focus {
                 response.request_focus();
-                v.find_request_focus = false;
+                v.find.request_focus = false;
             }
             if response.changed() {
                 controller.set_action(Action::StartFilter);
             }
 
-            if !v.find.is_empty() {
-                ui.add_space(-30.);
+            if !v.find.pattern.is_empty() {
+                ui.add_space(-27.);
                 if ui
-                    .add(Button::image(IMG_CANCEL).fill(Color32::WHITE))
+                    .add(
+                        Button::image(IMG_ERASE)
+                            .fill(Color32::WHITE)
+                            .small()
+                            .frame(false),
+                    )
                     .clicked()
                 {
-                    v.find.clear();
+                    v.find.pattern.clear();
                     controller.set_action(Action::StartFilter);
                 }
             }

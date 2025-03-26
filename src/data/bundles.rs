@@ -1,8 +1,6 @@
-use crate::data::{Bundle, Transient};
+use crate::data::{Bundle, BundleKey, Transient};
 use anyhow::{Result, anyhow};
 use std::collections::{BTreeMap, btree_map::Entry};
-
-use super::BundleKey;
 
 // All bundles in the file.
 //

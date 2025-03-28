@@ -1,6 +1,0 @@
-- This file should not exist.
-
-As a result of
-- The folder ProLock.app_ should be copied as /Applications/ProLock.app 
-- the release binary should be added into the folder /Applications/ProLock.app/MacOS/
-we get a working application, but the icon handling is not yet correct.

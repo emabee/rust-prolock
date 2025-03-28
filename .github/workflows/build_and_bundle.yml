@@ -1,0 +1,33 @@
+name: macOS Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+
+      - name: Install dependencies
+        run: |
+          brew install cargo-bundle
+
+      - name: Build macOS app
+        run: |
+          cargo bundle --release
+
+      - name: Upload macOS app as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ProLock
+          path: target/release/bundle/osx/ProLock.app

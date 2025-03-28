@@ -1,6 +1,6 @@
 [package]
 name = "prolock"
-version = "0.11.0"
+version = "1.0.0"
 edition = "2024"
 authors = ["emabee <meinolf.block-hd@t-online.de>"]
 description = """
@@ -11,6 +11,13 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/emabee/rust-prolock"
 rust-version = "1.85.0"
+
+[package.metadata.bundle]
+name = "ProLock"
+identifier = "com.github.emabee.prolock"
+icon = ["resources/logo.icns"]
+copyright = "Copyright (c) Meinolf Block 2025. All rights reserved."
+short_description = "a tool for securely storing secrets"
 
 [dependencies]
 anyhow = "1.0"

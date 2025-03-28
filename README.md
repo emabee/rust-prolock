@@ -1,46 +1,68 @@
-# Secure and comfortable management of secrets
+# Secure and Comfortable Management of Secrets
 
-ProLock is a small utility to manage secrets.
+ProLock is a small utility to manage secrets, storing them in a password-secured file.
 
 ## Motivation
 
-There are some secrets that I do not want to manage in any browser,
-like the ones for my bank accounts.
+There are some secrets that you might not want to manage in any browser's
+password store, e.g. the passwords for your bank accounts.
 
-And last not least: because I can...
+ProLock allows managing secrets in a minimalistic and secure fashion:
 
-## File access
+- users interact with ProLock via the UI
+- ProLock stores the secrets safely encrypted in a file.
+  ProLock interacts only with the file system,
+  it has no functionality to open or use
+  network connections or to interact with other programs.
+- ProLock is completely written in [rust](www.rust-lang.org),
+  and open source.
 
-ProLock only reads and writes to a single, user-specific file (`~/.prolock/secrets`).
-It does not interact with any cloud service etc.
-It has safety measures to detect concurrent changes to the file.
+## Encryption
+
+ProLock protects the sensitive part of the data with [ChaCha20-Poly1305](https://en.wikipedia.org/wiki/ChaCha20-Poly1305),
+an AEAD (authenticated encryption with associated data) algorithm
+that combines the ChaCha20 stream cipher with the Poly1305 message authentication code.
+
+ChaCha20-Poly1305 takes as input a 256-bit key and a 96-bit nonce to encrypt a plaintext.
+ProLock uses PBKDF2 (password-based key derivation function 2)
+with 91,232 rounds to derive the key from a user-provided password,
+and generates new values for the salt (for PBKDF2) and for the nonce
+with every update to the file.
 
 ## UI
 
-ProLock comes with a UI to manage the secrets conveniently.
-the ProLock UI supports currently English and German languages; other languages can easily be added.
+ProLock has a UI to manage the data conveniently.
+It supports currently two languages, English and German; other languages can easily be added.
 
-## Technical details
+## File access
+
+ProLock only reads and writes to files in the local host's file system.
+By default, ProLock uses the user-specific file `~/.prolock/secrets`,
+but you can use any other file name and location.
+
+ProLock does not interact with any cloud service etc.
+
+ProLock detects concurrent changes to the file and refuses to overwrite them.
 
 ### Data model
 
 The data model consists of `Entry`s, each of which has
 
-- an unprotected section consisting of a unique name and an optional description
-- a protected section with 1 to 4 credentials, each of which consists of a name and a secret.
+- an *unprotected* section consisting of a unique name and an optional description
+- a *protected* section with up to 4 credentials, each of which consists of a name and a value.
 
 ### File format
 
 The file contains
 
-- some **readable file header**
-  - helps managing the file format correctly and detecting
-  concurrent changes
+- a **readable file header**
+  - helping correctly managing the file format (in case we need to evolve the file format
+    in future versions of ProLock) and detecting concurrent changes.
 - a **readable data part**
   - showing the **unprotected sections** of the Entries
   - being also used as authentication tag for the encryption of the
-  protected part (see below), which ensures that opening the file is only possible
-  if the readable data part was not modified.
+    protected part (see below), which ensures that decrypting the protected part
+    is only possible if the readable data part was not modified.
 - some **ciphertext**, which is a serialization of the
 [ChaCha20Poly1305](https://crates.io/crates/chacha20poly1305/0.10.1)-encrypted content
 of the **protected sections** of the Entries.
@@ -48,3 +70,11 @@ of the **protected sections** of the Entries.
   - a new initialization vector for the encryption is diced with every file update
   - the encrypted data starts additionally with some random one-off String,
     to avoid any attack surface if the protected data set is very small.
+
+The file format allows sneaking into the file with a plain text editor
+to have a glimpse on the unprotected part, as you can see the names and the
+descriptions of the contained entries, but the protected part is safely encrypted.
+
+Note that decrypting the encrypted part requires not only the right passphrase
+as input, but also the unmodified content of the readable part.
+Every modification of the unprotected part prevents the decryption of the protected part.

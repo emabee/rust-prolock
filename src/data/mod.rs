@@ -1,3 +1,7 @@
+// In the code, we use the term bundle for what is called "entry" in the UI.
+// This is to avoid confusion with `std::collections::btree_map::Entry`, which plays a role in
+// the implementation of Bundles.
+
 mod bundle;
 mod bundle_key;
 mod bundles;

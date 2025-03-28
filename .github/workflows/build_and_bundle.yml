@@ -27,7 +27,7 @@ jobs:
           cargo bundle --release
 
       - name: Upload macOS app as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ProLock
           path: target/release/bundle/osx/ProLock.app

@@ -1,4 +1,4 @@
-name: macOS Build
+name: MacOS Build (INTEL)
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,5 +33,5 @@ jobs:
       - name: Upload macOS app as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProLock
+          name: ProLock.app for MacOS (INTEL)
           path: target/release/bundle/osx/ProLock.app

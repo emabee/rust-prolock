@@ -28,6 +28,7 @@ use data::Settings;
 use eframe::{NativeOptions, run_native};
 use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
+use flexi_logger::{LogSpecification, Logger};
 use image::{ImageError, ImageFormat, ImageReader};
 use std::{
     io::{BufReader, Cursor},
@@ -56,10 +57,17 @@ fn run() -> Result<()> {
     //     unsafe { std::env::set_var("RUST_BACKTRACE", "1") }
     // }
 
+    let logger_handle = Logger::with(LogSpecification::info())
+        .log_to_buffer(1_000_000, Some(log_format))
+        .start()
+        .unwrap();
+
     let mut settings = Settings::read_or_create()?;
+    log::info!("{}", t!("Program started"));
 
     let args = Args::from_command_line();
     if let Some(file) = args.file() {
+        log::info!("{}: {file}", t!("File given on commandline"));
         settings.add_and_set_file(&PathBuf::from(file))?;
     }
 
@@ -96,7 +104,7 @@ fn run() -> Result<()> {
             Ok(Box::new(
                 // build UiApp (which implements egui::App) and hand it over to eframe::run_native,
                 // which will then call its method `update()` in an endless loop
-                Ui::new(settings)?,
+                Ui::new(logger_handle, settings)?,
             ))
         }),
     )
@@ -117,4 +125,17 @@ fn pl_load_icon() -> IconData {
 fn read_logo() -> Result<image::DynamicImage, ImageError> {
     let bytes = include_bytes!("ui/assets/logo.png");
     ImageReader::with_format(BufReader::new(Cursor::new(bytes)), ImageFormat::Png).decode()
+}
+
+fn log_format(
+    write: &mut dyn std::io::Write,
+    now: &mut flexi_logger::DeferredNow,
+    record: &log::Record,
+) -> std::io::Result<()> {
+    write!(
+        write,
+        "{} : {}",
+        now.format("%Y-%m-%d %H:%M:%S"),
+        record.args(),
+    )
 }

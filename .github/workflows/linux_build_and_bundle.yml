@@ -22,16 +22,12 @@ jobs:
             override: true
             components: rustfmt, clippy
 
-      - name: Install dependencies
+      - name: Build linux binary
         run: |
-          brew install cargo-bundle
+          cargo build --release
 
-      - name: Build macOS app
-        run: |
-          cargo bundle --release
-
-      - name: Upload macOS app as artifact
+      - name: Upload linux binary as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProLock.app for linux
-          path: target/release/bundle/osx/ProLock.app
+          name: ProLock for linux
+          path: target/release/prolock

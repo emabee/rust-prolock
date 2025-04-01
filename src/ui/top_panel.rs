@@ -93,6 +93,14 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
                                 }
 
                                 if ui
+                                    .add(Button::new(format!("📄 {}", t!("Show log"))))
+                                    .clicked()
+                                {
+                                    controller.set_action(Action::ShowLog);
+                                    ui.close_menu();
+                                }
+
+                                if ui
                                     .add_enabled(
                                         false, //self.pl_file.is_actionable(),
                                         Button::new(format!(

@@ -2,6 +2,7 @@ use crate::{
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
     data::{Bundle, Bundles, Cred, Transient},
 };
+use flexi_logger::Snapshot;
 use fuzzy_matcher::clangd::fuzzy_match;
 use std::time::Instant;
 
@@ -14,6 +15,7 @@ pub struct V {
     pub find: Find,
     pub edit: Edit,
     pub lang: Lang,
+    pub snapshot: Snapshot,
 }
 impl V {
     pub fn reset_bundles(&mut self, bundles: &Bundles, o_scroll_to: Option<&str>) {

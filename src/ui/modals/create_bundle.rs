@@ -54,7 +54,7 @@ pub fn create_bundle(edit: &mut Edit, controller: &mut Controller, ctx: &Context
                     )
                     .clicked()
                 {
-                    controller.set_action(Action::FinalizeAdd);
+                    controller.set_action(Action::FinalizeAdd(edit.bundle.name.to_string()));
                 }
 
                 if ui

@@ -23,7 +23,9 @@ impl Controller {
     // this is called in the main loop
     #[allow(clippy::too_many_lines)]
     pub fn act(&mut self, o_plfile: &mut Option<PlFile>, v: &mut V, settings: &mut Settings) {
-        match (std::mem::take(&mut self.next_action), o_plfile) {
+        let action = std::mem::take(&mut self.next_action);
+        action.log();
+        match (action, o_plfile) {
             (Action::None, _) => {}
 
             (Action::StartChangeFile, _) => {
@@ -57,6 +59,10 @@ impl Controller {
                 self.current_modal = PlModal::About;
             }
 
+            (Action::ShowLog, _) => {
+                self.current_modal = PlModal::ShowLog;
+            }
+
             (Action::StartChangeLanguage, _) => {
                 v.lang.init(&settings.language);
                 self.current_modal = PlModal::ChangeLanguage;
@@ -66,7 +72,9 @@ impl Controller {
                     self.current_modal = PlModal::None;
                 }
                 Err(e) => {
-                    v.lang.error = Some(e.to_string());
+                    let s = e.to_string();
+                    log::error!("{s}");
+                    v.lang.error = Some(s);
                 }
             },
 
@@ -81,7 +89,9 @@ impl Controller {
                         v.find.request_focus = true;
                     }
                     Err(e) => {
-                        v.pw.error = Some(format!("{e}"));
+                        let s = e.to_string();
+                        log::error!("{s}");
+                        v.pw.error = Some(s);
                     }
                 }
             }
@@ -100,7 +110,9 @@ impl Controller {
                         self.current_modal = PlModal::None;
                     }
                     Err(e) => {
-                        v.pw.error = Some(e.to_string());
+                        let s = e.to_string();
+                        log::error!("{s}");
+                        v.pw.error = Some(s);
                     }
                 }
             }
@@ -109,15 +121,16 @@ impl Controller {
                 v.edit.bundle.prepare_for_create();
                 self.current_modal = PlModal::CreateBundle;
             }
-            (Action::FinalizeAdd, Some(pl_file)) => {
+            (Action::FinalizeAdd(name), Some(pl_file)) => {
                 match pl_file.save_with_added_bundle(&v.edit.bundle) {
                     Ok(()) => {
                         self.current_modal = PlModal::None;
-                        let name = &v.edit.bundle.name.to_string();
-                        v.reset_bundles(pl_file.bundles(), Some(name));
+                        v.reset_bundles(pl_file.bundles(), Some(&name));
                     }
                     Err(e) => {
-                        v.edit.error = Some(e.to_string());
+                        let s = e.to_string();
+                        log::error!("{s}");
+                        v.edit.error = Some(s);
                     }
                 }
             }
@@ -140,7 +153,9 @@ impl Controller {
                         v.edit.idx = None;
                     }
                     Err(e) => {
-                        v.edit.error = Some(e.to_string());
+                        let s = e.to_string();
+                        log::error!("{s}");
+                        v.edit.error = Some(s);
                     }
                 }
 
@@ -158,12 +173,14 @@ impl Controller {
                         v.reset_bundles(pl_file.bundles(), None);
                     }
                     Err(e) => {
-                        v.delete.error = Some(e.to_string());
+                        let s = e.to_string();
+                        log::error!("{s}");
+                        v.delete.error = Some(s);
                     }
                 }
             }
 
-            (Action::Cancel, _) => {
+            (Action::Cancel | Action::SilentCancel, _) => {
                 self.current_modal = PlModal::None;
                 v.edit.idx = None;
             }
@@ -182,7 +199,8 @@ impl Controller {
 fn switch_to_current_file(o_plfile: &mut Option<PlFile>, v: &mut V, settings: &mut Settings) {
     let pl_file = PlFile::read_or_create(settings.current_file())
         .context("File open error")
-        .unwrap();
+        .unwrap(/*FIXME*/);
+    log::info!("{} {}", t!("Switch to file"), pl_file.file_path());
     *o_plfile = Some(pl_file);
     *v = V::default();
     v.file_selection.reset(settings.current_file);
@@ -194,6 +212,7 @@ pub(crate) enum Action {
     None,
 
     ShowAbout,
+    ShowLog,
 
     StartChangeFile,
     SwitchToKnownFile(usize),
@@ -213,14 +232,43 @@ pub(crate) enum Action {
     FinalizeChangeLanguage,
 
     StartAdd,
-    FinalizeAdd,
+    FinalizeAdd(String),
 
     StartModify(usize, String),
     FinalizeModify,
 
     StartDelete(String),
     FinalizeDelete(String),
+    SilentCancel,
     Cancel,
+}
+impl Action {
+    fn log(&self) {
+        match self {
+            Action::None | Action::StartFilter | Action::ShowLog | Action::SilentCancel => {}
+
+            Action::ShowAbout
+            | Action::StartChangeFile
+            | Action::SwitchToKnownFile(_)
+            | Action::SwitchToNewFile(_)
+            | Action::StartChangePassword
+            | Action::SwitchToActionable
+            | Action::StartChangeLanguage
+            | Action::FinalizeChangeLanguage
+            | Action::StartAdd
+            | Action::FinalizeAdd(_)
+            | Action::StartModify(_, _)
+            | Action::FinalizeModify
+            | Action::StartDelete(_)
+            | Action::FinalizeDelete(_)
+            | Action::Cancel => {
+                log::info!("[Action::{self:?}]");
+            }
+            Action::FinalizeChangePassword { old: _, new: _ } => {
+                log::info!("[Action::{self:?}]");
+            }
+        }
+    }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
@@ -233,4 +281,5 @@ pub enum PlModal {
     ChangePassword,
     ChangeFile,
     ChangeLanguage,
+    ShowLog,
 }

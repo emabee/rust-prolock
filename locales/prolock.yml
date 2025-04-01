@@ -213,3 +213,21 @@ _decryption_failed_note1:
 _decryption_failed_note2:
   en: 'Note that decryption will fail inevitably if the ProLock file was manually edited: do not edit the file directly, not even in the unencrypted section.'
   de: 'Hinweis: die Entschlüsselung schlägt auch dann fehl, wenn die Prolock Datei manuell verändert wurde: auch der unverschlüsselte Bereich darf ncht verändert werden.'
+File given on commandline:
+  en: File given on commandline
+  de: Beim Programmstart mitgegebene Datei
+Program started:
+  en: Program started
+  de: Program gestartet
+Show log:
+  en: Show action log
+  de: Aktionsprotokoll anzeigen
+Starting with file:
+  en: Starting with file
+  de: Start mit Datei
+Action log:
+  en: Action log
+  de: Aktionsprotokoll
+Switch to file:
+  en: Switch to file
+  de: Wechseln zu Datei

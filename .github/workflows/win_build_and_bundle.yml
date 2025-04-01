@@ -22,16 +22,12 @@ jobs:
             override: true
             components: rustfmt, clippy
 
-      - name: Install dependencies
+      - name: Build Windows executable
         run: |
-          brew install cargo-bundle
+          cargo build --release
 
-      - name: Build macOS app
-        run: |
-          cargo bundle --release
-
-      - name: Upload macOS app as artifact
+      - name: Upload Windows executable as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProLock.app for Windows
-          path: target/release/bundle/osx/ProLock.app
+          name: ProLock.exe for Windows
+          path: target/release/proLock.exe

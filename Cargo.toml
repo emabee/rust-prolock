@@ -1,6 +1,6 @@
 [package]
 name = "prolock"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 authors = ["emabee <meinolf.block-hd@t-online.de>"]
 description = """
@@ -28,9 +28,11 @@ egui_extras = { version = "0.31", features = ["file", "image"] }
 eframe = { version = "0.31" }
 either = "1.13"
 fd-lock = "4.0.2"
+flexi_logger = { version = "0.30", features = ["buffer_writer"] }
 fuzzy-matcher = "0.3"
 image = { version = "0.25", features = ["png"] }
 jiff = { version = "0.2", features = ["serde"] }
+log = "0.4"
 oxilangtag = "0.1"
 pwsec = "0.5"
 rand = "0.9"

@@ -21,13 +21,21 @@ Authors: {author-with-newline}
 {after-help}",
         )
         .arg(
+            Arg::new("test")
+                .long("test")
+                .help("test-mode for Prolock; uses different file locations.")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
             Arg::new("use_file")
                 .short('f')
                 .long("use_file")
                 .value_name("file")
                 .help("Prolock file to open; if not given, the last file is opened, or, on first start, a default file is chosen.")
                 .required(false)
-                .number_of_values(1)
+                .num_args(1)
                 .action(ArgAction::Set),
         )
         .arg(
@@ -63,6 +71,10 @@ impl Args {
 
     pub fn from(arg_matches: ArgMatches) -> Self {
         Args { arg_matches }
+    }
+
+    pub fn is_test(&self) -> bool {
+        self.arg_matches.get_flag("test")
     }
 
     pub fn file(&self) -> Option<&String> {

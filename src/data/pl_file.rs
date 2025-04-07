@@ -281,7 +281,7 @@ impl PlFile {
         .as_cipher(&self.stored.readable)?;
 
         // store to temp file
-        let temp_path = Settings::temp_document_path()?;
+        let temp_path = Settings::temp_document_file(&self.file_path)?;
         let mut temp_file = OpenOptions::new()
             .write(true)
             .create(true)

@@ -7,11 +7,12 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const SETTINGS_FILE: &str = "settings";
 const PROD_DOC_FOLDER: &str = ".prolock";
 const TEST_DOC_FOLDER: &str = ".prolock_test";
-const PROD_DOC_FILE: &str = "secrets";
-const TEMP_DOC_FILE: &str = "secrets_temp";
+const SETTINGS_FILE: &str = "settings";
+const DEFAULT_DATA_FILE: &str = "secrets";
+const TEMP_DATA_FILE_SUFFIX: &str = "_temp_file_for_secure_storing_780987z543w";
+
 const DEFAULT_LOCALE: &str = "en";
 
 #[derive(Deserialize, Serialize)]
@@ -19,6 +20,8 @@ pub struct Settings {
     pub files: Vec<PathBuf>,
     pub current_file: usize,
     pub language: String,
+    #[serde(default)]
+    is_test: bool,
 }
 
 fn default_language() -> String {
@@ -29,15 +32,16 @@ fn default_language() -> String {
         .to_string()
 }
 impl Settings {
-    pub fn default() -> Result<Self> {
+    pub fn default(is_test: bool) -> Result<Self> {
         Ok(Self {
-            files: vec![Self::prod_document_path()?],
+            files: vec![Self::default_document_file(is_test)?],
             current_file: 0,
             language: default_language(),
+            is_test,
         })
     }
-    pub fn read_or_create() -> Result<Self> {
-        let my_file = Self::my_file()?;
+    pub fn read_or_create(is_test: bool) -> Result<Self> {
+        let my_file = Self::settings_file(is_test)?;
         let context = format!("reading {}", my_file.display());
         let settings = if std::fs::exists(&my_file).context(context.clone())? {
             Self::lock_and_read(&my_file).context(context.clone())?
@@ -47,9 +51,9 @@ impl Settings {
                     .parent()
                     .context("cannot determine folder for storage")?,
             )?;
-
-            let settings = Settings::default()?;
+            let settings = Settings::default(is_test)?;
             settings.save()?;
+
             settings
         };
 
@@ -69,7 +73,7 @@ impl Settings {
         ))
     }
     fn save(&self) -> Result<()> {
-        let my_file = Self::my_file()?;
+        let my_file = Self::settings_file(self.is_test)?;
         let mut file_guard = Settings::lock_for_write(&my_file)?;
         let mut locked_file = file_guard.write()?;
         locked_file.write_all(serde_json::ser::to_string_pretty(&self)?.as_bytes())?;
@@ -164,29 +168,33 @@ impl Settings {
         Ok(())
     }
 
-    fn my_file() -> Result<PathBuf> {
-        let mut file_path = Self::document_folder()?;
-        file_path.push(SETTINGS_FILE);
-        Ok(file_path)
-    }
-
-    fn document_folder() -> Result<PathBuf> {
+    fn document_folder(is_test: bool) -> Result<PathBuf> {
         let mut file_path = dirs::home_dir().context("Can't find home directory")?;
-        file_path.push(if cfg!(test) {
+        file_path.push(if is_test || cfg!(test) {
             TEST_DOC_FOLDER
         } else {
             PROD_DOC_FOLDER
         });
         Ok(file_path)
     }
-    fn prod_document_path() -> Result<PathBuf> {
-        let mut file_path = Self::document_folder()?;
-        file_path.push(PROD_DOC_FILE);
+
+    fn settings_file(is_test: bool) -> Result<PathBuf> {
+        let mut file_path = Self::document_folder(is_test)?;
+        file_path.push(SETTINGS_FILE);
         Ok(file_path)
     }
-    pub fn temp_document_path() -> Result<PathBuf> {
-        let mut file_path = Self::document_folder()?;
-        file_path.push(TEMP_DOC_FILE);
+
+    fn default_document_file(is_test: bool) -> Result<PathBuf> {
+        let mut file_path = Self::document_folder(is_test)?;
+        file_path.push(DEFAULT_DATA_FILE);
+        Ok(file_path)
+    }
+
+    pub fn temp_document_file(path: &Path) -> Result<PathBuf> {
+        let mut file_path = PathBuf::from(path);
+        let mut name = file_path.file_name().context("file name")?.to_owned();
+        name.push(TEMP_DATA_FILE_SUFFIX);
+        file_path.set_file_name(name);
         Ok(file_path)
     }
 }

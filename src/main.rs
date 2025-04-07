@@ -62,10 +62,17 @@ fn run() -> Result<()> {
         .start()
         .unwrap();
 
-    let mut settings = Settings::read_or_create()?;
-    log::info!("{}", t!("Program started"));
-
     let args = Args::from_command_line();
+    let mut settings = Settings::read_or_create(args.is_test())?;
+    log::info!(
+        "{}",
+        if args.is_test() {
+            t!("Program started in test mode")
+        } else {
+            t!("Program started in production mode")
+        }
+    );
+
     if let Some(file) = args.file() {
         log::info!("{}: {file}", t!("File given on commandline"));
         settings.add_and_set_file(&PathBuf::from(file))?;

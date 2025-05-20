@@ -33,7 +33,7 @@ pub(super) fn panels_for_actionable_ui(
                 doc_state,
                 show_buttons_active,
                 transient,
-                &mut v.v_documents,
+                &mut v.documents,
                 controller,
                 ctx,
             );

@@ -58,13 +58,13 @@ impl App for PlApp {
                 v_edit_bundle: ref mut bundle,
                 ref error,
             } => {
-                create_bundle(bundle, error, &mut self.controller, ctx);
+                create_bundle(bundle, error.as_deref(), &mut self.controller, ctx);
             }
             ModalState::DeleteBundle {
                 ref name,
                 ref error,
             } => {
-                delete_bundle(name, error, &mut self.controller, ctx);
+                delete_bundle(name, error.as_deref(), &mut self.controller, ctx);
             }
 
             ModalState::AddDocument {
@@ -77,7 +77,7 @@ impl App for PlApp {
                 ref name,
                 ref error,
             } => {
-                delete_document(name, error, &mut self.controller, ctx);
+                delete_document(name, error.as_deref(), &mut self.controller, ctx);
             }
 
             ModalState::About => {

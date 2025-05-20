@@ -44,7 +44,7 @@ pub fn central_panel(
                         )
                         .vertical(|mut bundle_strip| {
                             for (index, (name, bundle)) in bundles.iter().enumerate() {
-                                let v_bundle = &mut v.v_bundles[index];
+                                let v_bundle = &mut v.bundles[index];
                                 if !v_bundle.suppressed {
                                     let mut done = false;
                                     if let MainState::Bundles(BundleState::ModifyBundle {
@@ -58,7 +58,7 @@ pub fn central_panel(
                                                 edit_a_bundle_with_buttons(
                                                     bundle_builder,
                                                     v_edit_bundle,
-                                                    error,
+                                                    error.as_deref(),
                                                     controller,
                                                 );
                                             });
@@ -91,7 +91,7 @@ pub fn central_panel(
 fn edit_a_bundle_with_buttons(
     bundle_builder: StripBuilder<'_>,
     v_edit_bundle: &mut VEditBundle,
-    error: &Option<String>,
+    error: Option<&str>,
     controller: &mut Controller,
 ) {
     bundle_builder

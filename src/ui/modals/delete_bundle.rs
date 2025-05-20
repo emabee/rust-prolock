@@ -8,7 +8,7 @@ use egui::{Color32, Context, FontId, Image, Modal, RichText, Sides};
 
 pub fn delete_bundle(
     name: &String,
-    error: &Option<String>,
+    error: Option<&str>,
     controller: &mut Controller,
     ctx: &Context,
 ) {

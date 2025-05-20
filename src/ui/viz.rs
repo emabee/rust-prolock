@@ -12,8 +12,8 @@ pub struct V {
     pub modal_state: ModalState,
     pub show_log: bool,
 
-    pub v_bundles: Vec<VBundle>,
-    pub v_documents: Vec<VDocument>,
+    pub bundles: Vec<VBundle>,
+    pub documents: Vec<VDocument>,
 
     pub file_selection: FileSelection,
     pub pw: Pw,
@@ -24,7 +24,7 @@ pub struct V {
 }
 impl V {
     pub fn reset_bundles(&mut self, bundles: &Bundles, o_scroll_to: Option<&str>) {
-        self.v_bundles = bundles
+        self.bundles = bundles
             .iter()
             .map(|(name, bundle)| VBundle {
                 suppressed: false,
@@ -40,7 +40,7 @@ impl V {
     }
 
     pub fn reset_documents(&mut self, documents: &Documents, o_scroll_to: Option<&str>) {
-        self.v_documents = documents
+        self.documents = documents
             .iter()
             .map(|(name, _document)| VDocument {
                 suppressed: false,
@@ -55,25 +55,26 @@ impl V {
     }
 
     pub fn visible_bundles(&self) -> usize {
-        self.v_bundles
+        self.bundles
             .iter()
             .filter(|bundle| !bundle.suppressed)
             .count()
     }
 
     pub fn apply_filter_to_bundles(&mut self, bundles: &Bundles) {
-        for (vbundle, (name, bundle)) in self.v_bundles.iter_mut().zip(bundles.iter()) {
+        for (vbundle, (name, bundle)) in self.bundles.iter_mut().zip(bundles.iter()) {
             vbundle.apply_filter(name, bundle, &self.find.pattern);
         }
     }
 
     pub fn apply_filter_to_documents(&mut self, documents: &Documents) {
-        for (vdoc, name) in self.v_documents.iter_mut().zip(documents.iter_keys()) {
+        for (vdoc, name) in self.documents.iter_mut().zip(documents.iter_keys()) {
             vdoc.apply_filter(name, &self.find.pattern);
         }
     }
 }
 
+#[derive(Debug)]
 pub enum MainState {
     Bundles(BundleState),
     Documents(DocumentState),
@@ -87,7 +88,7 @@ impl MainState {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub enum BundleState {
     #[default]
     Default,
@@ -98,7 +99,21 @@ pub enum BundleState {
     },
 }
 
-pub type OSelected = Option<(usize, String)>;
+#[derive(Debug, Clone)]
+pub struct DocId(pub usize, pub String);
+impl DocId {
+    pub fn new(idx: usize, name: &str) -> Self {
+        Self(idx, name.to_string())
+    }
+    pub fn idx(&self) -> usize {
+        self.0
+    }
+    pub fn name(&self) -> &str {
+        &self.1
+    }
+}
+pub type OSelected = Option<DocId>;
+#[derive(Debug)]
 pub enum DocumentState {
     Default(OSelected),
     ModifyDocument {
@@ -272,6 +287,18 @@ pub struct VEditBundle {
     pub v_edit_creds: Vec<VEditCred>,
     pub request_focus: bool,
 }
+impl std::fmt::Debug for VEditBundle {
+    //
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VEditBundle")
+            .field("orig_name", &self.orig_name)
+            .field("name", &self.name)
+            .field("description", &self.description)
+            .field("request_focus", &self.request_focus)
+            .finish_non_exhaustive()
+    }
+}
+
 impl VEditBundle {
     pub fn new() -> Self {
         let mut instance = Self {
@@ -337,6 +364,17 @@ pub struct VEditDocument {
     pub text: String,
     pub request_focus: bool,
 }
+impl std::fmt::Debug for VEditDocument {
+    //
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("VEditDocument")
+            .field("orig_name", &self.orig_name)
+            .field("name", &self.name)
+            .field("request_focus", &self.request_focus)
+            .finish_non_exhaustive()
+    }
+}
+
 impl VEditDocument {
     pub fn new() -> Self {
         Self {

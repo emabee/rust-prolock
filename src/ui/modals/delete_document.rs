@@ -8,7 +8,7 @@ use egui::{Color32, Context, FontId, Image, Modal, RichText, Sides};
 
 pub fn delete_document(
     name: &String,
-    error: &Option<String>,
+    error: Option<&str>,
     controller: &mut Controller,
     ctx: &Context,
 ) {

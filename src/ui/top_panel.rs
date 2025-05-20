@@ -12,7 +12,6 @@ use egui::{
 };
 use egui_extras::{Size, StripBuilder};
 
-// FIXME rename
 pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: &Context) {
     TopBottomPanel::top("file").show(ctx, |ui| {
         ui.add_space(2.);
@@ -48,88 +47,89 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
                     });
 
                     strip.empty();
+
                     strip.cell(|ui| {
-                        menu_custom_button(
-                            ui,
-                            Button::image(Image::new(IMG_BURGER)).fill(Color32::TRANSPARENT),
-                            |ui| {
-                                if ui
-                                    .add_enabled(
-                                        v.modal_state.is_ready_for_modal(),
-                                        Button::image_and_text(
-                                            Image::new(IMG_LOGO),
-                                            format!("{}", t!("About ProLock")),
-                                        ),
-                                    )
-                                    .clicked()
-                                {
-                                    controller.set_action(Action::ShowAbout);
-                                    ui.close_menu();
-                                }
-
-                                if ui
-                                    .add_enabled(
-                                        v.modal_state.is_ready_for_modal(),
-                                        Button::new(format!("🌐 {}…", t!("Change language"))),
-                                    )
-                                    .clicked()
-                                {
-                                    controller.set_action(Action::StartChangeLanguage);
-                                    ui.close_menu();
-                                }
-
-                                if ui
-                                    .add_enabled(
-                                        v.modal_state.is_ready_for_modal(),
-                                        Button::image_and_text(
-                                            Image::new(IMG_CHANGE_FILE),
-                                            format!("{}…", t!("_choose_other_file")),
-                                        ),
-                                    )
-                                    .clicked()
-                                {
-                                    controller.set_action(Action::StartChangeFile);
-                                    ui.close_menu();
-                                }
-
-                                if ui
-                                    .add_enabled(
-                                        pl_file.is_actionable()
-                                            && v.modal_state.is_ready_for_modal(),
-                                        Button::new(format!("🔐 {}…", t!("Change password"))),
-                                    )
-                                    .clicked()
-                                {
-                                    controller.set_action(Action::StartChangePassword);
-                                    ui.close_menu();
-                                }
-
-                                if ui
-                                    .add(Button::new(format!("📄 {}", t!("Show log"))))
-                                    .clicked()
-                                {
-                                    controller.set_action(Action::ShowLog);
-                                    ui.close_menu();
-                                }
-
-                                if ui
-                                    .add_enabled(
-                                        false, //v.ui_state.is_ready_for_modal(),
-                                        Button::new(format!(
-                                            "📄 {}",
-                                            t!("Show content as printable document")
-                                        )),
-                                    )
-                                    .clicked()
-                                {
-                                    ui.close_menu();
-                                }
-                            },
-                        );
+                        burger_menu_button(pl_file, v, controller, ui);
                         ui.add_space(10.);
                     });
                 });
         });
         ui.add_space(2.);
     });
+}
+
+fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ui: &mut egui::Ui) {
+    menu_custom_button(
+        ui,
+        Button::image(Image::new(IMG_BURGER)).fill(Color32::TRANSPARENT),
+        |ui| {
+            if ui
+                .add_enabled(
+                    v.modal_state.is_ready_for_modal(),
+                    Button::image_and_text(
+                        Image::new(IMG_LOGO),
+                        format!("{}", t!("About ProLock")),
+                    ),
+                )
+                .clicked()
+            {
+                controller.set_action(Action::ShowAbout);
+                ui.close_menu();
+            }
+
+            if ui
+                .add_enabled(
+                    v.modal_state.is_ready_for_modal(),
+                    Button::new(format!("🌐 {}…", t!("Change language"))),
+                )
+                .clicked()
+            {
+                controller.set_action(Action::StartChangeLanguage);
+                ui.close_menu();
+            }
+
+            if ui
+                .add_enabled(
+                    v.modal_state.is_ready_for_modal(),
+                    Button::image_and_text(
+                        Image::new(IMG_CHANGE_FILE),
+                        format!("{}…", t!("_choose_other_file")),
+                    ),
+                )
+                .clicked()
+            {
+                controller.set_action(Action::StartChangeFile);
+                ui.close_menu();
+            }
+
+            if ui
+                .add_enabled(
+                    pl_file.is_actionable() && v.modal_state.is_ready_for_modal(),
+                    Button::new(format!("🔐 {}…", t!("Change password"))),
+                )
+                .clicked()
+            {
+                controller.set_action(Action::StartChangePassword);
+                ui.close_menu();
+            }
+
+            if ui
+                .add(Button::new(format!("📄 {}", t!("Show log"))))
+                .clicked()
+            {
+                controller.set_action(Action::ShowLog);
+                ui.close_menu();
+            }
+
+            if ui
+                .add_enabled(
+                    false, //v.ui_state.is_ready_for_modal(),
+                    Button::new(format!("📄 {}", t!("Show content as printable document"))),
+                )
+                .clicked()
+            {
+                ui.close_menu();
+            }
+        },
+    );
 }

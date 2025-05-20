@@ -14,7 +14,7 @@ use egui_extras::{Size, StripBuilder};
 
 pub fn create_bundle(
     bundle: &mut VEditBundle,
-    error: &Option<String>,
+    error: Option<&str>,
     controller: &mut Controller,
     ctx: &Context,
 ) {

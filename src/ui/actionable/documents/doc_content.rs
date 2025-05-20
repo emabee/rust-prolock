@@ -1,6 +1,6 @@
 use crate::{
     data::{Documents, Transient},
-    ui::viz::DocumentState,
+    ui::viz::{DocId, DocumentState},
 };
 use egui::{Color32, FontFamily, FontId, TextEdit, Ui};
 
@@ -12,7 +12,7 @@ pub fn doc_content(
 ) {
     match doc_state {
         DocumentState::Default(o_selected) => {
-            if let Some((_index, name)) = o_selected {
+            if let Some(DocId(_index, name)) = o_selected {
                 ui.add_sized(
                     ui.available_size(),
                     TextEdit::multiline(

@@ -8,7 +8,7 @@ use egui_extras::{Size, Strip, StripBuilder};
 
 pub fn edit(
     v_edit_bundle: &mut VEditBundle,
-    error: &Option<String>,
+    error: Option<&str>,
     inner_bundle_strip: &mut Strip<'_, '_>,
 ) {
     inner_bundle_strip.strip(|left_builder| {
@@ -19,7 +19,7 @@ pub fn edit(
     });
 }
 
-fn left_part(edit: &mut VEditBundle, error: &Option<String>, left_builder: StripBuilder<'_>) {
+fn left_part(edit: &mut VEditBundle, error: Option<&str>, left_builder: StripBuilder<'_>) {
     left_builder
         .size(Size::exact(15.))
         .size(Size::exact(40.))

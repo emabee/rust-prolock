@@ -4,7 +4,7 @@ use crate::{
         actionable::documents::{doc_content::doc_content, doc_header::doc_header},
         controller::Controller,
         sizes::DOCUMENT_NAME_HEIGHT,
-        viz::{DocumentState, VDocument},
+        viz::{DocId, DocumentState, VDocument},
     },
 };
 use egui::{
@@ -17,7 +17,7 @@ pub fn central_panel(
     doc_state: &mut DocumentState,
     show_buttons_active: bool,
     transient: &Transient,
-    v_documents: &mut Vec<VDocument>,
+    v_documents: &mut [VDocument],
     controller: &mut Controller,
     ctx: &Context,
 ) {
@@ -55,8 +55,7 @@ pub fn central_panel(
                                                 doc_state,
                                                 controller,
                                                 &mut doc_strip,
-                                                index,
-                                                name,
+                                                &DocId::new(index, name),
                                                 document,
                                                 &mut v_documents[index],
                                                 show_buttons_active,

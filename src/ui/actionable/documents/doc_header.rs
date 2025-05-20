@@ -7,7 +7,7 @@ use crate::{
         },
         controller::Controller,
         show_error,
-        viz::{DocumentState, VDocument, VEditDocument},
+        viz::{DocId, DocumentState, OSelected, VDocument, VEditDocument},
     },
 };
 use egui::{Color32, FontFamily, FontId, RichText, TextEdit, Ui};
@@ -16,8 +16,7 @@ pub fn doc_header(
     doc_state: &mut DocumentState,
     controller: &mut Controller,
     doc_strip: &mut egui_extras::Strip<'_, '_>,
-    index: usize,
-    name: &str,
+    doc_id: &DocId,
     document: &Document,
     v_document: &mut VDocument,
     show_buttons_active: bool,
@@ -31,9 +30,9 @@ pub fn doc_header(
             error,
         } = doc_state
         {
-            if *idx == index {
+            if *idx == doc_id.0 {
                 doc_strip.cell(|ui| {
-                    edit_doc_header(v_edit_document, error, controller, ui);
+                    edit_doc_header(v_edit_document, error.as_deref(), controller, ui);
                 });
                 show = false;
             }
@@ -48,11 +47,9 @@ pub fn doc_header(
             doc_strip.cell(|ui| {
                 let show_as_selected = o_selected_doc
                     .as_ref()
-                    .map(|(idx, _name)| *idx == index)
-                    .unwrap_or(false);
+                    .is_some_and(|DocId(idx, _name)| *idx == doc_id.idx());
                 show_doc_header(
-                    name,
-                    index,
+                    doc_id,
                     show_as_selected,
                     show_buttons_active,
                     document,
@@ -67,7 +64,7 @@ pub fn doc_header(
 
 fn edit_doc_header(
     v_edit_document: &mut VEditDocument,
-    error: &Option<String>,
+    error: Option<&str>,
     controller: &mut Controller,
     ui: &mut Ui,
 ) {
@@ -96,19 +93,18 @@ fn edit_doc_header(
 }
 
 fn show_doc_header(
-    name: &str,
-    index: usize,
+    doc_id: &DocId,
     show_as_selected: bool,
     show_buttons_active: bool,
     document: &Document,
-    selected_doc: &mut Option<(usize, String)>,
+    selected_doc: &mut OSelected,
     controller: &mut Controller,
     ui: &mut Ui,
 ) {
-    let mut name1 = name;
+    let mut name1 = doc_id.name();
     ui.horizontal(|ui| {
         if show_buttons_active {
-            active_buttons_edit_and_delete(ui, index, name, controller);
+            active_buttons_edit_and_delete(ui, doc_id, controller);
         } else {
             inactive_buttons_edit_and_delete(ui);
         }
@@ -128,8 +124,8 @@ fn show_doc_header(
                 .interactive(true),
         );
         if response.clicked() {
-            log::info!("Clicked on document header: {name}");
-            *selected_doc = Some((index, name.to_string()));
+            log::info!("Clicked on document header: {}", doc_id.name());
+            *selected_doc = Some(DocId(doc_id.idx(), doc_id.name().to_string()));
         }
     });
     ui.add_space(-8.);

@@ -1,11 +1,11 @@
 use crate::{
     PlFile, Settings,
-    ui::viz::{MainState, ModalState, Pw, V, VEditBundle, VEditDocument},
+    ui::viz::{
+        BundleState, DocId, DocumentState, MainState, ModalState, Pw, V, VEditBundle, VEditDocument,
+    },
 };
 use anyhow::Context;
 use std::path::PathBuf;
-
-use super::viz::{BundleState, DocumentState};
 
 // The controller is responsible for managing the state of the application and the UI,
 // and is the only place where the application data is modified.
@@ -13,18 +13,21 @@ use super::viz::{BundleState, DocumentState};
 // The main loop calls Controller::act() to execute the action.
 #[derive(Default)]
 pub struct Controller {
-    // The next action to be taken by the controller.
     next_action: Action,
 }
 impl Controller {
+    // Set the next action to be taken by the controller.
     pub fn set_action(&mut self, action: Action) {
         self.next_action = action;
     }
 
+    // FIXME refactor this function to be more readable
+    // Executes the action set by the UI code.
     #[allow(clippy::too_many_lines)]
     pub fn act(&mut self, pl_file: &mut PlFile, v: &mut V, settings: &mut Settings) {
         let action = std::mem::take(&mut self.next_action);
         action.log();
+
         match (&mut v.main_state, &mut v.modal_state, action) {
             (_, ModalState::None, Action::None) => {}
 
@@ -255,13 +258,13 @@ impl Controller {
             (
                 MainState::Documents(DocumentState::Default(_)),
                 ModalState::None,
-                Action::StartModifyDocument(index, name),
+                Action::StartModifyDocument(doc_id),
             ) => {
                 v.main_state = MainState::Documents(DocumentState::ModifyDocument {
-                    idx: index,
+                    idx: doc_id.idx(),
                     v_edit_document: VEditDocument::from_document(
-                        &name,
-                        pl_file.documents().get(&name).unwrap(/*OK*/),
+                        doc_id.name(),
+                        pl_file.documents().get(doc_id.name()).unwrap(/*OK*/),
                         pl_file.transient().unwrap(/*OK*/),
                     ),
                     error: None,
@@ -289,7 +292,8 @@ impl Controller {
                 }
 
                 let name = v_edit_document.name.clone();
-                v.main_state = MainState::Documents(DocumentState::Default(Some((*idx, name))));
+                v.main_state =
+                    MainState::Documents(DocumentState::Default(Some(DocId(*idx, name))));
                 v.reset_documents(pl_file.documents(), None);
             }
 
@@ -327,10 +331,10 @@ impl Controller {
                 };
             }
 
-            (_main_state, modal_state, action) => {
+            (main_state, modal_state, action) => {
                 if !matches!(modal_state, ModalState::None) && !matches!(action, Action::None) {
                     log::warn!(
-                        "Unexpected situation: {}, action = {action:?}",
+                        "Unhandled situation: {main_state:?}, {}, action = {action:?}",
                         modal_state.get_id()
                     );
                 }
@@ -385,7 +389,7 @@ pub(crate) enum Action {
     StartAddDocument,
     FinalizeAddDocument(String),
 
-    StartModifyDocument(usize, String),
+    StartModifyDocument(DocId),
     FinalizeModifyDocument,
 
     StartDeleteDocument(String),
@@ -415,7 +419,7 @@ impl Action {
             | Action::FinalizeDeleteBundle
             | Action::StartAddDocument
             | Action::FinalizeAddDocument(_)
-            | Action::StartModifyDocument(_, _)
+            | Action::StartModifyDocument(_)
             | Action::FinalizeModifyDocument
             | Action::StartDeleteDocument(_)
             | Action::FinalizeDeleteDocument

@@ -6,13 +6,13 @@ use crate::ui::{
 };
 use egui::{Color32, Context, FontId, Image, Modal, RichText, Sides};
 
-pub fn delete_bundle(
+pub fn delete_document(
     name: &String,
     error: &Option<String>,
     controller: &mut Controller,
     ctx: &Context,
 ) {
-    let modal_response = Modal::new("delete_bundle".into()).show(ctx, |ui| {
+    let modal_response = Modal::new("delete_document".into()).show(ctx, |ui| {
         ui.set_width(MODAL_WIDTH);
 
         ui.horizontal(|ui| {
@@ -29,11 +29,11 @@ pub fn delete_bundle(
             });
             ui.vertical(|ui| {
                 ui.add_space(50.);
-                ui.label(RichText::new(t!("Delete entry")).size(24.));
+                ui.label(RichText::new(t!("Delete document")).size(24.));
 
                 ui.add_space(15.);
                 ui.label(
-                    RichText::new(t!("_really_delete", name = &name))
+                    RichText::new(t!("_really_delete", name = name))
                         .font(FontId::proportional(14.0))
                         .color(Color32::DARK_RED),
                 );
@@ -56,7 +56,7 @@ pub fn delete_bundle(
                     .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
                     .clicked()
                 {
-                    controller.set_action(Action::FinalizeDeleteBundle);
+                    controller.set_action(Action::FinalizeDeleteDocument);
                 }
                 if ui
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))

@@ -1,10 +1,8 @@
-use crate::{
+use crate::ui::{
     controller::{Action, Controller},
-    ui::{
-        show_error,
-        sizes::MODAL_WIDTH,
-        viz::{Pw, PwFocus},
-    },
+    show_error,
+    sizes::MODAL_WIDTH,
+    viz::{Pw, PwFocus},
 };
 use egui::{Color32, Context, FontFamily, FontId, Grid, Key, Modal, RichText, Sides, TextEdit};
 

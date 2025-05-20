@@ -1,7 +1,10 @@
 use crate::{
     SUPPORTED_LANGUAGES,
-    controller::{Action, Controller},
-    ui::{sizes::MODAL_WIDTH, viz::Lang},
+    ui::{
+        controller::{Action, Controller},
+        sizes::MODAL_WIDTH,
+        viz::Lang,
+    },
 };
 use egui::{Color32, ComboBox, Context, FontFamily, FontId, Grid, Modal, RichText, Sides};
 

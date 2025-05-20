@@ -11,14 +11,13 @@ extern crate rust_i18n;
 i18n!("locales", fallback = "en");
 
 mod args;
-mod controller;
 mod data;
 mod ui;
 
 use crate::{
     data::PlFile,
     ui::{
-        Ui,
+        pl_app::PlApp,
         sizes::{WIN_HEIGHT, WIN_MIN_HEIGHT, WIN_WIDTH},
     },
 };
@@ -35,6 +34,9 @@ use std::{
     path::PathBuf,
     process::ExitCode,
 };
+
+pub const PROG_NAME: &str = env!("CARGO_PKG_NAME");
+pub const PROG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type Language = (&'static str, &'static str);
 pub const SUPPORTED_LANGUAGES: [Language; 2] = [("en", "English"), ("de", "Deutsch")];
@@ -53,23 +55,19 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<()> {
-    // if cfg!(debug_assertions) {
-    //     unsafe { std::env::set_var("RUST_BACKTRACE", "1") }
-    // }
-
     let logger_handle = Logger::with(LogSpecification::info())
-        .log_to_buffer(1_000_000, Some(log_format))
-        .start()
-        .unwrap();
+        .log_to_buffer(1_000_000, Some(pl_action_log_format))
+        .start()?;
 
     let args = Args::from_command_line();
     let mut settings = Settings::read_or_create(args.is_test())?;
+
     log::info!(
         "{}",
         if args.is_test() {
-            t!("Program started in test mode")
+            t!("_started_in_test_mode %{p}", p = PROG_NAME)
         } else {
-            t!("Program started in production mode")
+            t!("_started %{p}", p = PROG_NAME)
         }
     );
 
@@ -96,26 +94,26 @@ fn run() -> Result<()> {
     }
 
     run_native(
-        "ProLock",
+        PROG_NAME,
         NativeOptions {
             // viewport = native OS window
             viewport: ViewportBuilder::default()
                 .with_inner_size([WIN_WIDTH, WIN_HEIGHT])
                 .with_min_inner_size([WIN_WIDTH, WIN_MIN_HEIGHT])
-                .with_app_id("ProLock")
+                .with_app_id(PROG_NAME)
                 .with_icon(pl_load_icon()),
             ..Default::default()
         },
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
             Ok(Box::new(
-                // build UiApp (which implements egui::App) and hand it over to eframe::run_native,
+                // build PlApp (which implements egui::App) and hand it over to eframe::run_native,
                 // which will then call its method `update()` in an endless loop
-                Ui::new(logger_handle, settings)?,
+                PlApp::new(logger_handle, settings)?,
             ))
         }),
     )
-    .map_err(|e| anyhow!("Couldn't start GUI, caused by {e}"))
+    .map_err(|e| anyhow!("Couldn't start GUI, caused by {e:?}"))
 }
 
 fn pl_load_icon() -> IconData {
@@ -134,7 +132,7 @@ fn read_logo() -> Result<image::DynamicImage, ImageError> {
     ImageReader::with_format(BufReader::new(Cursor::new(bytes)), ImageFormat::Png).decode()
 }
 
-fn log_format(
+fn pl_action_log_format(
     write: &mut dyn std::io::Write,
     now: &mut flexi_logger::DeferredNow,
     record: &log::Record,

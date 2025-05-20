@@ -1,4 +1,4 @@
-use crate::data::{Bundle, BundleKey, Transient};
+use crate::data::{Bundle, Key, Transient};
 use anyhow::{Result, anyhow};
 use std::collections::{BTreeMap, btree_map::Entry};
 
@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, btree_map::Entry};
 //     - remove all bundles from secret that do not appear in the list
 
 #[derive(Clone, Default, Debug, Serialize, Deserialize)]
-pub(crate) struct Bundles(BTreeMap<BundleKey, Bundle>);
+pub(crate) struct Bundles(BTreeMap<Key, Bundle>);
 
 impl Bundles {
     pub fn new() -> Self {
@@ -33,7 +33,7 @@ impl Bundles {
     }
 
     pub fn get(&self, key: &str) -> Option<&Bundle> {
-        self.0.get(&BundleKey::new(key))
+        self.0.get(&Key::new(key))
     }
 
     pub fn count_secrets(&self) -> usize {
@@ -41,20 +41,18 @@ impl Bundles {
     }
 
     pub fn contains_key(&self, key: &str) -> bool {
-        self.0.contains_key(&BundleKey::new(key))
+        self.0.contains_key(&Key::new(key))
     }
 
-    pub fn refs(&self) -> Vec<u64> {
-        let mut left_refs: Vec<u64> = self.0.values().flat_map(Bundle::refs).collect();
-        left_refs.sort_unstable();
-        left_refs
+    pub fn refs(&self) -> Box<dyn Iterator<Item = u64> + '_> {
+        Box::new(self.0.values().flat_map(Bundle::refs))
     }
 
     pub fn add<S>(&mut self, key: S, bundle: Bundle) -> Result<()>
     where
         S: AsRef<str>,
     {
-        match self.0.entry(BundleKey::new(key.as_ref())) {
+        match self.0.entry(Key::new(key.as_ref())) {
             Entry::Vacant(vacant_entry) => {
                 vacant_entry.insert(bundle);
                 Ok(())
@@ -69,7 +67,7 @@ impl Bundles {
     where
         S: AsRef<str>,
     {
-        match self.0.get_mut(&BundleKey::new(key.as_ref())) {
+        match self.0.get_mut(&Key::new(key.as_ref())) {
             None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
             Some(bundle) => {
                 *bundle = modified_bundle;
@@ -82,12 +80,12 @@ impl Bundles {
     where
         S: AsRef<str>,
     {
-        match self.0.remove_entry(&BundleKey::new(key.as_ref())) {
+        match self.0.remove_entry(&Key::new(key.as_ref())) {
             None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
             Some((_key, bundle)) => {
                 for cred in bundle.creds() {
-                    transient.remove_secret(cred.name.0);
-                    transient.remove_secret(cred.secret.0);
+                    transient.remove_secret(cred.name.reff());
+                    transient.remove_secret(cred.secret.reff());
                 }
                 Ok(())
             }

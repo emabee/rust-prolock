@@ -2,8 +2,14 @@ use crate::data::Transient;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Visitor};
 
 #[derive(Clone, Debug)]
-pub struct Secret(pub u64);
+pub struct Secret(u64);
 impl Secret {
+    pub(crate) fn new(text: String, transient: &mut Transient) -> Self {
+        Self(transient.add_secret(text))
+    }
+    pub fn reff(&self) -> u64 {
+        self.0
+    }
     pub fn disclose<'t>(&self, transient: &'t Transient) -> &'t str {
         transient.get_secret(self.0).expect("wrong secret ref")
     }

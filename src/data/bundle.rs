@@ -1,4 +1,4 @@
-use crate::data::Cred;
+use crate::data::{Cred, Secret};
 use jiff::Zoned;
 
 // A bundle.
@@ -35,7 +35,7 @@ impl Bundle {
         self.creds
             .iter()
             .flat_map(|t| [&t.name, &t.secret].into_iter())
-            .map(|secret| secret.0)
+            .map(Secret::reff)
             .collect::<Vec<u64>>()
     }
 }

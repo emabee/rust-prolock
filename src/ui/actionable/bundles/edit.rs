@@ -1,21 +1,25 @@
 use crate::ui::{
     colors::{COLOR_SECRET, COLOR_USER},
     show_error,
-    viz::{Edit, VEditBundle, VEditCred},
+    viz::{VEditBundle, VEditCred},
 };
 use egui::{FontFamily, FontId, ScrollArea, TextEdit};
 use egui_extras::{Size, Strip, StripBuilder};
 
-pub fn ui(edit: &mut Edit, inner_bundle_strip: &mut Strip<'_, '_>) {
+pub fn edit(
+    v_edit_bundle: &mut VEditBundle,
+    error: &Option<String>,
+    inner_bundle_strip: &mut Strip<'_, '_>,
+) {
     inner_bundle_strip.strip(|left_builder| {
-        left_part(edit, left_builder);
+        left_part(v_edit_bundle, error, left_builder);
     });
     inner_bundle_strip.strip(|right_builder| {
-        right_part(&mut edit.bundle, right_builder);
+        right_part(v_edit_bundle, right_builder);
     });
 }
 
-fn left_part(edit: &mut Edit, left_builder: StripBuilder<'_>) {
+fn left_part(edit: &mut VEditBundle, error: &Option<String>, left_builder: StripBuilder<'_>) {
     left_builder
         .size(Size::exact(15.))
         .size(Size::exact(40.))
@@ -24,8 +28,8 @@ fn left_part(edit: &mut Edit, left_builder: StripBuilder<'_>) {
             //name
             left_strip.cell(|ui| {
                 let response = ui.add(
-                    TextEdit::singleline(&mut edit.bundle.name)
-                        .hint_text(t!("_unique_name"))
+                    TextEdit::singleline(&mut edit.name)
+                        .hint_text(t!("_unique_bundle_name"))
                         .desired_width(400.)
                         .clip_text(true)
                         .font(FontId {
@@ -34,8 +38,8 @@ fn left_part(edit: &mut Edit, left_builder: StripBuilder<'_>) {
                         })
                         .interactive(true),
                 );
-                if edit.bundle.request_focus {
-                    edit.bundle.request_focus = false;
+                if edit.request_focus {
+                    edit.request_focus = false;
                     response.request_focus();
                 }
             });
@@ -45,12 +49,12 @@ fn left_part(edit: &mut Edit, left_builder: StripBuilder<'_>) {
                 ScrollArea::vertical().show(ui, |ui| {
                     ui.add_sized(
                         [400., 80.],
-                        TextEdit::multiline(&mut edit.bundle.description)
+                        TextEdit::multiline(&mut edit.description)
                             .hint_text(t!("Further description (optional)"))
                             .interactive(true),
                     );
                 });
-                if let Some(e) = &edit.error {
+                if let Some(e) = error {
                     show_error(e, ui);
                 }
             });

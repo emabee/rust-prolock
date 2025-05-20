@@ -4,66 +4,66 @@ use std::fmt::{Display, Formatter};
 // This is important because the bundle keys are used as keys in a BTreeMap.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(transparent)]
-pub(super) struct BundleKey(String);
-impl BundleKey {
+pub(super) struct Key(String);
+impl Key {
     pub fn new<S>(s: S) -> Self
     where
         S: Into<String>,
     {
-        BundleKey(s.into())
+        Key(s.into())
     }
     pub fn as_str(&self) -> &str {
         &self.0
     }
 }
-impl From<String> for BundleKey {
+impl From<String> for Key {
     fn from(s: String) -> Self {
-        BundleKey(s)
+        Key(s)
     }
 }
-impl From<&str> for BundleKey {
+impl From<&str> for Key {
     fn from(s: &str) -> Self {
-        BundleKey(s.to_string())
+        Key(s.to_string())
     }
 }
-impl AsRef<str> for BundleKey {
+impl AsRef<str> for Key {
     fn as_ref(&self) -> &str {
         &self.0
     }
 }
-impl PartialEq<str> for BundleKey {
+impl PartialEq<str> for Key {
     fn eq(&self, other: &str) -> bool {
         self.0.eq_ignore_ascii_case(other)
     }
 }
-impl PartialEq<String> for BundleKey {
+impl PartialEq<String> for Key {
     fn eq(&self, other: &String) -> bool {
         self.0.eq_ignore_ascii_case(other)
     }
 }
-impl PartialEq<BundleKey> for String {
-    fn eq(&self, other: &BundleKey) -> bool {
+impl PartialEq<Key> for String {
+    fn eq(&self, other: &Key) -> bool {
         self.eq_ignore_ascii_case(&other.0)
     }
 }
-impl PartialEq<BundleKey> for &str {
-    fn eq(&self, other: &BundleKey) -> bool {
+impl PartialEq<Key> for &str {
+    fn eq(&self, other: &Key) -> bool {
         self.eq_ignore_ascii_case(&other.0)
     }
 }
-impl Ord for BundleKey {
+impl Ord for Key {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.0
             .to_ascii_lowercase()
             .cmp(&other.0.to_ascii_lowercase())
     }
 }
-impl PartialOrd for BundleKey {
+impl PartialOrd for Key {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
-impl Display for BundleKey {
+impl Display for Key {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }

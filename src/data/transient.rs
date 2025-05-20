@@ -51,10 +51,8 @@ impl Transient {
         self.secrets.get(idx)
     }
 
-    pub fn refs(&self) -> Vec<u64> {
-        let mut keys: Vec<u64> = self.secrets.keys().copied().collect();
-        keys.sort_unstable();
-        keys
+    pub fn refs(&self) -> Box<dyn Iterator<Item = u64> + '_> {
+        Box::new(self.secrets.keys().copied())
     }
 
     pub fn set_storage_password(&mut self, new_pw: String) {

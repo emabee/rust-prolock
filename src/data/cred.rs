@@ -10,8 +10,8 @@ pub(crate) struct Cred {
 impl Cred {
     pub(crate) fn new(name: String, password: String, transient: &mut Transient) -> Self {
         Self {
-            name: Secret(transient.add_secret(name)),
-            secret: Secret(transient.add_secret(password)),
+            name: Secret::new(name, transient),
+            secret: Secret::new(password, transient),
         }
     }
     pub(crate) fn name<'t>(&self, transient: &'t Transient) -> &'t str {

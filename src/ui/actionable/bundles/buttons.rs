@@ -1,10 +1,10 @@
-use crate::{
+use crate::ui::{
+    IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK,
     controller::{Action, Controller},
-    ui::{IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK},
 };
 use egui::{Button, Color32, Image, Ui};
 
-pub(super) fn active_buttons_edit_and_delete(
+pub fn active_buttons_edit_and_delete(
     ui: &mut Ui,
     index: usize,
     name: &str,
@@ -24,7 +24,7 @@ pub(super) fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        controller.set_action(Action::StartModify(index, name.to_string()));
+        controller.set_action(Action::StartModifyBundle(index, name.to_string()));
     }
 
     ui.add_space(5.);
@@ -43,48 +43,11 @@ pub(super) fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        controller.set_action(Action::StartDelete(name.to_string()));
+        controller.set_action(Action::StartDeleteBundle(name.to_string()));
     }
 }
 
-pub(super) fn active_buttons_save_and_cancel(ui: &mut Ui, controller: &mut Controller) {
-    if ui
-        .add(
-            Button::image(
-                Image::new(IMG_OK)
-                    .maintain_aspect_ratio(true)
-                    .fit_to_original_size(0.30),
-            )
-            .fill(Color32::WHITE),
-        )
-        .on_hover_ui(|ui| {
-            ui.label(t!("Save changes"));
-        })
-        .clicked()
-    {
-        controller.set_action(Action::FinalizeModify);
-    }
-    ui.add_space(5.);
-
-    if ui
-        .add(
-            Button::image(
-                Image::new(IMG_CANCEL)
-                    .maintain_aspect_ratio(true)
-                    .fit_to_original_size(0.30),
-            )
-            .fill(Color32::WHITE),
-        )
-        .on_hover_ui(|ui| {
-            ui.label(t!("Discard changes"));
-        })
-        .clicked()
-    {
-        controller.set_action(Action::Cancel);
-    }
-}
-
-pub(super) fn inactive_buttons_edit_and_delete(ui: &mut Ui) {
+pub fn inactive_buttons_edit_and_delete(ui: &mut Ui) {
     ui.add_enabled(
         false,
         Button::image(
@@ -106,4 +69,41 @@ pub(super) fn inactive_buttons_edit_and_delete(ui: &mut Ui) {
         )
         .fill(Color32::WHITE),
     );
+}
+
+pub fn active_buttons_save_and_cancel(ui: &mut Ui, controller: &mut Controller) {
+    if ui
+        .add(
+            Button::image(
+                Image::new(IMG_OK)
+                    .maintain_aspect_ratio(true)
+                    .fit_to_original_size(0.30),
+            )
+            .fill(Color32::WHITE),
+        )
+        .on_hover_ui(|ui| {
+            ui.label(t!("Save changes"));
+        })
+        .clicked()
+    {
+        controller.set_action(Action::FinalizeModifyBundle);
+    }
+    ui.add_space(5.);
+
+    if ui
+        .add(
+            Button::image(
+                Image::new(IMG_CANCEL)
+                    .maintain_aspect_ratio(true)
+                    .fit_to_original_size(0.30),
+            )
+            .fill(Color32::WHITE),
+        )
+        .on_hover_ui(|ui| {
+            ui.label(t!("Discard changes"));
+        })
+        .clicked()
+    {
+        controller.set_action(Action::Cancel);
+    }
 }

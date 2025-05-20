@@ -1,12 +1,10 @@
-use crate::{
+use crate::ui::{
+    IMG_CANCEL, IMG_SAVE,
+    colors::{COLOR_SECRET, COLOR_USER},
     controller::{Action, Controller},
-    ui::{
-        IMG_CANCEL, IMG_SAVE,
-        colors::{COLOR_SECRET, COLOR_USER},
-        show_error,
-        sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
-        viz::{Edit, VEditBundle, VEditCred},
-    },
+    show_error,
+    sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
+    viz::{VEditBundle, VEditCred},
 };
 use egui::{
     Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, ScrollArea, Sides,
@@ -14,7 +12,12 @@ use egui::{
 };
 use egui_extras::{Size, StripBuilder};
 
-pub fn create_bundle(edit: &mut Edit, controller: &mut Controller, ctx: &Context) {
+pub fn create_bundle(
+    bundle: &mut VEditBundle,
+    error: &Option<String>,
+    controller: &mut Controller,
+    ctx: &Context,
+) {
     Modal::new("create_bundle".into()).show(ctx, |ui| {
         ui.vertical(|ui| {
             StripBuilder::new(ui)
@@ -26,17 +29,17 @@ pub fn create_bundle(edit: &mut Edit, controller: &mut Controller, ctx: &Context
                             .size(Size::exact(BUNDLE_WIDTH_RIGHT))
                             .horizontal(|mut inner_bundle_strip| {
                                 inner_bundle_strip.strip(|left_builder| {
-                                    left_part(&mut edit.bundle, left_builder);
+                                    left_part(bundle, left_builder);
                                 });
                                 inner_bundle_strip.strip(|right_builder| {
-                                    right_part(&mut edit.bundle, right_builder);
+                                    right_part(bundle, right_builder);
                                 });
                             });
                     });
                 });
         });
 
-        if let Some(e) = &edit.error {
+        if let Some(e) = error {
             show_error(e, ui);
         }
 
@@ -54,7 +57,7 @@ pub fn create_bundle(edit: &mut Edit, controller: &mut Controller, ctx: &Context
                     )
                     .clicked()
                 {
-                    controller.set_action(Action::FinalizeAdd(edit.bundle.name.to_string()));
+                    controller.set_action(Action::FinalizeAddBundle);
                 }
 
                 if ui
@@ -83,7 +86,7 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
         .size(Size::exact(40.))
         .size(Size::exact(10.))
         .vertical(|mut left_strip| {
-            //name
+            //header
             left_strip.cell(|ui| {
                 ui.centered_and_justified(|ui| {
                     ui.label(RichText::new(t!("Unprotected header")).color(Color32::GRAY));
@@ -94,7 +97,7 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
             left_strip.cell(|ui| {
                 let response = ui.add(
                     TextEdit::singleline(&mut edit_bundle.name)
-                        .hint_text(t!("_unique_name"))
+                        .hint_text(t!("_unique_bundle_name"))
                         .desired_width(400.)
                         .clip_text(true)
                         .font(FontId {

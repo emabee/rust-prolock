@@ -90,7 +90,7 @@ Cannot save because the file was updated concurrently:
 Cannot save because the password is not set:
   en: Cannot save because the password is not set
   de: Speichern schlägt fehl, weil das Passwort nicht gesetzt ist
-_unique_name:
+_unique_bundle_name:
   en: 'Unique name of the new entry (e.g. ''Banco Rotto'')'
   de: 'Name des neuen Eintrags (z.B. ''Banco Rotto'')'
 Further description (optional):
@@ -157,8 +157,8 @@ _about_2:
   en: For security reasons, ProLock is written in rust.
   de: ProLock ist sicherheitshalber in rust geschrieben.
 _about_3:
-  en: 'README, suggestions, wishes, complaints:'
-  de: 'README, Vorschläge, Wünsche, Beschwerden:'
+  en: 'More information, suggestions, wishes, complaints:'
+  de: 'Weitere Informationen, Vorschläge, Wünsche, Beschwerden:'
 Version:
   en: Version
   de: Version
@@ -216,9 +216,12 @@ _decryption_failed_note2:
 File given on commandline:
   en: File given on commandline
   de: Beim Programmstart mitgegebene Datei
-Program started:
-  en: Program started
-  de: Program gestartet
+'_started %{p}':
+  en: '%{p} started'
+  de: '%{p} gestartet'
+'_started_in_test_mode %{p}':
+  en: '%{p} started  in test mode'
+  de: '%{p} im Testmodus gestartet'
 Show log:
   en: Show action log
   de: Aktionsprotokoll anzeigen
@@ -231,3 +234,32 @@ Action log:
 Switch to file:
   en: Switch to file
   de: Wechseln zu Datei
+
+Delete document:
+  en: Delete document
+  de: Dokument löschen
+Documents:
+  en: Documents
+  de: Dokumente
+Structured entries:
+  en: Structured entries
+  de: Strukturierte Einträge
+Press this button to create a document:
+  en: Press this button to create a document
+  de: Hier drücken um ein Dokument zu erzeugen
+'add_document: document %{key} exists already':
+  en: 'add_document: document %{key} exists already'
+  de: 'add_document: Document %{key} existiert bereits'
+'delete_document: document ''%{key}'' does not exist':
+  en: 'delete_document: document ''%{key}'' not found'
+  de: 'delete_document: Document ''%{key}'' nicht gefunden'
+Protected text:
+  en: Protected text
+  de: Text (geschützt)
+_unique_document_name:
+  en: Name of the document (unprotected)
+  de: Name des Dokuments (unverschlüsselt)
+'add_document: document %{b} exists already':
+  en: 'add_document: document %{b} exists already'
+  de: 'add_document: Dockument %{b} existiert bereits'
+

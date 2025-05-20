@@ -13,7 +13,7 @@ use egui_extras::{Size, Strip, StripBuilder};
 use either::Either;
 use jiff::Zoned;
 
-pub fn ui(
+pub fn show(
     ctx: &Context,
     index: usize,
     bundle: &Bundle,

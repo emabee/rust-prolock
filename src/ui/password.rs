@@ -1,9 +1,7 @@
-use crate::{
+use crate::ui::{
     controller::{Action, Controller},
-    ui::{
-        show_error,
-        viz::{PwFocus, V},
-    },
+    show_error,
+    viz::{PwFocus, V},
 };
 use egui::{CentralPanel, Color32, Context, Grid, Key, RichText, TextEdit};
 

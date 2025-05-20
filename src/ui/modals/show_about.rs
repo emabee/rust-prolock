@@ -1,6 +1,10 @@
 use crate::{
-    controller::{Action, Controller},
-    ui::{IMG_LOGO, IMG_RUST_LOGO, sizes::MODAL_WIDTH},
+    PROG_NAME, PROG_VERSION,
+    ui::{
+        IMG_LOGO, IMG_RUST_LOGO,
+        controller::{Action, Controller},
+        sizes::MODAL_WIDTH,
+    },
 };
 use egui::{Color32, Context, FontFamily, FontId, Image, Modal, RichText, Sides, Vec2};
 
@@ -17,13 +21,13 @@ pub fn show_about(controller: &mut Controller, ctx: &Context) {
 
             ui.vertical(|ui| {
                 ui.add_space(50.);
-                ui.label(RichText::new("ProLock").font(FontId::new(24., FontFamily::Proportional)));
+                ui.label(RichText::new(PROG_NAME).font(FontId::new(24., FontFamily::Proportional)));
                 ui.add_space(15.);
                 ui.label(format!(
                     "{}\n\n{}: {}",
                     t!("_about_1"),
                     t!("Version"),
-                    env!("CARGO_PKG_VERSION")
+                    PROG_VERSION
                 ));
 
                 ui.add_space(30.);

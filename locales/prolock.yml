@@ -205,14 +205,14 @@ _specify_pw_to_secure:
   en: 'Specify the password to secure the prolock file:'
   de: 'Geben Sie das Passwort an, mit dem die ProLock Datei gesichert werden soll:'
 _decryption_failed:
-  en: 'Decryption failed.'
-  de: 'Entschlüsselung fehlgeschlagen.'
+  en: 'Decryption of the protected data in the file failed.'
+  de: 'Die Entschlüsselung der geschützten Daten in der Datei ist fehlgeschlagen.'
 _decryption_failed_note1:
   en: 'This is typically caused by a wrong password - try again with the correct password.'
   de: 'Wahrscheinliche Ursache ist ein falsches Passwort - versuchen Sie es bitte erneut mit dem korrekten Passwort.'
 _decryption_failed_note2:
   en: 'Note that decryption will fail inevitably if the ProLock file was manually edited: do not edit the file directly, not even in the unencrypted section.'
-  de: 'Hinweis: die Entschlüsselung schlägt auch dann fehl, wenn die Prolock Datei manuell verändert wurde: auch der unverschlüsselte Bereich darf ncht verändert werden.'
+  de: 'Hinweis: die Entschlüsselung schlägt auch dann fehl, wenn die Prolock Datei manuell verändert wurde: auch der unverschlüsselte Bereich darf nicht verändert werden.'
 File given on commandline:
   en: File given on commandline
   de: Beim Programmstart mitgegebene Datei
@@ -247,19 +247,27 @@ Structured entries:
 Press this button to create a document:
   en: Press this button to create a document
   de: Hier drücken um ein Dokument zu erzeugen
-'add_document: document %{key} exists already':
-  en: 'add_document: document %{key} exists already'
-  de: 'add_document: Document %{key} existiert bereits'
 'delete_document: document ''%{key}'' does not exist':
-  en: 'delete_document: document ''%{key}'' not found'
-  de: 'delete_document: Document ''%{key}'' nicht gefunden'
+  en: 'Document ''%{key}'' not found'
+  de: 'Document ''%{key}'' nicht gefunden'
 Protected text:
   en: Protected text
   de: Text (geschützt)
 _unique_document_name:
   en: Name of the document (unprotected)
   de: Name des Dokuments (unverschlüsselt)
-'add_document: document %{b} exists already':
-  en: 'add_document: document %{b} exists already'
-  de: 'add_document: Dockument %{b} existiert bereits'
-
+'add_bundle: bundle %{name} exists already':
+  en: 'Entry %{name} exists already'
+  de: 'Eintrag %{name} existiert bereits'
+'add_document: document %{name} exists already':
+  en: 'Document %{name} exists already'
+  de: 'Dokument %{name} existiert bereits'
+'_bundle_does_not_exist %{name}':
+  en: A bundle with name %{name} does not exist
+  de: Eintrag mit Namen %{name} nicht gefunden
+'_document_does_not_exist %{name}':
+  en: A document with name %{name} does not exist
+  de: Dokument mit Namen %{name} nicht gefunden
+'internal error: can''t save with empty name':
+  en: 'internal error: can''t save with empty name'
+  de: 'Interner Fehler: Speichern mit leerem Namen nicht möglich'

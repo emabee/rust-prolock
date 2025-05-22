@@ -34,7 +34,7 @@ pub fn central_panel(
             });
         } else {
             StripBuilder::new(ui)
-                .size(Size::exact(300.))
+                .size(Size::exact(330.))
                 .size(Size::remainder())
                 .horizontal(|mut doc_strip| {
                     doc_strip.cell(|ui| {

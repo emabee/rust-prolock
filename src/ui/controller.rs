@@ -1,10 +1,11 @@
 use crate::{
     PlFile, Settings,
     ui::viz::{
-        BundleState, DocId, DocumentState, MainState, ModalState, Pw, V, VEditBundle, VEditDocument,
+        BundleState, DocId, DocumentState, MainState, ModalState, Pw, PwFocus, V, VEditBundle,
+        VEditDocument,
     },
 };
-use anyhow::Context;
+use anyhow::{Context, Result};
 use std::path::PathBuf;
 
 // The controller is responsible for managing the state of the application and the UI,
@@ -21,7 +22,6 @@ impl Controller {
         self.next_action = action;
     }
 
-    // FIXME refactor this function to be more readable
     // Executes the action set by the UI code.
     #[allow(clippy::too_many_lines)]
     pub fn act(&mut self, pl_file: &mut PlFile, v: &mut V, settings: &mut Settings) {
@@ -37,10 +37,15 @@ impl Controller {
             }
             (_, ModalState::ChangeFile, Action::SwitchToKnownFile(idx)) => {
                 match settings.set_current_file(idx) {
-                    Ok(()) => {
-                        switch_to_current_file(pl_file, v, settings);
-                        v.modal_state.close_modal();
-                    }
+                    Ok(()) => match switch_to_current_file(pl_file, v, settings) {
+                        Ok(()) => {
+                            v.modal_state.close_modal();
+                        }
+                        Err(e) => {
+                            v.file_selection.error =
+                                Some(format!("Error: {}, caused by {:?}", e, e.source()));
+                        }
+                    },
                     Err(e) => {
                         v.file_selection.error =
                             Some(format!("Error: {}, caused by {:?}", e, e.source()));
@@ -49,10 +54,15 @@ impl Controller {
             }
             (_, ModalState::ChangeFile, Action::SwitchToNewFile(path)) => {
                 match settings.add_and_set_file(&PathBuf::from(path)) {
-                    Ok(()) => {
-                        switch_to_current_file(pl_file, v, settings);
-                        v.modal_state.close_modal();
-                    }
+                    Ok(()) => match switch_to_current_file(pl_file, v, settings) {
+                        Ok(()) => {
+                            v.modal_state.close_modal();
+                        }
+                        Err(e) => {
+                            v.file_selection.error =
+                                Some(format!("Error: {}, caused by {:?}", e, e.source()));
+                        }
+                    },
                     Err(e) => {
                         v.file_selection.error =
                             Some(format!("Error: {}, caused by {:?}", e, e.source()));
@@ -91,12 +101,14 @@ impl Controller {
                         v.pw.error = None;
                         v.reset_bundles(pl_file.bundles(), None);
                         v.reset_documents(pl_file.documents(), None);
-                        // FIXME if pl_file.is_empty() {
+                        // TODO if pl_file.is_empty() {
                         //     v.edit_b.bundle.prepare_for_create();
                         // }
                         v.find.request_focus = true;
                     }
                     Err(e) => {
+                        // TODO put cursor to the pw field and mark all entered text to facilitate repetition
+                        v.pw.focus = PwFocus::Pw1;
                         let s = e.to_string();
                         log::error!("{s}");
                         v.pw.error = Some(s);
@@ -343,13 +355,12 @@ impl Controller {
     }
 }
 
-fn switch_to_current_file(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings) {
-    *pl_file = PlFile::read_or_create(settings.current_file())
-        .context("File open error")
-        .unwrap(/* FIXME */);
+fn switch_to_current_file(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings) -> Result<()> {
+    *pl_file = PlFile::read_or_create(settings.current_file()).context("File open error")?;
     log::info!("{} {}", t!("Switch to file"), pl_file.file_path());
     *v = V::default();
     v.file_selection.reset(settings.current_file);
+    Ok(())
 }
 
 #[derive(Default, Debug)]

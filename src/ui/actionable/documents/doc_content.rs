@@ -2,7 +2,7 @@ use crate::{
     data::{Documents, Transient},
     ui::viz::{DocId, DocumentState},
 };
-use egui::{Color32, FontFamily, FontId, TextEdit, Ui};
+use egui::{Color32, FontFamily, FontId, ScrollArea, TextEdit, Ui, Vec2};
 
 pub fn doc_content(
     documents: &Documents,
@@ -13,19 +13,15 @@ pub fn doc_content(
     match doc_state {
         DocumentState::Default(o_selected) => {
             if let Some(DocId(_index, name)) = o_selected {
-                ui.add_sized(
-                    ui.available_size(),
-                    TextEdit::multiline(
-                        &mut documents.get(name).unwrap(/*FIXME*/).text(transient).to_string(),
-                    )
-                    .hint_text(t!("Protected text"))
-                    // .desired_width(300.)
-                    // .desired_rows(40)
-                    .clip_text(true)
-                    .font(FontId::new(12., FontFamily::Monospace))
-                    .background_color(Color32::LIGHT_GRAY)
-                    .interactive(true),
-                );
+                ScrollArea::both().show(ui, |ui| {
+                    let text = documents.get(name).unwrap(/*OKish*/).text(transient);
+                    ui.add_sized(
+                        ui.available_size() - Vec2 { x: 25., y: 5. },
+                        TextEdit::multiline(&mut text.to_string())
+                            .font(FontId::new(12., FontFamily::Monospace))
+                            .background_color(Color32::from_black_alpha(10)),
+                    );
+                });
             }
         }
         DocumentState::ModifyDocument {
@@ -33,18 +29,15 @@ pub fn doc_content(
             v_edit_document,
             error: _,
         } => {
-            // modifiable
-            ui.add_sized(
-                ui.available_size(),
-                TextEdit::multiline(&mut v_edit_document.text)
-                    .hint_text(t!("Protected text"))
-                    // .desired_width(300.)
-                    // .desired_rows(40)
-                    .clip_text(true)
-                    .font(FontId::new(12., FontFamily::Monospace))
-                    .background_color(Color32::WHITE)
-                    .interactive(true),
-            );
+            ScrollArea::both().show(ui, |ui| {
+                ui.add_sized(
+                    ui.available_size() - Vec2 { x: 25., y: 5. },
+                    TextEdit::multiline(&mut v_edit_document.text)
+                        .hint_text(t!("Protected text"))
+                        .font(FontId::new(12., FontFamily::Monospace))
+                        .background_color(Color32::from_black_alpha(1)),
+                );
+            });
         }
     }
 }

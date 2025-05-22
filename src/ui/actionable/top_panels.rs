@@ -1,12 +1,20 @@
-use crate::ui::{
-    IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_ERASE,
-    controller::{Action, Controller},
-    sizes::SEARCH_TEXT_WIDTH,
-    viz::{BundleState, DocumentState, MainState, V},
+use crate::{
+    data::Documents,
+    ui::{
+        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_ERASE,
+        controller::{Action, Controller},
+        sizes::SEARCH_TEXT_WIDTH,
+        viz::{BundleState, DocId, DocumentState, MainState, V},
+    },
 };
 use egui::{Button, Color32, Context, Image, RichText, TextEdit, TopBottomPanel};
 
-pub(super) fn panel_with_tabs(v: &mut V, controller: &mut Controller, ctx: &Context) {
+pub(super) fn panel_with_tabs(
+    v: &mut V,
+    documents: &Documents,
+    controller: &mut Controller,
+    ctx: &Context,
+) {
     // two tabs: Bundles and Documents
     TopBottomPanel::top("panel_with_tabs").show(ctx, |ui| {
         ui.add_space(10.);
@@ -44,7 +52,12 @@ pub(super) fn panel_with_tabs(v: &mut V, controller: &mut Controller, ctx: &Cont
                 )
                 .clicked()
             {
-                v.main_state = MainState::Documents(DocumentState::Default(None));
+                v.main_state =
+                    MainState::Documents(DocumentState::Default(if v.documents.is_empty() {
+                        None
+                    } else {
+                        Some(DocId(0, documents.iter().next().unwrap().0.to_string()))
+                    }));
                 controller.set_action(Action::StartFilter);
             }
         });

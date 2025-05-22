@@ -29,6 +29,7 @@ use egui::{IconData, ViewportBuilder};
 use egui_extras::install_image_loaders;
 use flexi_logger::{LogSpecification, Logger};
 use image::{ImageError, ImageFormat, ImageReader};
+use log::LevelFilter;
 use std::{
     io::{BufReader, Cursor},
     path::PathBuf,
@@ -55,9 +56,16 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<()> {
-    let logger_handle = Logger::with(LogSpecification::info())
-        .log_to_buffer(1_000_000, Some(pl_action_log_format))
-        .start()?;
+    // use a logspec that focuses on the "prolock" module and sets the default level to Info
+    // log to a buffer and use a custom log format that fits to show_log()
+    let logger_handle = Logger::with(
+        LogSpecification::builder()
+            .default(LevelFilter::Info)
+            .module("prolock", LevelFilter::Trace)
+            .build(),
+    )
+    .log_to_buffer(60_000, Some(pl_action_log_format))
+    .start()?;
 
     let args = Args::from_command_line();
     let mut settings = Settings::read_or_create(args.is_test())?;
@@ -139,7 +147,14 @@ fn pl_action_log_format(
 ) -> std::io::Result<()> {
     write!(
         write,
-        "{} : {}",
+        "{} {} : {}",
+        match record.level() {
+            log::Level::Error => "E",
+            log::Level::Warn => "W",
+            log::Level::Info => "I",
+            log::Level::Debug => "D",
+            log::Level::Trace => "T",
+        },
         now.format("%Y-%m-%d %H:%M:%S"),
         record.args(),
     )

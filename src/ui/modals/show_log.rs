@@ -1,6 +1,7 @@
-use crate::ui::sizes::MODAL_WIDTH;
-use egui::{Align, Context, Pos2, ScrollArea, TextEdit, Window};
-use egui_extras::{Size, StripBuilder};
+use egui::{
+    Color32, Context, FontFamily, FontId, Pos2, ScrollArea, TextFormat, Window,
+    text::{LayoutJob, TextWrapping},
+};
 use flexi_logger::{LoggerHandle, Snapshot};
 
 pub fn show_log(
@@ -9,33 +10,43 @@ pub fn show_log(
     open: &mut bool,
     ctx: &Context,
 ) {
-    let updated = logger_handle.update_snapshot(logger_snapshot).unwrap();
-    let text = &mut logger_snapshot.text;
+    logger_handle.update_snapshot(logger_snapshot).unwrap();
+
     Window::new(t!("Action log"))
-        .default_pos(Pos2 { x: 10_000., y: 0. })
+        .default_pos(Pos2 { x: 800., y: 200. })
+        .default_height(400.)
+        .default_width(600.)
+        .resizable(true)
         .open(open)
         .show(ctx, |ui| {
-            ui.set_width(MODAL_WIDTH);
-            let text1 = text;
-            let height = 200.;
-            ui.add_space(5.);
-
-            StripBuilder::new(ui)
-                .size(Size::exact(height))
-                .vertical(|mut log_strip| {
-                    log_strip.cell(|ui| {
-                        ScrollArea::vertical().show(ui, |ui| {
-                            ui.add_sized(
-                                [MODAL_WIDTH, height],
-                                TextEdit::multiline(text1).interactive(true),
-                            );
-                            if updated {
-                                ui.scroll_to_cursor(Some(Align::BOTTOM));
-                            }
-                        });
-                    });
+            ScrollArea::both()
+                .id_salt("action log")
+                .auto_shrink(false)
+                .stick_to_bottom(true)
+                .show(ui, |ui| {
+                    for line in logger_snapshot.text.lines() {
+                        let mut job = LayoutJob {
+                            wrap: TextWrapping::truncate_at_width(ui.available_width()),
+                            ..Default::default()
+                        };
+                        job.append(
+                            line,
+                            0.0,
+                            TextFormat {
+                                font_id: FontId::new(11.0, FontFamily::Monospace),
+                                color: match line.chars().next() {
+                                    Some('E') => Color32::RED,
+                                    Some('W') => Color32::YELLOW,
+                                    Some('I') => Color32::DARK_GRAY,
+                                    Some('D') => Color32::from_gray(120), // medium gray
+                                    Some('T') => Color32::from_gray(150), // lighter gray
+                                    _ => Color32::PURPLE,
+                                },
+                                ..Default::default()
+                            },
+                        );
+                        ui.label(job);
+                    }
                 });
-
-            ui.add_space(5.);
         });
 }

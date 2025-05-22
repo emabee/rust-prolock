@@ -19,7 +19,7 @@ pub(super) fn panels_for_actionable_ui(
     controller: &mut Controller,
     ctx: &Context,
 ) {
-    top_panels::panel_with_tabs(v, controller, ctx);
+    top_panels::panel_with_tabs(v, documents, controller, ctx);
     top_panels::panel_with_create_and_filter(v, controller, ctx);
 
     match v.main_state {

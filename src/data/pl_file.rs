@@ -173,7 +173,8 @@ impl PlFile {
             self.o_transient = Some(
                 Transient::from_cipher(password, &self.stored.readable, &self.stored.cipher)
                     .context(format!(
-                        "{}\n  {}\n  {}",
+                        "{}\n{}\n  {}\n  {}",
+                        jiff::Timestamp::now(),
                         t!("_decryption_failed"),
                         t!("_decryption_failed_note1"),
                         t!("_decryption_failed_note2")
@@ -220,8 +221,8 @@ impl PlFile {
     {
         if self.stored.readable.documents.contains_key(key.as_ref()) {
             Err(anyhow!(t!(
-                "add_document: document %{b} exists already",
-                b = key.as_ref()
+                "add_document: document %{name} exists already",
+                name = key.as_ref()
             )))
         } else {
             self.stored.readable.documents.add(key, document)?;
@@ -420,11 +421,10 @@ impl PlFile {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
         if self.has_bundle(&edit_bundle.name) {
-            // FIXME i18n
-            return Err(anyhow!(
-                "a bundle with name {} exists already",
-                &edit_bundle.name
-            ));
+            return Err(anyhow!(t!(
+                "add_bundle: bundle %{name} exists already",
+                name = &edit_bundle.name
+            )));
         }
         let lock = self.lock_for_save()?;
         let (_orig_name, name, bundle) =
@@ -436,12 +436,10 @@ impl PlFile {
 
     pub fn save_with_deleted_bundle(&mut self, name: String) -> Result<()> {
         if name.is_empty() {
-            // FIXME i18n
-            return Err(anyhow!("internal error: can't save with empty name"));
+            return Err(anyhow!(t!("internal error: can't save with empty name")));
         }
         if !self.has_bundle(&name) {
-            // FIXME i18n
-            return Err(anyhow!("a bundle with name {name} does not exist"));
+            return Err(anyhow!(t!("_bundle_does_not_exist %{name}", name = name)));
         }
         let lock = self.lock_for_save()?;
         self.delete_bundle(name)?;
@@ -452,8 +450,7 @@ impl PlFile {
         let lock = self.lock_for_save()?;
 
         if edit_bundle.name.is_empty() {
-            // FIXME i18n
-            return Err(anyhow!("internal error: can't save with empty name"));
+            return Err(anyhow!(t!("internal error: can't save with empty name")));
         }
 
         if edit_bundle.name != edit_bundle.orig_name && self.has_bundle(&edit_bundle.name) {
@@ -504,11 +501,10 @@ impl PlFile {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
         if self.has_document(&edit_document.name) {
-            // FIXME i18n
-            return Err(anyhow!(
-                "a document with name {} exists already",
-                &edit_document.name
-            ));
+            return Err(anyhow!(t!(
+                "add_document: document %{name} exists already",
+                name = &edit_document.name
+            )));
         }
         let lock = self.lock_for_save()?;
         let (_orig_name, name, document) =
@@ -520,12 +516,10 @@ impl PlFile {
 
     pub fn save_with_deleted_document(&mut self, name: String) -> Result<()> {
         if name.is_empty() {
-            // FIXME i18n
-            return Err(anyhow!("internal error: can't save with empty name"));
+            return Err(anyhow!(t!("internal error: can't save with empty name")));
         }
         if !self.has_document(&name) {
-            // FIXME i18n
-            return Err(anyhow!("a document with name {name} does not exist"));
+            return Err(anyhow!(t!("_document_does_not_exist %{name}", name = name)));
         }
         let lock = self.lock_for_save()?;
         self.delete_document(name)?;
@@ -536,14 +530,13 @@ impl PlFile {
         let lock = self.lock_for_save()?;
 
         if edit_document.name.is_empty() {
-            // FIXME i18n
-            return Err(anyhow!("internal error: can't save with empty name"));
+            return Err(anyhow!(t!("internal error: can't save with empty name")));
         }
 
         if edit_document.name != edit_document.orig_name && self.has_document(&edit_document.name) {
             return Err(anyhow!(t!(
-                "add_document: document %{b} exists already",
-                b = &edit_document.name
+                "add_document: document %{name} exists already",
+                name = &edit_document.name
             )));
         }
 

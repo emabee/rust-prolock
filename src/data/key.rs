@@ -2,9 +2,9 @@ use std::fmt::{Display, Formatter};
 
 // We use a newtype pattern to ensure that we only compare bundle keys in a case-insensitive way.
 // This is important because the bundle keys are used as keys in a BTreeMap.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
-pub(super) struct Key(String);
+pub struct Key(pub String);
 impl Key {
     pub fn new<S>(s: S) -> Self
     where
@@ -15,7 +15,16 @@ impl Key {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    pub fn as_mut(&mut self) -> &mut String {
+        &mut self.0
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
+
 impl From<String> for Key {
     fn from(s: String) -> Self {
         Key(s)
@@ -31,24 +40,9 @@ impl AsRef<str> for Key {
         &self.0
     }
 }
-impl PartialEq<str> for Key {
-    fn eq(&self, other: &str) -> bool {
-        self.0.eq_ignore_ascii_case(other)
-    }
-}
-impl PartialEq<String> for Key {
-    fn eq(&self, other: &String) -> bool {
-        self.0.eq_ignore_ascii_case(other)
-    }
-}
-impl PartialEq<Key> for String {
+impl PartialEq<Key> for Key {
     fn eq(&self, other: &Key) -> bool {
-        self.eq_ignore_ascii_case(&other.0)
-    }
-}
-impl PartialEq<Key> for &str {
-    fn eq(&self, other: &Key) -> bool {
-        self.eq_ignore_ascii_case(&other.0)
+        self.0.eq_ignore_ascii_case(&other.0)
     }
 }
 impl Ord for Key {

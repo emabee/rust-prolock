@@ -19,7 +19,7 @@ pub fn edit(
     });
 }
 
-fn left_part(edit: &mut VEditBundle, error: Option<&str>, left_builder: StripBuilder<'_>) {
+fn left_part(v_edit_bundle: &mut VEditBundle, error: Option<&str>, left_builder: StripBuilder<'_>) {
     left_builder
         .size(Size::exact(15.))
         .size(Size::exact(40.))
@@ -28,18 +28,17 @@ fn left_part(edit: &mut VEditBundle, error: Option<&str>, left_builder: StripBui
             //name
             left_strip.cell(|ui| {
                 let response = ui.add(
-                    TextEdit::singleline(&mut edit.name)
+                    TextEdit::singleline(v_edit_bundle.key.as_mut())
                         .hint_text(t!("_unique_bundle_name"))
                         .desired_width(400.)
                         .clip_text(true)
                         .font(FontId {
                             size: 16.,
                             family: FontFamily::Proportional,
-                        })
-                        .interactive(true),
+                        }),
                 );
-                if edit.request_focus {
-                    edit.request_focus = false;
+                if v_edit_bundle.request_focus {
+                    v_edit_bundle.request_focus = false;
                     response.request_focus();
                 }
             });
@@ -49,7 +48,7 @@ fn left_part(edit: &mut VEditBundle, error: Option<&str>, left_builder: StripBui
                 ScrollArea::vertical().show(ui, |ui| {
                     ui.add_sized(
                         [400., 80.],
-                        TextEdit::multiline(&mut edit.description)
+                        TextEdit::multiline(&mut v_edit_bundle.description)
                             .hint_text(t!("Further description (optional)"))
                             .interactive(true),
                     );

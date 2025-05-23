@@ -1,7 +1,8 @@
 use crate::{
     PlFile, Settings,
+    data::Key,
     ui::viz::{
-        BundleState, DocId, DocumentState, MainState, ModalState, Pw, PwFocus, V, VEditBundle,
+        BundleState, DocumentState, MainState, ModalState, Pw, PwFocus, V, VEditBundle,
         VEditDocument,
     },
 };
@@ -26,7 +27,7 @@ impl Controller {
     #[allow(clippy::too_many_lines)]
     pub fn act(&mut self, pl_file: &mut PlFile, v: &mut V, settings: &mut Settings) {
         let action = std::mem::take(&mut self.next_action);
-        action.log();
+        action.log(&v.main_state, &v.modal_state);
 
         match (&mut v.main_state, &mut v.modal_state, action) {
             (_, ModalState::None, Action::None) => {}
@@ -107,7 +108,7 @@ impl Controller {
                         v.find.request_focus = true;
                     }
                     Err(e) => {
-                        // TODO put cursor to the pw field and mark all entered text to facilitate repetition
+                        // TODO mark all entered text to facilitate repetition
                         v.pw.focus = PwFocus::Pw1;
                         let s = e.to_string();
                         log::error!("{s}");
@@ -157,12 +158,11 @@ impl Controller {
                     v_edit_bundle,
                     error,
                 },
-                Action::FinalizeAddBundle,
+                Action::FinalizeAddBundle(key),
             ) => match pl_file.save_with_added_bundle(v_edit_bundle) {
                 Ok(()) => {
-                    let name = v_edit_bundle.name.clone();
-                    v.reset_bundles(pl_file.bundles(), Some(&name));
                     v.modal_state.close_modal();
+                    v.reset_bundles(pl_file.bundles(), Some(&key));
                 }
                 Err(e) => {
                     let s = e.to_string();
@@ -174,14 +174,13 @@ impl Controller {
             (
                 MainState::Bundles(BundleState::Default),
                 ModalState::None,
-                Action::StartModifyBundle(index, name),
+                Action::StartModifyBundle(key),
             ) => {
                 v.modal_state = ModalState::None;
                 v.main_state = MainState::Bundles(BundleState::ModifyBundle {
-                    idx: index,
                     v_edit_bundle: VEditBundle::from_bundle(
-                        &name,
-                        pl_file.bundles().get(&name).unwrap(/*OK*/),
+                        &key,
+                        pl_file.bundles().get(&key).unwrap(/*OK*/),
                         pl_file.transient().unwrap(/*OK*/),
                     ),
                     error: None,
@@ -189,7 +188,6 @@ impl Controller {
             }
             (
                 MainState::Bundles(BundleState::ModifyBundle {
-                    idx: _,
                     v_edit_bundle: bundle,
                     error,
                 }),
@@ -208,24 +206,26 @@ impl Controller {
                 }
 
                 v.reset_bundles(pl_file.bundles(), None);
+                v.main_state = MainState::Bundles(BundleState::Default);
+                v.modal_state = ModalState::None;
             }
 
             (
                 MainState::Bundles(BundleState::Default),
                 ModalState::None,
-                Action::StartDeleteBundle(name),
+                Action::StartDeleteBundle(key),
             ) => {
                 v.modal_state = ModalState::DeleteBundle {
-                    name: name.clone(),
+                    key: key.clone(),
                     error: None,
                 };
             }
 
             (
                 MainState::Bundles(BundleState::Default),
-                ModalState::DeleteBundle { name, error },
+                ModalState::DeleteBundle { key, error },
                 Action::FinalizeDeleteBundle,
-            ) => match pl_file.save_with_deleted_bundle((*name).clone()) {
+            ) => match pl_file.save_with_deleted_bundle(key.clone()) {
                 Ok(()) => {
                     v.reset_bundles(pl_file.bundles(), None);
                     v.modal_state.close_modal();
@@ -254,11 +254,12 @@ impl Controller {
                     v_edit_document,
                     error,
                 },
-                Action::FinalizeAddDocument(name),
+                Action::FinalizeAddDocument(key),
             ) => match pl_file.save_with_added_document(v_edit_document) {
                 Ok(()) => {
                     v.modal_state.close_modal();
-                    v.reset_documents(pl_file.documents(), Some(&name));
+                    v.reset_documents(pl_file.documents(), Some(&key));
+                    v.main_state = MainState::Documents(DocumentState::Default(Some(key)));
                 }
                 Err(e) => {
                     let s = e.to_string();
@@ -270,13 +271,12 @@ impl Controller {
             (
                 MainState::Documents(DocumentState::Default(_)),
                 ModalState::None,
-                Action::StartModifyDocument(doc_id),
+                Action::StartModifyDocument(key),
             ) => {
                 v.main_state = MainState::Documents(DocumentState::ModifyDocument {
-                    idx: doc_id.idx(),
                     v_edit_document: VEditDocument::from_document(
-                        doc_id.name(),
-                        pl_file.documents().get(doc_id.name()).unwrap(/*OK*/),
+                        &key,
+                        pl_file.documents().get(&key).unwrap(/*OK*/),
                         pl_file.transient().unwrap(/*OK*/),
                     ),
                     error: None,
@@ -285,7 +285,6 @@ impl Controller {
 
             (
                 MainState::Documents(DocumentState::ModifyDocument {
-                    idx,
                     v_edit_document,
                     error,
                 }),
@@ -303,27 +302,23 @@ impl Controller {
                     }
                 }
 
-                let name = v_edit_document.name.clone();
                 v.main_state =
-                    MainState::Documents(DocumentState::Default(Some(DocId(*idx, name))));
+                    MainState::Documents(DocumentState::Default(Some(v_edit_document.key.clone())));
                 v.reset_documents(pl_file.documents(), None);
             }
 
             (
                 MainState::Documents(DocumentState::Default(_)),
                 ModalState::None,
-                Action::StartDeleteDocument(name),
+                Action::StartDeleteDocument(key),
             ) => {
-                v.modal_state = ModalState::DeleteDocument {
-                    name: name.clone(),
-                    error: None,
-                };
+                v.modal_state = ModalState::DeleteDocument { key, error: None };
             }
             (
                 MainState::Documents(DocumentState::Default(_)),
-                ModalState::DeleteDocument { name, error },
+                ModalState::DeleteDocument { key, error },
                 Action::FinalizeDeleteDocument,
-            ) => match pl_file.save_with_deleted_document(name.clone()) {
+            ) => match pl_file.save_with_deleted_document(key) {
                 Ok(()) => {
                     v.reset_documents(pl_file.documents(), None);
                     v.modal_state.close_modal();
@@ -339,7 +334,15 @@ impl Controller {
                 v.modal_state.close_modal();
                 v.main_state = match v.main_state {
                     MainState::Bundles(_) => MainState::Bundles(BundleState::Default),
-                    MainState::Documents(_) => MainState::Documents(DocumentState::Default(None)),
+                    MainState::Documents(DocumentState::ModifyDocument {
+                        ref v_edit_document,
+                        ..
+                    }) => MainState::Documents(DocumentState::Default(Some(
+                        v_edit_document.key.clone(),
+                    ))),
+                    MainState::Documents(DocumentState::Default(_)) => {
+                        MainState::Documents(DocumentState::Default(None))
+                    }
                 };
             }
 
@@ -389,28 +392,28 @@ pub(crate) enum Action {
     FinalizeChangeLanguage,
 
     StartAddBundle,
-    FinalizeAddBundle,
+    FinalizeAddBundle(Key),
 
-    StartModifyBundle(usize, String),
+    StartModifyBundle(Key),
     FinalizeModifyBundle,
 
-    StartDeleteBundle(String),
+    StartDeleteBundle(Key),
     FinalizeDeleteBundle,
 
     StartAddDocument,
-    FinalizeAddDocument(String),
+    FinalizeAddDocument(Key),
 
-    StartModifyDocument(DocId),
+    StartModifyDocument(Key),
     FinalizeModifyDocument,
 
-    StartDeleteDocument(String),
+    StartDeleteDocument(Key),
     FinalizeDeleteDocument,
 
     Cancel,
     SilentCancel,
 }
 impl Action {
-    fn log(&self) {
+    fn log(&self, main_state: &MainState, modal_state: &ModalState) {
         match self {
             Action::None | Action::StartFilter | Action::ShowLog | Action::SilentCancel => {}
 
@@ -423,8 +426,8 @@ impl Action {
             | Action::StartChangeLanguage
             | Action::FinalizeChangeLanguage
             | Action::StartAddBundle
-            | Action::FinalizeAddBundle
-            | Action::StartModifyBundle(_, _)
+            | Action::FinalizeAddBundle(_)
+            | Action::StartModifyBundle(_)
             | Action::FinalizeModifyBundle
             | Action::StartDeleteBundle(_)
             | Action::FinalizeDeleteBundle
@@ -435,8 +438,8 @@ impl Action {
             | Action::StartDeleteDocument(_)
             | Action::FinalizeDeleteDocument
             | Action::Cancel
-            | Action::FinalizeChangePassword { old: _, new: _ } => {
-                log::info!("[Action::{self:?}]");
+            | Action::FinalizeChangePassword { .. } => {
+                log::info!("[Action::{self:?}] [{main_state:?}] [{modal_state:?}]");
             }
         }
     }

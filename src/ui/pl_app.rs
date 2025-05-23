@@ -1,7 +1,7 @@
 use crate::{
     data::{PlFile, Settings},
     ui::{
-        actionable::panels_for_actionable_ui,
+        main_ui::main_ui,
         controller::Controller,
         modals::{
             change_file, change_language, change_password, create_bundle, create_document,
@@ -60,11 +60,8 @@ impl App for PlApp {
             } => {
                 create_bundle(bundle, error.as_deref(), &mut self.controller, ctx);
             }
-            ModalState::DeleteBundle {
-                ref name,
-                ref error,
-            } => {
-                delete_bundle(name, error.as_deref(), &mut self.controller, ctx);
+            ModalState::DeleteBundle { ref key, ref error } => {
+                delete_bundle(key, error.as_deref(), &mut self.controller, ctx);
             }
 
             ModalState::AddDocument {
@@ -73,11 +70,8 @@ impl App for PlApp {
             } => {
                 create_document(v_edit_document, error, &mut self.controller, ctx);
             }
-            ModalState::DeleteDocument {
-                ref name,
-                ref error,
-            } => {
-                delete_document(name, error.as_deref(), &mut self.controller, ctx);
+            ModalState::DeleteDocument { ref key, ref error } => {
+                delete_document(key, error.as_deref(), &mut self.controller, ctx);
             }
 
             ModalState::About => {
@@ -111,7 +105,7 @@ impl App for PlApp {
 
         // show the main UI
         if let Some(transient) = self.pl_file.transient() {
-            panels_for_actionable_ui(
+            main_ui(
                 self.pl_file.bundles(),
                 self.pl_file.documents(),
                 transient,

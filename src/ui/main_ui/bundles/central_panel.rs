@@ -1,11 +1,11 @@
 use crate::{
-    data::{Bundle, Bundles, Transient},
+    data::{Bundle, Bundles, Key, Transient},
     ui::{
-        actionable::bundles::{
+        controller::Controller,
+        main_ui::bundles::{
             active_buttons_edit_and_delete, active_buttons_save_and_cancel,
             inactive_buttons_edit_and_delete,
         },
-        controller::Controller,
         sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_BUTTONS, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
         viz::{BundleState, MainState, V, VBundle, VEditBundle},
     },
@@ -43,17 +43,18 @@ pub fn central_panel(
                             usize::max(1, v.visible_bundles()),
                         )
                         .vertical(|mut bundle_strip| {
-                            for (index, (name, bundle)) in bundles.iter().enumerate() {
-                                let v_bundle = &mut v.bundles[index];
+                            let mut alternate = false;
+                            for (key, bundle) in bundles.iter() {
+                                alternate = !alternate;
+                                let v_bundle = v.bundles.get_mut(key).unwrap();
                                 if !v_bundle.suppressed {
                                     let mut done = false;
                                     if let MainState::Bundles(BundleState::ModifyBundle {
-                                        idx,
                                         ref mut v_edit_bundle,
                                         ref error,
                                     }) = v.main_state
                                     {
-                                        if idx == index {
+                                        if *key == v_edit_bundle.orig_key {
                                             bundle_strip.strip(|bundle_builder| {
                                                 edit_a_bundle_with_buttons(
                                                     bundle_builder,
@@ -70,10 +71,10 @@ pub fn central_panel(
                                             show_a_bundle_with_buttons(
                                                 ctx,
                                                 bundle_builder,
-                                                index,
                                                 bundle,
                                                 v_bundle,
-                                                name,
+                                                key,
+                                                alternate,
                                                 transient,
                                                 v.modal_state.no_modal_is_open(),
                                                 controller,
@@ -110,10 +111,10 @@ fn edit_a_bundle_with_buttons(
 fn show_a_bundle_with_buttons(
     ctx: &Context,
     bundle_builder: StripBuilder<'_>,
-    index: usize,
     bundle: &Bundle,
     v_bundle: &mut VBundle,
-    name: &str,
+    key: &Key,
+    alternate: bool,
     transient: &Transient,
     show_active_buttons: bool,
     controller: &mut Controller,
@@ -125,17 +126,17 @@ fn show_a_bundle_with_buttons(
         .horizontal(|mut inner_bundle_strip| {
             inner_bundle_strip.cell(|ui| {
                 if show_active_buttons {
-                    active_buttons_edit_and_delete(ui, index, name, controller);
+                    active_buttons_edit_and_delete(ui, key, controller);
                 } else {
                     inactive_buttons_edit_and_delete(ui);
                 }
             });
-            super::show(
+            super::show_bundle(
                 ctx,
-                index,
                 bundle,
                 v_bundle,
-                name,
+                key,
+                alternate,
                 transient,
                 &mut inner_bundle_strip,
             );

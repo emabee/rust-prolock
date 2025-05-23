@@ -1,15 +1,13 @@
-use crate::ui::{
-    IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK,
-    controller::{Action, Controller},
+use crate::{
+    data::Key,
+    ui::{
+        IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK,
+        controller::{Action, Controller},
+    },
 };
 use egui::{Button, Color32, Image, Ui};
 
-pub fn active_buttons_edit_and_delete(
-    ui: &mut Ui,
-    index: usize,
-    name: &str,
-    controller: &mut Controller,
-) {
+pub fn active_buttons_edit_and_delete(ui: &mut Ui, key: &Key, controller: &mut Controller) {
     if ui
         .add(
             Button::image(
@@ -24,7 +22,7 @@ pub fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        controller.set_action(Action::StartModifyBundle(index, name.to_string()));
+        controller.set_action(Action::StartModifyBundle(key.clone()));
     }
 
     ui.add_space(5.);
@@ -43,7 +41,7 @@ pub fn active_buttons_edit_and_delete(
         })
         .clicked()
     {
-        controller.set_action(Action::StartDeleteBundle(name.to_string()));
+        controller.set_action(Action::StartDeleteBundle(key.clone()));
     }
 }
 

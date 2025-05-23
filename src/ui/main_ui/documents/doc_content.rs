@@ -1,6 +1,6 @@
 use crate::{
     data::{Documents, Transient},
-    ui::viz::{DocId, DocumentState},
+    ui::viz::DocumentState,
 };
 use egui::{Color32, FontFamily, FontId, ScrollArea, TextEdit, Ui, Vec2};
 
@@ -12,9 +12,9 @@ pub fn doc_content(
 ) {
     match doc_state {
         DocumentState::Default(o_selected) => {
-            if let Some(DocId(_index, name)) = o_selected {
+            if let Some(key) = o_selected {
                 ScrollArea::both().show(ui, |ui| {
-                    let text = documents.get(name).unwrap(/*OKish*/).text(transient);
+                    let text = documents.get(key).unwrap(/*OKish*/).text(transient);
                     ui.add_sized(
                         ui.available_size() - Vec2 { x: 25., y: 5. },
                         TextEdit::multiline(&mut text.to_string())
@@ -25,7 +25,6 @@ pub fn doc_content(
             }
         }
         DocumentState::ModifyDocument {
-            idx: _,
             v_edit_document,
             error: _,
         } => {
@@ -35,7 +34,7 @@ pub fn doc_content(
                     TextEdit::multiline(&mut v_edit_document.text)
                         .hint_text(t!("Protected text"))
                         .font(FontId::new(12., FontFamily::Monospace))
-                        .background_color(Color32::from_black_alpha(1)),
+                        .background_color(Color32::WHITE),
                 );
             });
         }

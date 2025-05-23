@@ -1,22 +1,22 @@
 use super::buttons::active_buttons_save_and_cancel;
 use crate::{
-    data::Document,
+    data::{Document, Key},
     ui::{
-        actionable::documents::buttons::{
+        controller::Controller,
+        main_ui::documents::buttons::{
             active_buttons_edit_and_delete, inactive_buttons_edit_and_delete,
         },
-        controller::Controller,
         show_error,
-        viz::{DocId, DocumentState, OSelected, VDocument, VEditDocument},
+        viz::{DocumentState, OSelected, VDocument, VEditDocument},
     },
 };
-use egui::{Color32, FontFamily, FontId, RichText, TextEdit, Ui};
+use egui::{Align, Color32, FontFamily, FontId, RichText, TextEdit, Ui};
 
 pub fn doc_header(
     doc_state: &mut DocumentState,
     controller: &mut Controller,
     doc_strip: &mut egui_extras::Strip<'_, '_>,
-    doc_id: &DocId,
+    key: &Key,
     document: &Document,
     v_document: &mut VDocument,
     show_buttons_active: bool,
@@ -27,12 +27,11 @@ pub fn doc_header(
             show_buttons_active && !matches!(doc_state, DocumentState::ModifyDocument { .. });
 
         if let DocumentState::ModifyDocument {
-            idx,
             v_edit_document,
             error,
         } = doc_state
         {
-            if *idx == doc_id.0 {
+            if *key == v_edit_document.orig_key {
                 doc_strip.cell(|ui| {
                     edit_doc_header(v_edit_document, error.as_deref(), controller, ui);
                 });
@@ -48,9 +47,10 @@ pub fn doc_header(
 
             doc_strip.cell(|ui| {
                 show_doc_header(
-                    doc_id,
+                    key,
                     show_buttons_active,
                     document,
+                    v_document,
                     o_selected_doc,
                     controller,
                     ui,
@@ -68,7 +68,7 @@ fn edit_doc_header(
 ) {
     ui.horizontal(|ui| {
         ui.add(
-            TextEdit::multiline(&mut v_edit_document.name)
+            TextEdit::multiline(&mut v_edit_document.key.0)
                 .hint_text(t!("_unique_document_name"))
                 .font(FontId::new(18., FontFamily::Proportional))
                 .desired_width(290.)
@@ -89,35 +89,37 @@ fn edit_doc_header(
 }
 
 fn show_doc_header(
-    doc_id: &DocId,
+    key: &Key,
     show_buttons_active: bool,
     document: &Document,
+    v_document: &mut VDocument,
     selected_doc: &mut OSelected,
     controller: &mut Controller,
     ui: &mut Ui,
 ) {
-    let show_as_selected = selected_doc
-        .as_ref()
-        .is_some_and(|DocId(idx, _name)| *idx == doc_id.idx());
-    let mut name1 = doc_id.name();
+    let show_as_selected = selected_doc.as_ref().is_some_and(|k| k == key);
 
     ui.horizontal(|ui| {
-        if ui
-            .add(
-                TextEdit::multiline(&mut name1)
-                    .font(FontId::new(18., FontFamily::Monospace))
-                    .text_color(if show_as_selected {
-                        Color32::BLACK
-                    } else {
-                        Color32::GRAY
-                    })
-                    .desired_width(290.)
-                    .desired_rows(1),
-            )
-            .clicked()
-        {
-            log::info!("Clicked on document header: {}", doc_id.name());
-            *selected_doc = Some(DocId(doc_id.idx(), doc_id.name().to_string()));
+        let response = ui.add(
+            TextEdit::multiline(&mut key.as_str())
+                .font(FontId::new(18., FontFamily::Monospace))
+                .text_color(if show_as_selected {
+                    Color32::BLACK
+                } else {
+                    Color32::GRAY
+                })
+                .desired_width(290.)
+                .desired_rows(1),
+        );
+
+        if v_document.scroll_to {
+            v_document.scroll_to = false;
+            response.scroll_to_me(Some(Align::Center));
+        }
+
+        if response.clicked() {
+            log::info!("Clicked on document header: {}", key.0);
+            *selected_doc = Some(key.clone());
         }
 
         ui.add_space(4.);
@@ -125,7 +127,7 @@ fn show_doc_header(
         if show_as_selected {
             ui.add_space(-4.);
             if show_buttons_active {
-                active_buttons_edit_and_delete(ui, doc_id, controller);
+                active_buttons_edit_and_delete(ui, key, controller);
             } else {
                 inactive_buttons_edit_and_delete(ui);
             }

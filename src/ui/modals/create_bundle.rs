@@ -1,10 +1,13 @@
-use crate::ui::{
-    IMG_CANCEL, IMG_SAVE,
-    colors::{COLOR_SECRET, COLOR_USER},
-    controller::{Action, Controller},
-    show_error,
-    sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
-    viz::{VEditBundle, VEditCred},
+use crate::{
+    data::Key,
+    ui::{
+        IMG_CANCEL, IMG_SAVE,
+        colors::{COLOR_SECRET, COLOR_USER},
+        controller::{Action, Controller},
+        show_error,
+        sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
+        viz::{VEditBundle, VEditCred},
+    },
 };
 use egui::{
     Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, ScrollArea, Sides,
@@ -57,7 +60,8 @@ pub fn create_bundle(
                     )
                     .clicked()
                 {
-                    controller.set_action(Action::FinalizeAddBundle);
+                    controller
+                        .set_action(Action::FinalizeAddBundle(Key::from(bundle.key.as_str())));
                 }
 
                 if ui
@@ -96,7 +100,7 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
             //name
             left_strip.cell(|ui| {
                 let response = ui.add(
-                    TextEdit::singleline(&mut edit_bundle.name)
+                    TextEdit::singleline(edit_bundle.key.as_mut())
                         .hint_text(t!("_unique_bundle_name"))
                         .desired_width(400.)
                         .clip_text(true)

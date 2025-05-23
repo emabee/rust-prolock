@@ -1,10 +1,10 @@
 use crate::{
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
-    data::{Bundle, Bundles, Cred, Document, Documents, Secret, Transient},
+    data::{Bundle, Bundles, Cred, Document, Documents, Key, Secret, Transient},
 };
 use flexi_logger::Snapshot;
 use fuzzy_matcher::clangd::fuzzy_match;
-use std::time::Instant;
+use std::{collections::BTreeMap, time::Instant};
 
 #[derive(Default)]
 pub struct V {
@@ -12,8 +12,8 @@ pub struct V {
     pub modal_state: ModalState,
     pub show_log: bool,
 
-    pub bundles: Vec<VBundle>,
-    pub documents: Vec<VDocument>,
+    pub bundles: BTreeMap<Key, VBundle>,
+    pub documents: BTreeMap<Key, VDocument>,
 
     pub file_selection: FileSelection,
     pub pw: Pw,
@@ -23,32 +23,42 @@ pub struct V {
     pub logger_snapshot: Snapshot,
 }
 impl V {
-    pub fn reset_bundles(&mut self, bundles: &Bundles, o_scroll_to: Option<&str>) {
+    pub fn reset_bundles(&mut self, bundles: &Bundles, o_scroll_to: Option<&Key>) {
         self.bundles = bundles
             .iter()
-            .map(|(name, bundle)| VBundle {
-                suppressed: false,
-                scroll_to: if let Some(s) = o_scroll_to {
-                    s == name
-                } else {
-                    false
-                },
-                v_creds: vec![VCred::default(); bundle.creds().len()],
+            .map(|(key, bundle)| {
+                (
+                    key.clone(),
+                    VBundle {
+                        suppressed: false,
+                        scroll_to: if let Some(k) = &o_scroll_to {
+                            *k == key
+                        } else {
+                            false
+                        },
+                        v_creds: vec![VCred::default(); bundle.creds().len()],
+                    },
+                )
             })
             .collect();
         self.apply_filter_to_bundles(bundles);
     }
 
-    pub fn reset_documents(&mut self, documents: &Documents, o_scroll_to: Option<&str>) {
+    pub fn reset_documents(&mut self, documents: &Documents, o_scroll_to: Option<&Key>) {
         self.documents = documents
             .iter()
-            .map(|(name, _document)| VDocument {
-                suppressed: false,
-                scroll_to: if let Some(s) = o_scroll_to {
-                    s == name
-                } else {
-                    false
-                },
+            .map(|(key, _document)| {
+                (
+                    key.clone(),
+                    VDocument {
+                        suppressed: false,
+                        scroll_to: if let Some(k) = &o_scroll_to {
+                            *k == key
+                        } else {
+                            false
+                        },
+                    },
+                )
             })
             .collect();
         self.apply_filter_to_documents(documents);
@@ -57,19 +67,21 @@ impl V {
     pub fn visible_bundles(&self) -> usize {
         self.bundles
             .iter()
-            .filter(|bundle| !bundle.suppressed)
+            .filter(|bundle| !bundle.1.suppressed)
             .count()
     }
 
     pub fn apply_filter_to_bundles(&mut self, bundles: &Bundles) {
-        for (vbundle, (name, bundle)) in self.bundles.iter_mut().zip(bundles.iter()) {
-            vbundle.apply_filter(name, bundle, &self.find.pattern);
+        for ((key1, vbundle), (key2, bundle)) in self.bundles.iter_mut().zip(bundles.iter()) {
+            assert_eq!(key1, key2);
+            vbundle.apply_filter(key2, bundle, &self.find.pattern);
         }
     }
 
     pub fn apply_filter_to_documents(&mut self, documents: &Documents) {
-        for (vdoc, name) in self.documents.iter_mut().zip(documents.iter_keys()) {
-            vdoc.apply_filter(name, &self.find.pattern);
+        for ((key1, vdoc), key2) in self.documents.iter_mut().zip(documents.iter_keys()) {
+            assert_eq!(key1, key2);
+            vdoc.apply_filter(key2, &self.find.pattern);
         }
     }
 }
@@ -93,31 +105,16 @@ pub enum BundleState {
     #[default]
     Default,
     ModifyBundle {
-        idx: usize,
         v_edit_bundle: VEditBundle,
         error: Option<String>,
     },
 }
 
-#[derive(Debug, Clone)]
-pub struct DocId(pub usize, pub String);
-impl DocId {
-    pub fn new(idx: usize, name: &str) -> Self {
-        Self(idx, name.to_string())
-    }
-    pub fn idx(&self) -> usize {
-        self.0
-    }
-    pub fn name(&self) -> &str {
-        &self.1
-    }
-}
-pub type OSelected = Option<DocId>;
+pub type OSelected = Option<Key>;
 #[derive(Debug)]
 pub enum DocumentState {
     Default(OSelected),
     ModifyDocument {
-        idx: usize,
         v_edit_document: VEditDocument,
         error: Option<String>,
     },
@@ -128,7 +125,7 @@ impl Default for DocumentState {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub enum ModalState {
     #[default]
     None,
@@ -137,7 +134,7 @@ pub enum ModalState {
         error: Option<String>,
     },
     DeleteBundle {
-        name: String,
+        key: Key,
         error: Option<String>,
     },
     AddDocument {
@@ -145,7 +142,7 @@ pub enum ModalState {
         error: Option<String>,
     },
     DeleteDocument {
-        name: String,
+        key: Key,
         error: Option<String>,
     },
     About,
@@ -257,8 +254,8 @@ pub struct VBundle {
     pub v_creds: Vec<VCred>,
 }
 impl VBundle {
-    pub fn apply_filter(&mut self, name: &str, bundle: &Bundle, pattern: &str) {
-        self.suppressed = fuzzy_match(name, pattern).is_none()
+    pub fn apply_filter(&mut self, key: &Key, bundle: &Bundle, pattern: &str) {
+        self.suppressed = fuzzy_match(key.as_str(), pattern).is_none()
             && fuzzy_match(bundle.description(), pattern).is_none();
     }
 }
@@ -269,8 +266,8 @@ pub struct VDocument {
     pub scroll_to: bool,
 }
 impl VDocument {
-    pub fn apply_filter(&mut self, name: &str, pattern: &str) {
-        self.suppressed = fuzzy_match(name, pattern).is_none();
+    pub fn apply_filter(&mut self, key: &Key, pattern: &str) {
+        self.suppressed = fuzzy_match(key.as_str(), pattern).is_none();
     }
 }
 
@@ -281,19 +278,16 @@ pub struct VCred {
 }
 
 pub struct VEditBundle {
-    pub orig_name: String,
-    pub name: String,
+    pub orig_key: Key,
+    pub key: Key,
     pub description: String,
     pub v_edit_creds: Vec<VEditCred>,
     pub request_focus: bool,
 }
 impl std::fmt::Debug for VEditBundle {
-    //
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VEditBundle")
-            .field("orig_name", &self.orig_name)
-            .field("name", &self.name)
-            .field("description", &self.description)
+            .field("key", &self.key.as_str())
             .field("request_focus", &self.request_focus)
             .finish_non_exhaustive()
     }
@@ -303,8 +297,8 @@ impl VEditBundle {
     pub fn new() -> Self {
         let mut instance = Self {
             request_focus: true,
-            orig_name: String::new(),
-            name: String::new(),
+            orig_key: Key::new(""),
+            key: Key::new(""),
             description: String::new(),
             v_edit_creds: Vec::new(),
         };
@@ -315,10 +309,10 @@ impl VEditBundle {
         instance
     }
 
-    pub fn from_bundle(name: &str, bundle: &Bundle, transient: &Transient) -> Self {
+    pub fn from_bundle(key: &Key, bundle: &Bundle, transient: &Transient) -> Self {
         let mut result = VEditBundle {
-            orig_name: name.to_string(),
-            name: name.to_string(),
+            orig_key: key.clone(),
+            key: key.clone(),
             description: bundle.description().to_string(),
             v_edit_creds: bundle
                 .creds()
@@ -336,10 +330,10 @@ impl VEditBundle {
         result
     }
 
-    pub fn as_oldname_newname_bundle(&self, transient: &mut Transient) -> (String, String, Bundle) {
+    pub fn as_oldkey_newkey_bundle(&self, transient: &mut Transient) -> (Key, Key, Bundle) {
         (
-            self.orig_name.to_string(),
-            self.name.to_string(),
+            Key::new(self.orig_key.to_string()),
+            Key::new(self.key.to_string()),
             Bundle::new(
                 self.description.clone(),
                 self.v_edit_creds
@@ -359,8 +353,8 @@ impl VEditBundle {
 
 #[derive(Default)]
 pub struct VEditDocument {
-    pub orig_name: String,
-    pub name: String,
+    pub orig_key: Key,
+    pub key: Key,
     pub text: String,
     pub request_focus: bool,
 }
@@ -368,8 +362,8 @@ impl std::fmt::Debug for VEditDocument {
     //
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VEditDocument")
-            .field("orig_name", &self.orig_name)
-            .field("name", &self.name)
+            .field("orig_key", &self.orig_key)
+            .field("key", &self.key)
             .field("request_focus", &self.request_focus)
             .finish_non_exhaustive()
     }
@@ -383,22 +377,19 @@ impl VEditDocument {
         }
     }
 
-    pub fn from_document(name: &str, document: &Document, transient: &Transient) -> Self {
+    pub fn from_document(key: &Key, document: &Document, transient: &Transient) -> Self {
         VEditDocument {
-            orig_name: name.to_string(),
-            name: name.to_string(),
+            orig_key: key.clone(),
+            key: key.clone(),
             text: document.secret().disclose(transient).to_string(),
             request_focus: true,
         }
     }
 
-    pub fn as_oldname_newname_document(
-        &self,
-        transient: &mut Transient,
-    ) -> (String, String, Document) {
+    pub fn as_oldkey_newkey_document(&self, transient: &mut Transient) -> (Key, Key, Document) {
         (
-            self.orig_name.to_string(),
-            self.name.to_string(),
+            self.orig_key.clone(),
+            self.key.clone(),
             Document::new(Secret::new(self.text.clone(), transient)),
         )
     }

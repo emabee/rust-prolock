@@ -1,5 +1,5 @@
 use crate::{
-    data::{Bundle, Bundles, Document, Documents, Secrets, Settings, Transient},
+    data::{Bundle, Bundles, Document, Documents, Key, Secrets, Settings, Transient},
     ui::viz::{VEditBundle, VEditDocument},
 };
 use anyhow::{Context, Result, anyhow};
@@ -149,12 +149,12 @@ impl PlFile {
         &self.stored.readable.header.update_counter
     }
 
-    pub fn has_bundle(&self, name: &str) -> bool {
-        self.stored.readable.bundles.contains_key(name)
+    pub fn has_bundle(&self, key: &Key) -> bool {
+        self.stored.readable.bundles.contains_key(key)
     }
 
-    pub fn has_document(&self, name: &str) -> bool {
-        self.stored.readable.documents.contains_key(name)
+    pub fn has_document(&self, key: &Key) -> bool {
+        self.stored.readable.documents.contains_key(key)
     }
 
     pub fn file_path(&self) -> String {
@@ -200,11 +200,8 @@ impl PlFile {
         Ok(())
     }
 
-    fn add_bundle<S>(&mut self, key: S, bundle: Bundle) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        if self.stored.readable.bundles.contains_key(key.as_ref()) {
+    fn add_bundle(&mut self, key: Key, bundle: Bundle) -> Result<()> {
+        if self.stored.readable.bundles.contains_key(&key) {
             Err(anyhow!(t!(
                 "add_bundle: bundle %{b} exists already",
                 b = key.as_ref()
@@ -215,11 +212,8 @@ impl PlFile {
         }
     }
 
-    fn add_document<S>(&mut self, key: S, document: Document) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        if self.stored.readable.documents.contains_key(key.as_ref()) {
+    fn add_document(&mut self, key: Key, document: Document) -> Result<()> {
+        if self.stored.readable.documents.contains_key(&key) {
             Err(anyhow!(t!(
                 "add_document: document %{name} exists already",
                 name = key.as_ref()
@@ -230,23 +224,23 @@ impl PlFile {
         }
     }
 
-    fn modify_bundle(&mut self, key: String, bundle: Bundle) -> Result<()> {
-        if self.stored.readable.bundles.contains_key(&key) {
+    fn modify_bundle(&mut self, key: &Key, bundle: Bundle) -> Result<()> {
+        if self.stored.readable.bundles.contains_key(key) {
             self.stored.readable.bundles.modify(key, bundle)
         } else {
             Err(anyhow!("modify_bundle: bundle '{key}' does not exist"))
         }
     }
 
-    fn modify_document(&mut self, key: String, document: Document) -> Result<()> {
-        if self.stored.readable.documents.contains_key(&key) {
+    fn modify_document(&mut self, key: &Key, document: Document) -> Result<()> {
+        if self.stored.readable.documents.contains_key(key) {
             self.stored.readable.documents.modify(key, document)
         } else {
             Err(anyhow!("modify_bundle: bundle '{key}' does not exist"))
         }
     }
 
-    fn delete_bundle(&mut self, key: String) -> Result<()> {
+    fn delete_bundle(&mut self, key: Key) -> Result<()> {
         if self.stored.readable.bundles.contains_key(&key) {
             match self.o_transient {
                 None => Err(anyhow!(t!("password_not_available"))),
@@ -261,8 +255,8 @@ impl PlFile {
         }
     }
 
-    fn delete_document(&mut self, key: String) -> Result<()> {
-        if self.stored.readable.documents.contains_key(&key) {
+    fn delete_document(&mut self, key: &Key) -> Result<()> {
+        if self.stored.readable.documents.contains_key(key) {
             match self.o_transient {
                 None => Err(anyhow!(t!("password_not_available"))),
                 Some(ref mut transient) => self
@@ -278,7 +272,7 @@ impl PlFile {
         }
     }
 
-    fn bundle_refs(&self, key: &str) -> Vec<u64> {
+    fn bundle_refs(&self, key: &Key) -> Vec<u64> {
         self.stored
             .readable
             .bundles
@@ -287,7 +281,7 @@ impl PlFile {
             .refs()
     }
 
-    fn document_ref(&self, key: &str) -> u64 {
+    fn document_ref(&self, key: &Key) -> u64 {
         self.stored
             .readable
             .documents
@@ -417,61 +411,61 @@ impl PlFile {
     }
 
     pub fn save_with_added_bundle(&mut self, edit_bundle: &VEditBundle) -> Result<()> {
-        if edit_bundle.name.is_empty() {
+        if edit_bundle.key.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
-        if self.has_bundle(&edit_bundle.name) {
+        if self.has_bundle(&Key::from(edit_bundle.key.as_str())) {
             return Err(anyhow!(t!(
                 "add_bundle: bundle %{name} exists already",
-                name = &edit_bundle.name
+                name = &edit_bundle.key
             )));
         }
         let lock = self.lock_for_save()?;
-        let (_orig_name, name, bundle) =
-            edit_bundle.as_oldname_newname_bundle(self.transient_mut().unwrap(/*OK*/));
+        let (_orig_key, key, bundle) =
+            edit_bundle.as_oldkey_newkey_bundle(self.transient_mut().unwrap(/*OK*/));
 
-        self.add_bundle(name, bundle)?;
+        self.add_bundle(key, bundle)?;
         self.save(lock)
     }
 
-    pub fn save_with_deleted_bundle(&mut self, name: String) -> Result<()> {
-        if name.is_empty() {
+    pub fn save_with_deleted_bundle(&mut self, key: Key) -> Result<()> {
+        if key.is_empty() {
             return Err(anyhow!(t!("internal error: can't save with empty name")));
         }
-        if !self.has_bundle(&name) {
-            return Err(anyhow!(t!("_bundle_does_not_exist %{name}", name = name)));
+        if !self.has_bundle(&key) {
+            return Err(anyhow!(t!("_bundle_does_not_exist %{name}", name = key)));
         }
         let lock = self.lock_for_save()?;
-        self.delete_bundle(name)?;
+        self.delete_bundle(key)?;
         self.save(lock)
     }
 
     pub fn save_with_updated_bundle(&mut self, edit_bundle: &VEditBundle) -> Result<()> {
         let lock = self.lock_for_save()?;
 
-        if edit_bundle.name.is_empty() {
+        if edit_bundle.key.is_empty() {
             return Err(anyhow!(t!("internal error: can't save with empty name")));
         }
 
-        if edit_bundle.name != edit_bundle.orig_name && self.has_bundle(&edit_bundle.name) {
+        if edit_bundle.key != edit_bundle.orig_key && self.has_bundle(&edit_bundle.key) {
             return Err(anyhow!(t!(
                 "add_bundle: bundle %{b} exists already",
-                b = &edit_bundle.name
+                b = &edit_bundle.key
             )));
         }
 
-        let (orig_name, name, bundle) =
-            edit_bundle.as_oldname_newname_bundle(self.transient_mut().unwrap(/*OK*/));
+        let (orig_key, key, bundle) =
+            edit_bundle.as_oldkey_newkey_bundle(self.transient_mut().unwrap(/*OK*/));
 
         // remember all previously used refs
-        let mut old_refs = self.bundle_refs(&orig_name);
+        let mut old_refs = self.bundle_refs(&orig_key);
         old_refs.sort_unstable();
 
-        if name == orig_name {
-            self.modify_bundle(name, bundle.clone())?;
+        if key.as_str() == orig_key.as_str() {
+            self.modify_bundle(&key, bundle.clone())?;
         } else {
-            self.add_bundle(name, bundle.clone())?;
-            self.delete_bundle(orig_name.to_string())?;
+            self.delete_bundle(orig_key)?;
+            self.add_bundle(key, bundle.clone())?;
         }
 
         // garbage-collect all now redundant secrets
@@ -495,62 +489,61 @@ impl PlFile {
         self.save(lock)
     }
 
-    ///////////////////
     pub fn save_with_added_document(&mut self, edit_document: &VEditDocument) -> Result<()> {
-        if edit_document.name.is_empty() {
+        if edit_document.key.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));
         }
-        if self.has_document(&edit_document.name) {
+        if self.has_document(&edit_document.key) {
             return Err(anyhow!(t!(
                 "add_document: document %{name} exists already",
-                name = &edit_document.name
+                name = &edit_document.key.0
             )));
         }
         let lock = self.lock_for_save()?;
-        let (_orig_name, name, document) =
-            edit_document.as_oldname_newname_document(self.transient_mut().unwrap(/*OK*/));
+        let (_orig_key, key, document) =
+            edit_document.as_oldkey_newkey_document(self.transient_mut().unwrap(/*OK*/));
 
-        self.add_document(name, document)?;
+        self.add_document(key, document)?;
         self.save(lock)
     }
 
-    pub fn save_with_deleted_document(&mut self, name: String) -> Result<()> {
-        if name.is_empty() {
+    pub fn save_with_deleted_document(&mut self, key: &Key) -> Result<()> {
+        if key.is_empty() {
             return Err(anyhow!(t!("internal error: can't save with empty name")));
         }
-        if !self.has_document(&name) {
-            return Err(anyhow!(t!("_document_does_not_exist %{name}", name = name)));
+        if !self.has_document(key) {
+            return Err(anyhow!(t!("_document_does_not_exist %{name}", name = key)));
         }
         let lock = self.lock_for_save()?;
-        self.delete_document(name)?;
+        self.delete_document(key)?;
         self.save(lock)
     }
 
     pub fn save_with_updated_document(&mut self, edit_document: &VEditDocument) -> Result<()> {
         let lock = self.lock_for_save()?;
 
-        if edit_document.name.is_empty() {
+        if edit_document.key.is_empty() {
             return Err(anyhow!(t!("internal error: can't save with empty name")));
         }
 
-        if edit_document.name != edit_document.orig_name && self.has_document(&edit_document.name) {
+        if edit_document.key != edit_document.orig_key && self.has_document(&edit_document.key) {
             return Err(anyhow!(t!(
                 "add_document: document %{name} exists already",
-                name = &edit_document.name
+                name = &edit_document.key
             )));
         }
 
-        let (orig_name, name, document) =
-            edit_document.as_oldname_newname_document(self.transient_mut().unwrap(/*OK*/));
+        let (orig_key, key, document) =
+            edit_document.as_oldkey_newkey_document(self.transient_mut().unwrap(/*OK*/));
 
         // remember the previously used ref
-        let old_ref = self.document_ref(&orig_name);
+        let old_ref = self.document_ref(&orig_key);
 
-        if name == orig_name {
-            self.modify_document(name, document.clone())?;
+        if key.as_str() == orig_key.as_str() {
+            self.modify_document(&key, document.clone())?;
         } else {
-            self.add_document(name, document.clone())?;
-            self.delete_document(orig_name.to_string())?;
+            self.delete_document(&orig_key)?;
+            self.add_document(key, document.clone())?;
         }
 
         // - remove the redundant old_ref from Secrets

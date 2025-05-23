@@ -1,26 +1,31 @@
 use crate::{
-    data::{Documents, Transient},
+    data::{Documents, Key, Transient},
     ui::{
-        actionable::documents::{doc_content::doc_content, doc_header::doc_header},
         controller::Controller,
+        main_ui::documents::{doc_content, doc_header},
         sizes::DOCUMENT_NAME_HEIGHT,
-        viz::{DocId, DocumentState, VDocument},
+        viz::{MainState, V, VDocument},
     },
 };
 use egui::{
     CentralPanel, Color32, Context, RichText, ScrollArea, scroll_area::ScrollBarVisibility,
 };
 use egui_extras::{Size, StripBuilder};
+use std::collections::BTreeMap;
 
 pub fn central_panel(
     documents: &Documents,
-    doc_state: &mut DocumentState,
-    show_buttons_active: bool,
     transient: &Transient,
-    v_documents: &mut [VDocument],
+    v: &mut V,
     controller: &mut Controller,
     ctx: &Context,
 ) {
+    let MainState::Documents(ref mut doc_state) = v.main_state else {
+        unreachable!()
+    };
+    let v_documents = &mut v.documents;
+    let show_buttons_active = v.modal_state.no_modal_is_open();
+
     CentralPanel::default().show(ctx, |ui| {
         if documents.is_empty() {
             ui.horizontal(|ui| {
@@ -48,16 +53,14 @@ pub fn central_panel(
                                         usize::max(1, visible_documents(v_documents)),
                                     )
                                     .vertical(|mut doc_strip| {
-                                        for (index, (name, document)) in
-                                            documents.iter().enumerate()
-                                        {
+                                        for (key, document) in documents.iter() {
                                             doc_header(
                                                 doc_state,
                                                 controller,
                                                 &mut doc_strip,
-                                                &DocId::new(index, name),
+                                                key,
                                                 document,
-                                                &mut v_documents[index],
+                                                v_documents.get_mut(key).unwrap(),
                                                 show_buttons_active,
                                             );
                                         }
@@ -73,6 +76,9 @@ pub fn central_panel(
     });
 }
 
-fn visible_documents(v_documents: &[VDocument]) -> usize {
-    v_documents.iter().filter(|vdoc| !vdoc.suppressed).count()
+fn visible_documents(v_documents: &BTreeMap<Key, VDocument>) -> usize {
+    v_documents
+        .iter()
+        .filter(|(_key, vdoc)| !vdoc.suppressed)
+        .count()
 }

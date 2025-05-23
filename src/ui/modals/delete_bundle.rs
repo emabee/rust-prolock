@@ -1,17 +1,15 @@
-use crate::ui::{
-    IMG_DELETE,
-    controller::{Action, Controller},
-    show_error,
-    sizes::MODAL_WIDTH,
+use crate::{
+    data::Key,
+    ui::{
+        IMG_DELETE,
+        controller::{Action, Controller},
+        show_error,
+        sizes::MODAL_WIDTH,
+    },
 };
 use egui::{Color32, Context, FontId, Image, Modal, RichText, Sides};
 
-pub fn delete_bundle(
-    name: &String,
-    error: Option<&str>,
-    controller: &mut Controller,
-    ctx: &Context,
-) {
+pub fn delete_bundle(key: &Key, error: Option<&str>, controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("delete_bundle".into()).show(ctx, |ui| {
         ui.set_width(MODAL_WIDTH);
 
@@ -33,7 +31,7 @@ pub fn delete_bundle(
 
                 ui.add_space(15.);
                 ui.label(
-                    RichText::new(t!("_really_delete", name = &name))
+                    RichText::new(t!("_really_delete", name = &key.0))
                         .font(FontId::proportional(14.0))
                         .color(Color32::DARK_RED),
                 );

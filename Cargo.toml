@@ -1,10 +1,11 @@
 [package]
 name = "prolock"
-version = "1.0.1"
+version = "1.1.0"
 edition = "2024"
 authors = ["emabee <meinolf.block-hd@t-online.de>"]
 description = """
-ProLock is a tool for securely storing secrets (like passwords) in a password-protected file.
+ProLock is a tool for securely storing secrets like passwords and plain text snippets
+in a password-protected file.
 """
 keywords = ["security", "encryption"]
 license = "MIT OR Apache-2.0"
@@ -26,7 +27,6 @@ dirs = "6.0"
 egui = { version = "0.31" }
 egui_extras = { version = "0.31", features = ["file", "image"] }
 eframe = { version = "0.31" }
-either = "1.13"
 fd-lock = "4.0.2"
 flexi_logger = { version = "0.30", features = ["buffer_writer"] }
 fuzzy-matcher = "0.3"

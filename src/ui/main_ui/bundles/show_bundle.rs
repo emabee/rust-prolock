@@ -1,5 +1,5 @@
 use crate::{
-    data::{Bundle, Cred, Transient},
+    data::{Bundle, Cred, Key, Transient},
     ui::{
         colors::{COLOR_SECRET, COLOR_USER},
         viz::{VBundle, VCred},
@@ -10,39 +10,32 @@ use egui::{
     TextStyle, Ui,
 };
 use egui_extras::{Size, Strip, StripBuilder};
-use either::Either;
 use jiff::Zoned;
 
-pub fn show(
+pub fn show_bundle(
     ctx: &Context,
-    index: usize,
     bundle: &Bundle,
     v_bundle: &mut VBundle,
-    name: &str,
+    key: &Key,
+    alternate: bool,
     transient: &Transient,
     inner_bundle_strip: &mut Strip<'_, '_>,
 ) {
     inner_bundle_strip.strip(|left_builder| {
-        ui_left_part(index, bundle, name, v_bundle, left_builder);
+        ui_left_part(bundle, key, v_bundle, left_builder, alternate);
     });
     inner_bundle_strip.strip(|right_builder| {
-        ui_right_part(index, bundle, transient, v_bundle, right_builder, ctx);
+        ui_right_part(bundle, alternate, transient, v_bundle, right_builder, ctx);
     });
 }
 
 fn ui_left_part(
-    index: usize,
     bundle: &Bundle,
-    name: &str,
+    key: &Key,
     v_bundle: &mut VBundle,
     left_builder: StripBuilder<'_>,
+    alternate: bool,
 ) {
-    let mut name2 = name;
-    let color = if index % 2 == 0 {
-        Either::Left(())
-    } else {
-        Either::Right(())
-    };
     left_builder
         .size(Size::exact(15.))
         .size(Size::exact(40.))
@@ -50,9 +43,9 @@ fn ui_left_part(
         .vertical(|mut left_strip| {
             //name
             left_strip.cell(|ui| {
-                set_faded_bg_color(ui, 95., color, true);
+                set_faded_bg_color(ui, 95., alternate, true);
                 let response = ui.add(
-                    TextEdit::singleline(&mut name2)
+                    TextEdit::singleline(&mut key.as_str())
                         .desired_width(330.)
                         .clip_text(true)
                         .font(TextStyle::Heading)
@@ -93,8 +86,8 @@ fn ui_left_part(
 }
 
 fn ui_right_part(
-    index: usize,
     bundle: &Bundle,
+    alternate: bool,
     transient: &Transient,
     v_bundle: &mut VBundle,
     right_builder: StripBuilder<'_>,
@@ -106,7 +99,7 @@ fn ui_right_part(
             let mut first = true;
             for (cred, v_cred) in bundle.creds().iter().zip(v_bundle.v_creds.iter_mut()) {
                 right_strip.strip(|cred_builder| {
-                    show_cred(first, index, cred, transient, v_cred, cred_builder, ctx);
+                    show_cred(first, alternate, cred, transient, v_cred, cred_builder, ctx);
                     first = false;
                 });
             }
@@ -115,25 +108,20 @@ fn ui_right_part(
 
 pub fn show_cred(
     first: bool,
-    index: usize,
+    alternate: bool,
     cred: &Cred,
     transient: &Transient,
     v_cred: &mut VCred,
     cred_builder: StripBuilder<'_>,
     ctx: &Context,
 ) {
-    let color_switch = if index % 2 == 0 {
-        Either::Left(())
-    } else {
-        Either::Right(())
-    };
     cred_builder
         .size(Size::exact(210.))
         .size(Size::exact(170.))
         .horizontal(|mut cred_strip| {
             cred_strip.cell(|ui| {
                 if first {
-                    set_faded_bg_color(ui, 95., color_switch, false);
+                    set_faded_bg_color(ui, 95., alternate, false);
                 }
                 ui.add(
                     TextEdit::singleline(&mut cred.name(transient))
@@ -145,7 +133,7 @@ pub fn show_cred(
             });
             cred_strip.cell(|ui| {
                 if first {
-                    set_faded_bg_color(ui, 95., color_switch, false);
+                    set_faded_bg_color(ui, 95., alternate, false);
                 }
                 let response = ui
                     .add(
@@ -181,9 +169,9 @@ pub fn show_cred(
         });
 }
 
-fn set_faded_bg_color(ui: &mut Ui, height: f32, color_switch: Either<(), ()>, left: bool) {
+fn set_faded_bg_color(ui: &mut Ui, height: f32, color_switch: bool, left: bool) {
     let bg_color = ui.visuals().window_fill();
-    let t = if color_switch.is_left() { 0.91 } else { 0.8 };
+    let t = if color_switch { 0.91 } else { 0.8 };
 
     let mut rect = ui.available_rect_before_wrap();
     rect.set_height(height);

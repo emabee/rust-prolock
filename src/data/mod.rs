@@ -19,7 +19,7 @@ pub(crate) use bundles::Bundles;
 pub(crate) use cred::Cred;
 pub(crate) use document::Document;
 pub(crate) use documents::Documents;
-use key::Key;
+pub(crate) use key::Key;
 pub(crate) use pl_file::{PlFile, Readable};
 pub(crate) use secret::Secret;
 pub(crate) use secrets::Secrets;

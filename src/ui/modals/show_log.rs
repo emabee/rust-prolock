@@ -1,5 +1,6 @@
 use egui::{
     Color32, Context, FontFamily, FontId, Pos2, ScrollArea, TextFormat, Window,
+    scroll_area::ScrollBarVisibility,
     text::{LayoutJob, TextWrapping},
 };
 use flexi_logger::{LoggerHandle, Snapshot};
@@ -22,6 +23,8 @@ pub fn show_log(
             ScrollArea::both()
                 .id_salt("action log")
                 .auto_shrink(false)
+                .scroll_bar_visibility(ScrollBarVisibility::AlwaysVisible)
+                .max_width(f32::INFINITY)
                 .stick_to_bottom(true)
                 .show(ui, |ui| {
                     for line in logger_snapshot.text.lines() {

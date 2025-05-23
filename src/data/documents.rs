@@ -15,24 +15,24 @@ impl Documents {
         self.0.len()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&str, &Document)> {
-        self.0.iter().map(|(k, v)| (k.as_str(), v))
+    pub fn iter(&self) -> impl Iterator<Item = (&Key, &Document)> {
+        self.0.iter()
     }
 
-    pub fn iter_keys(&self) -> impl Iterator<Item = &str> {
-        self.0.keys().map(Key::as_str)
+    pub fn iter_keys(&self) -> impl Iterator<Item = &Key> {
+        self.0.keys()
     }
 
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    pub fn get(&self, key: &str) -> Option<&Document> {
-        self.0.get(&Key::new(key))
+    pub fn get(&self, key: &Key) -> Option<&Document> {
+        self.0.get(key)
     }
 
-    pub fn contains_key(&self, key: &str) -> bool {
-        self.0.contains_key(&Key::new(key))
+    pub fn contains_key(&self, key: &Key) -> bool {
+        self.0.contains_key(key)
     }
 
     pub fn refs(&self) -> Vec<u64> {
@@ -41,11 +41,8 @@ impl Documents {
         refs
     }
 
-    pub fn add<S>(&mut self, key: S, document: Document) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        match self.0.entry(Key::new(key.as_ref())) {
+    pub fn add(&mut self, key: Key, document: Document) -> Result<()> {
+        match self.0.entry(key) {
             Entry::Vacant(vacant_entry) => {
                 vacant_entry.insert(document);
                 Ok(())
@@ -56,11 +53,8 @@ impl Documents {
         }
     }
 
-    pub fn modify<S>(&mut self, key: S, modified_document: Document) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        match self.0.get_mut(&Key::new(key.as_ref())) {
+    pub fn modify(&mut self, key: &Key, modified_document: Document) -> Result<()> {
+        match self.0.get_mut(key) {
             None => Err(anyhow!("document {} does not exist", key.as_ref())),
             Some(occupied_entry) => {
                 *occupied_entry = modified_document;
@@ -69,11 +63,8 @@ impl Documents {
         }
     }
 
-    pub fn remove_document_with_ref<S>(&mut self, key: S, transient: &mut Transient) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        match self.0.remove_entry(&Key::new(key.as_ref())) {
+    pub fn remove_document_with_ref(&mut self, key: &Key, transient: &mut Transient) -> Result<()> {
+        match self.0.remove_entry(key) {
             None => Err(anyhow!("key {} does not exist", key.as_ref())),
             Some((_key, secret)) => {
                 transient.remove_secret(secret.reff());

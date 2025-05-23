@@ -4,7 +4,7 @@ use crate::{
         IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_ERASE,
         controller::{Action, Controller},
         sizes::SEARCH_TEXT_WIDTH,
-        viz::{BundleState, DocId, DocumentState, MainState, V},
+        viz::{BundleState, DocumentState, MainState, V},
     },
 };
 use egui::{Button, Color32, Context, Image, RichText, TextEdit, TopBottomPanel};
@@ -56,7 +56,7 @@ pub(super) fn panel_with_tabs(
                     MainState::Documents(DocumentState::Default(if v.documents.is_empty() {
                         None
                     } else {
-                        Some(DocId(0, documents.iter().next().unwrap().0.to_string()))
+                        documents.iter().next().map(|(key, _)| key.clone())
                     }));
                 controller.set_action(Action::StartFilter);
             }

@@ -24,35 +24,32 @@ impl Bundles {
         self.0.len()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&str, &Bundle)> {
-        self.0.iter().map(|(k, v)| (k.as_str(), v))
+    pub fn iter(&self) -> impl Iterator<Item = (&Key, &Bundle)> {
+        self.0.iter()
     }
 
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
-    pub fn get(&self, key: &str) -> Option<&Bundle> {
-        self.0.get(&Key::new(key))
+    pub fn get(&self, key: &Key) -> Option<&Bundle> {
+        self.0.get(key)
     }
 
     pub fn count_secrets(&self) -> usize {
         self.0.values().map(|bundle| bundle.creds().len()).sum()
     }
 
-    pub fn contains_key(&self, key: &str) -> bool {
-        self.0.contains_key(&Key::new(key))
+    pub fn contains_key(&self, key: &Key) -> bool {
+        self.0.contains_key(key)
     }
 
     pub fn refs(&self) -> Box<dyn Iterator<Item = u64> + '_> {
         Box::new(self.0.values().flat_map(Bundle::refs))
     }
 
-    pub fn add<S>(&mut self, key: S, bundle: Bundle) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        match self.0.entry(Key::new(key.as_ref())) {
+    pub fn add(&mut self, key: Key, bundle: Bundle) -> Result<()> {
+        match self.0.entry(key) {
             Entry::Vacant(vacant_entry) => {
                 vacant_entry.insert(bundle);
                 Ok(())
@@ -63,11 +60,8 @@ impl Bundles {
         }
     }
 
-    pub fn modify<S>(&mut self, key: S, modified_bundle: Bundle) -> Result<()>
-    where
-        S: AsRef<str>,
-    {
-        match self.0.get_mut(&Key::new(key.as_ref())) {
+    pub fn modify(&mut self, key: &Key, modified_bundle: Bundle) -> Result<()> {
+        match self.0.get_mut(key) {
             None => Err(anyhow!("bundle {} does not exist", key.as_ref())),
             Some(bundle) => {
                 *bundle = modified_bundle;

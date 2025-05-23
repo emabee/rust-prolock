@@ -33,5 +33,5 @@ jobs:
       - name: Upload macOS app as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProLock.app for MacOS (Apple M)
+          name: ProLock.app
           path: target/release/bundle/osx/ProLock.app

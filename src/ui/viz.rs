@@ -98,6 +98,10 @@ impl MainState {
     pub fn is_documents(&self) -> bool {
         matches!(self, Self::Documents(_))
     }
+    pub fn tabs_and_create_ok(&self) -> bool {
+        matches!(self, MainState::Bundles(BundleState::Default))
+            || matches!(self, MainState::Documents(DocumentState::Default(_)))
+    }
 }
 
 #[derive(Debug, Default)]

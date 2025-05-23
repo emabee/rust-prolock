@@ -18,10 +18,13 @@ pub(super) fn panel_with_tabs(
     // two tabs: Bundles and Documents
     TopBottomPanel::top("panel_with_tabs").show(ctx, |ui| {
         ui.add_space(10.);
+
         ui.horizontal(|ui| {
             ui.add_space(14.);
             if ui
-                .add(
+                // disable the button when in edit mode
+                .add_enabled(
+                    v.main_state.tabs_and_create_ok(),
                     Button::new(
                         RichText::new(t!("Structured entries")).size(20.), // .line_height(Some(18.)),
                     )
@@ -39,7 +42,8 @@ pub(super) fn panel_with_tabs(
             }
             ui.add_space(4.);
             if ui
-                .add(
+                .add_enabled(
+                    v.main_state.tabs_and_create_ok(),
                     Button::new(
                         RichText::new(t!("Documents")).size(20.), // .line_height(Some(18.)),
                     )
@@ -71,9 +75,9 @@ pub(super) fn panel_with_create_and_filter(v: &mut V, controller: &mut Controlle
         ui.horizontal(|ui| {
             if ui
                 .add_enabled(
-                    v.modal_state.no_modal_is_open(),
+                    v.main_state.tabs_and_create_ok(),
                     Button::image(
-                        Image::new(if v.modal_state.no_modal_is_open() {
+                        Image::new(if v.main_state.tabs_and_create_ok() {
                             IMG_ADD_ENTRY
                         } else {
                             IMG_ADD_ENTRY_INACTIVE
@@ -96,7 +100,8 @@ pub(super) fn panel_with_create_and_filter(v: &mut V, controller: &mut Controlle
             }
 
             ui.add_space(2.);
-            let response = ui.add(
+            let response = ui.add_enabled(
+                v.main_state.tabs_and_create_ok(),
                 TextEdit::singleline(&mut v.find.pattern)
                     .desired_width(SEARCH_TEXT_WIDTH)
                     .hint_text(format!("🔍 {}", t!("_find"))),

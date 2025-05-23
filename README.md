@@ -11,9 +11,11 @@ ProLock allows managing secrets in a minimalistic and secure fashion:
 
 - users interact with ProLock via the UI
 - ProLock stores the secrets safely encrypted in a file.
-  ProLock interacts only with the file system,
-  it has no functionality to open or use
+  ProLock uses ChaCha20-Poly1305 as encryption algorithm, which is also used in important
+  protocols and SW stacks.
+- ProLock interacts only with the file system, it has no functionality to open or use
   network connections or to interact with other programs.
+  The user has full control of what is happening.
 - ProLock is completely written in [rust](www.rust-lang.org),
   and open source.
 
@@ -31,7 +33,8 @@ with every update to the file.
 
 ## UI
 
-ProLock has a UI to manage the data conveniently.
+ProLock provides a UI to manage the data conveniently.
+The UI is written in rust, with the `egui` framework.
 It supports currently two languages, English and German; other languages can easily be added.
 
 ## File access

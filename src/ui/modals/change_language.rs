@@ -69,12 +69,12 @@ pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Conte
                     )
                     .clicked()
                 {
-                    controller.set_action(Action::Cancel);
+                    controller.set_action(Action::CloseModal);
                 }
             },
         );
     });
     if modal_response.should_close() {
-        controller.set_action(Action::Cancel);
+        controller.set_action(Action::CloseModal);
     }
 }

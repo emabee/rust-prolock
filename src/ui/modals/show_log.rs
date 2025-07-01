@@ -39,7 +39,7 @@ pub fn show_log(
                                 font_id: FontId::new(11.0, FontFamily::Monospace),
                                 color: match line.chars().next() {
                                     Some('E') => Color32::RED,
-                                    Some('W') => Color32::YELLOW,
+                                    Some('W') => Color32::ORANGE,
                                     Some('I') => Color32::DARK_GRAY,
                                     Some('D') => Color32::from_gray(120), // medium gray
                                     Some('T') => Color32::from_gray(150), // lighter gray

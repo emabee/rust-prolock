@@ -76,7 +76,7 @@ pub fn create_document(
                     )
                     .clicked()
                 {
-                    controller.set_action(Action::FinalizeAddDocument(v_edit_document.key.clone()));
+                    controller.set_action(Action::FinalizeAddDocument);
                 }
 
                 if ui
@@ -91,7 +91,7 @@ pub fn create_document(
                     )
                     .clicked()
                 {
-                    controller.set_action(Action::Cancel);
+                    controller.set_action(Action::CloseModal);
                 }
             },
         );

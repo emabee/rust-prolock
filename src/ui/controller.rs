@@ -5,6 +5,7 @@ use crate::{
         BundleState, DocumentState, MainState, ModalState, Pw, PwFocus, V, VEditBundle,
         VEditDocument,
     },
+    util::generate_password,
 };
 use anyhow::{Context, Result};
 use std::path::PathBuf;
@@ -148,6 +149,7 @@ impl Controller {
             ) => {
                 v.modal_state = ModalState::AddBundle {
                     v_edit_bundle: VEditBundle::new(),
+                    generate_pw: false,
                     error: None,
                 };
             }
@@ -156,11 +158,13 @@ impl Controller {
                 MainState::Bundles(BundleState::Default),
                 ModalState::AddBundle {
                     v_edit_bundle,
+                    generate_pw: false,
                     error,
                 },
-                Action::FinalizeAddBundle(key),
+                Action::FinalizeAddBundle,
             ) => match pl_file.save_with_added_bundle(v_edit_bundle) {
                 Ok(()) => {
+                    let key = v_edit_bundle.key.clone();
                     v.modal_state.close_modal();
                     v.reset_bundles(pl_file.bundles(), Some(&key));
                 }
@@ -254,9 +258,10 @@ impl Controller {
                     v_edit_document,
                     error,
                 },
-                Action::FinalizeAddDocument(key),
+                Action::FinalizeAddDocument,
             ) => match pl_file.save_with_added_document(v_edit_document) {
                 Ok(()) => {
+                    let key = v_edit_document.key.clone();
                     v.modal_state.close_modal();
                     v.reset_documents(pl_file.documents(), Some(&key));
                     v.main_state = MainState::Documents(DocumentState::Default(Some(key)));
@@ -330,7 +335,57 @@ impl Controller {
                 }
             },
 
-            (_, _, Action::Cancel | Action::SilentCancel) => {
+            (
+                MainState::Bundles(BundleState::ModifyBundle { .. }),
+                ModalState::None,
+                Action::StartGeneratePassword(o_cred),
+            ) => {
+                v.modal_state = ModalState::GeneratePassword;
+                v.generate_pw.cred_idx = o_cred;
+            }
+
+            (
+                MainState::Bundles(BundleState::ModifyBundle { v_edit_bundle, .. }),
+                ModalState::GeneratePassword,
+                Action::FinalizeGeneratePassword,
+            ) => {
+                let pw = generate_password(&v.generate_pw);
+                v_edit_bundle.v_edit_creds[v.generate_pw.cred_idx]
+                    .secret
+                    .clone_from(&pw);
+                v.modal_state.close_modal();
+            }
+
+            (
+                MainState::Bundles(BundleState::Default),
+                ModalState::AddBundle { generate_pw, .. },
+                Action::StartGeneratePassword(o_cred),
+            ) => {
+                *generate_pw = true;
+                v.generate_pw.cred_idx = o_cred;
+            }
+
+            (
+                MainState::Bundles(BundleState::Default),
+                ModalState::AddBundle {
+                    generate_pw,
+                    v_edit_bundle,
+                    ..
+                },
+                Action::FinalizeGeneratePassword,
+            ) => {
+                *generate_pw = false;
+                let pw = generate_password(&v.generate_pw);
+                v_edit_bundle.v_edit_creds[v.generate_pw.cred_idx]
+                    .secret
+                    .clone_from(&pw);
+            }
+
+            (_, _, Action::CloseModal) => {
+                v.modal_state.close_modal();
+            }
+
+            (_, _, Action::Cancel) => {
                 v.modal_state.close_modal();
                 v.main_state = match v.main_state {
                     MainState::Bundles(_) => MainState::Bundles(BundleState::Default),
@@ -392,7 +447,7 @@ pub(crate) enum Action {
     FinalizeChangeLanguage,
 
     StartAddBundle,
-    FinalizeAddBundle(Key),
+    FinalizeAddBundle,
 
     StartModifyBundle(Key),
     FinalizeModifyBundle,
@@ -401,7 +456,7 @@ pub(crate) enum Action {
     FinalizeDeleteBundle,
 
     StartAddDocument,
-    FinalizeAddDocument(Key),
+    FinalizeAddDocument,
 
     StartModifyDocument(Key),
     FinalizeModifyDocument,
@@ -409,13 +464,16 @@ pub(crate) enum Action {
     StartDeleteDocument(Key),
     FinalizeDeleteDocument,
 
+    StartGeneratePassword(usize),
+    FinalizeGeneratePassword,
+
     Cancel,
-    SilentCancel,
+    CloseModal,
 }
 impl Action {
     fn log(&self, main_state: &MainState, modal_state: &ModalState) {
         match self {
-            Action::None | Action::StartFilter | Action::ShowLog | Action::SilentCancel => {}
+            Action::None | Action::StartFilter | Action::ShowLog | Action::CloseModal => {}
 
             Action::ShowAbout
             | Action::StartChangeFile
@@ -426,17 +484,19 @@ impl Action {
             | Action::StartChangeLanguage
             | Action::FinalizeChangeLanguage
             | Action::StartAddBundle
-            | Action::FinalizeAddBundle(_)
+            | Action::FinalizeAddBundle
             | Action::StartModifyBundle(_)
             | Action::FinalizeModifyBundle
             | Action::StartDeleteBundle(_)
             | Action::FinalizeDeleteBundle
             | Action::StartAddDocument
-            | Action::FinalizeAddDocument(_)
+            | Action::FinalizeAddDocument
             | Action::StartModifyDocument(_)
             | Action::FinalizeModifyDocument
             | Action::StartDeleteDocument(_)
             | Action::FinalizeDeleteDocument
+            | Action::StartGeneratePassword(_)
+            | Action::FinalizeGeneratePassword
             | Action::Cancel
             | Action::FinalizeChangePassword { .. } => {
                 log::info!("[Action::{self:?}] [{main_state:?}] [{modal_state:?}]");

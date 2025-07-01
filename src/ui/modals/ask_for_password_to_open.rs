@@ -5,7 +5,7 @@ use crate::ui::{
 };
 use egui::{CentralPanel, Color32, Context, Grid, Key, RichText, TextEdit};
 
-pub(super) fn ask_for_password(
+pub fn ask_for_password_to_open(
     is_first_start: bool,
     v: &mut V,
     controller: &mut Controller,

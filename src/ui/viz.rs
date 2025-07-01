@@ -20,6 +20,7 @@ pub struct V {
     pub find: Find,
     pub lang: Lang,
 
+    pub generate_pw: VGeneratePassword,
     pub logger_snapshot: Snapshot,
 }
 impl V {
@@ -135,6 +136,7 @@ pub enum ModalState {
     None,
     AddBundle {
         v_edit_bundle: VEditBundle,
+        generate_pw: bool,
         error: Option<String>,
     },
     DeleteBundle {
@@ -153,6 +155,7 @@ pub enum ModalState {
     ChangePassword,
     ChangeFile,
     ChangeLanguage,
+    GeneratePassword,
 }
 impl Default for MainState {
     fn default() -> Self {
@@ -180,6 +183,7 @@ impl ModalState {
             Self::ChangePassword => "ModalState::ChangePassword".to_string(),
             Self::ChangeFile => "ModalState::ChangeFile".to_string(),
             Self::ChangeLanguage => "ModalState::ChangeLanguage".to_string(),
+            Self::GeneratePassword => "ModalState::GeneratePassword".to_string(),
         }
     }
 }
@@ -403,4 +407,26 @@ impl VEditDocument {
 pub struct VEditCred {
     pub name: String,
     pub secret: String,
+}
+
+#[derive(Debug)]
+pub struct VGeneratePassword {
+    pub length: usize,
+    pub include_uppercase: bool,
+    pub include_numbers: bool,
+    pub include_special: bool,
+    pub specials: String,
+    pub cred_idx: usize,
+}
+impl Default for VGeneratePassword {
+    fn default() -> Self {
+        Self {
+            length: 15,
+            include_uppercase: true,
+            include_numbers: true,
+            include_special: true,
+            specials: "%$§=+-*#@!~^&".to_string(),
+            cred_idx: usize::MAX, // some illegal value
+        }
+    }
 }

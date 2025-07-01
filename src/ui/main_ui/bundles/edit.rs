@@ -1,21 +1,24 @@
 use crate::ui::{
+    assets::IMG_WIZARD,
     colors::{COLOR_SECRET, COLOR_USER},
+    controller::{Action, Controller},
     show_error,
     viz::{VEditBundle, VEditCred},
 };
-use egui::{FontFamily, FontId, ScrollArea, TextEdit};
+use egui::{Button, Color32, FontFamily, FontId, Image, ScrollArea, TextEdit};
 use egui_extras::{Size, Strip, StripBuilder};
 
 pub fn edit(
     v_edit_bundle: &mut VEditBundle,
     error: Option<&str>,
     inner_bundle_strip: &mut Strip<'_, '_>,
+    controller: &mut Controller,
 ) {
     inner_bundle_strip.strip(|left_builder| {
         left_part(v_edit_bundle, error, left_builder);
     });
     inner_bundle_strip.strip(|right_builder| {
-        right_part(v_edit_bundle, right_builder);
+        right_part(v_edit_bundle, right_builder, controller);
     });
 }
 
@@ -60,22 +63,32 @@ fn left_part(v_edit_bundle: &mut VEditBundle, error: Option<&str>, left_builder:
         });
 }
 
-fn right_part(edit_bundle: &mut VEditBundle, right_builder: StripBuilder<'_>) {
+fn right_part(
+    edit_bundle: &mut VEditBundle,
+    right_builder: StripBuilder<'_>,
+    controller: &mut Controller,
+) {
     right_builder
         .sizes(Size::exact(20.), edit_bundle.v_edit_creds.len())
         .vertical(|mut right_strip| {
-            for v_cred in &mut edit_bundle.v_edit_creds {
+            for (cred_idx, v_cred) in &mut edit_bundle.v_edit_creds.iter_mut().enumerate() {
                 right_strip.strip(|cred_builder| {
-                    single_cred(v_cred, cred_builder);
+                    single_cred(v_cred, cred_idx, cred_builder, controller);
                 });
             }
         });
 }
 
-pub fn single_cred(v_edit_cred: &mut VEditCred, cred_builder: StripBuilder<'_>) {
+fn single_cred(
+    v_edit_cred: &mut VEditCred,
+    cred_idx: usize,
+    cred_builder: StripBuilder<'_>,
+    controller: &mut Controller,
+) {
     cred_builder
         .size(Size::exact(210.))
-        .size(Size::exact(170.))
+        .size(Size::exact(158.))
+        .size(Size::exact(10.))
         .horizontal(|mut cred_strip| {
             cred_strip.cell(|ui| {
                 ui.add(
@@ -96,6 +109,24 @@ pub fn single_cred(v_edit_cred: &mut VEditCred, cred_builder: StripBuilder<'_>) 
                         .text_color(COLOR_SECRET)
                         .interactive(true),
                 );
+            });
+            cred_strip.cell(|ui| {
+                if ui
+                    .add(
+                        Button::image(
+                            Image::new(IMG_WIZARD)
+                                .maintain_aspect_ratio(true)
+                                .fit_to_original_size(0.12),
+                        )
+                        .fill(Color32::WHITE),
+                    )
+                    .on_hover_ui(|ui| {
+                        ui.label(t!("Generate password"));
+                    })
+                    .clicked()
+                {
+                    controller.set_action(Action::StartGeneratePassword(cred_idx));
+                }
             });
         });
 }

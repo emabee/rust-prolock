@@ -103,7 +103,7 @@ fn edit_a_bundle_with_buttons(
             inner_bundle_strip.cell(|ui| {
                 active_buttons_save_and_cancel(ui, controller);
             });
-            super::edit(v_edit_bundle, error, &mut inner_bundle_strip);
+            super::edit(v_edit_bundle, error, &mut inner_bundle_strip, controller);
         });
 }
 

@@ -21,3 +21,4 @@ img!(IMG_LOGO, "logo.png");
 img!(IMG_OK, "ok.png");
 img!(IMG_RUST_LOGO, "rust-logo-64x64-blk.png");
 img!(IMG_SAVE, "save.png");
+img!(IMG_WIZARD, "wizard.png");

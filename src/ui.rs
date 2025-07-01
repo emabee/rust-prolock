@@ -3,7 +3,6 @@ pub mod colors;
 mod controller;
 mod main_ui;
 mod modals;
-mod password;
 pub mod pl_app;
 pub mod sizes;
 mod top_panel;

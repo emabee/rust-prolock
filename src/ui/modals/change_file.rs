@@ -86,7 +86,7 @@ pub fn change_file(
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
                     .clicked()
                 {
-                    controller.set_action(Action::Cancel);
+                    controller.set_action(Action::CloseModal);
                 }
             },
         );

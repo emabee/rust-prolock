@@ -1,13 +1,11 @@
-use crate::{
-    data::Key,
-    ui::{
-        IMG_CANCEL, IMG_SAVE,
-        colors::{COLOR_SECRET, COLOR_USER},
-        controller::{Action, Controller},
-        show_error,
-        sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
-        viz::{VEditBundle, VEditCred},
-    },
+use crate::ui::{
+    IMG_CANCEL, IMG_SAVE,
+    assets::IMG_WIZARD,
+    colors::{COLOR_SECRET, COLOR_USER},
+    controller::{Action, Controller},
+    show_error,
+    sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
+    viz::{VEditBundle, VEditCred},
 };
 use egui::{
     Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, ScrollArea, Sides,
@@ -35,7 +33,7 @@ pub fn create_bundle(
                                     left_part(bundle, left_builder);
                                 });
                                 inner_bundle_strip.strip(|right_builder| {
-                                    right_part(bundle, right_builder);
+                                    right_part(bundle, right_builder, controller);
                                 });
                             });
                     });
@@ -60,8 +58,7 @@ pub fn create_bundle(
                     )
                     .clicked()
                 {
-                    controller
-                        .set_action(Action::FinalizeAddBundle(Key::from(bundle.key.as_str())));
+                    controller.set_action(Action::FinalizeAddBundle);
                 }
 
                 if ui
@@ -76,7 +73,7 @@ pub fn create_bundle(
                     )
                     .clicked()
                 {
-                    controller.set_action(Action::Cancel);
+                    controller.set_action(Action::CloseModal);
                 }
             },
         );
@@ -146,7 +143,11 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
         });
 }
 
-fn right_part(edit_bundle: &mut VEditBundle, right_builder: StripBuilder<'_>) {
+fn right_part(
+    edit_bundle: &mut VEditBundle,
+    right_builder: StripBuilder<'_>,
+    controller: &mut Controller,
+) {
     right_builder
         .sizes(Size::exact(20.), edit_bundle.v_edit_creds.len() + 1)
         .vertical(|mut right_strip| {
@@ -164,18 +165,24 @@ fn right_part(edit_bundle: &mut VEditBundle, right_builder: StripBuilder<'_>) {
                 });
                 ui.add_space(3.);
             });
-            for v_edit_cred in &mut edit_bundle.v_edit_creds {
+            for (cred_idx, v_cred) in &mut edit_bundle.v_edit_creds.iter_mut().enumerate() {
                 right_strip.strip(|cred_builder| {
-                    single_cred(v_edit_cred, cred_builder);
+                    single_cred(v_cred, cred_idx, cred_builder, controller);
                 });
             }
         });
 }
 
-fn single_cred(v_edit_cred: &mut VEditCred, cred_builder: StripBuilder<'_>) {
+fn single_cred(
+    v_edit_cred: &mut VEditCred,
+    cred_idx: usize,
+    cred_builder: StripBuilder<'_>,
+    controller: &mut Controller,
+) {
     cred_builder
         .size(Size::exact(210.))
-        .size(Size::exact(170.))
+        .size(Size::exact(158.))
+        .size(Size::exact(10.))
         .horizontal(|mut cred_strip| {
             cred_strip.cell(|ui| {
                 ui.add(
@@ -215,6 +222,24 @@ fn single_cred(v_edit_cred: &mut VEditCred, cred_builder: StripBuilder<'_>) {
                 .on_hover_ui(|ui| {
                     ui.style_mut().interaction.selectable_labels = true;
                 });
+            });
+            cred_strip.cell(|ui| {
+                if ui
+                    .add(
+                        Button::image(
+                            Image::new(IMG_WIZARD)
+                                .maintain_aspect_ratio(true)
+                                .fit_to_original_size(0.12),
+                        )
+                        .fill(Color32::WHITE),
+                    )
+                    .on_hover_ui(|ui| {
+                        ui.label(t!("Generate password"));
+                    })
+                    .clicked()
+                {
+                    controller.set_action(Action::StartGeneratePassword(cred_idx));
+                }
             });
         });
 }

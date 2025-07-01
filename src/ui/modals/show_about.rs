@@ -64,12 +64,12 @@ pub fn show_about(controller: &mut Controller, ctx: &Context) {
                     )
                     .clicked()
                 {
-                    controller.set_action(Action::SilentCancel);
+                    controller.set_action(Action::CloseModal);
                 }
             },
         );
     });
     if modal_response.should_close() {
-        controller.set_action(Action::SilentCancel);
+        controller.set_action(Action::CloseModal);
     }
 }

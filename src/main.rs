@@ -13,6 +13,7 @@ i18n!("locales", fallback = "en");
 mod args;
 mod data;
 mod ui;
+mod util;
 
 use crate::{
     data::PlFile,

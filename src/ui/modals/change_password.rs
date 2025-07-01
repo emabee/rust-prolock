@@ -101,7 +101,7 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
                     .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
                     .clicked()
                 {
-                    controller.set_action(Action::Cancel);
+                    controller.set_action(Action::CloseModal);
                 }
             },
         );
@@ -118,6 +118,6 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
         }
     });
     if modal_response.should_close() {
-        controller.set_action(Action::Cancel);
+        controller.set_action(Action::CloseModal);
     }
 }

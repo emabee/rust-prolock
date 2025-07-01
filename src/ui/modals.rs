@@ -1,6 +1,8 @@
+mod ask_for_password_to_open;
 mod change_file;
 mod change_language;
 mod change_password;
+mod configure_password_generation;
 mod create_bundle;
 mod create_document;
 mod delete_bundle;
@@ -8,9 +10,11 @@ mod delete_document;
 mod show_about;
 mod show_log;
 
+pub use ask_for_password_to_open::ask_for_password_to_open;
 pub use change_file::change_file;
 pub use change_language::change_language;
 pub use change_password::change_password;
+pub use configure_password_generation::configure_password_generation;
 pub use create_bundle::create_bundle;
 pub use create_document::create_document;
 pub use delete_bundle::delete_bundle;

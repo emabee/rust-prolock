@@ -66,6 +66,6 @@ pub fn delete_bundle(key: &Key, error: Option<&str>, controller: &mut Controller
         );
     });
     if modal_response.should_close() {
-        controller.set_action(Action::Cancel);
+        controller.set_action(Action::CloseModal);
     }
 }

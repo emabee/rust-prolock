@@ -1,13 +1,13 @@
 use crate::{
     data::{PlFile, Settings},
     ui::{
-        main_ui::main_ui,
         controller::Controller,
+        main_ui::main_ui,
         modals::{
-            change_file, change_language, change_password, create_bundle, create_document,
-            delete_bundle, delete_document, show_about, show_log,
+            ask_for_password_to_open, change_file, change_language, change_password,
+            configure_password_generation, create_bundle, create_document, delete_bundle,
+            delete_document, show_about, show_log,
         },
-        password::ask_for_password,
         top_panel::top_panel,
         viz::{ModalState, V},
     },
@@ -56,9 +56,17 @@ impl App for PlApp {
 
             ModalState::AddBundle {
                 v_edit_bundle: ref mut bundle,
+                generate_pw,
                 ref error,
             } => {
                 create_bundle(bundle, error.as_deref(), &mut self.controller, ctx);
+                if generate_pw {
+                    configure_password_generation(
+                        &mut self.v.generate_pw,
+                        &mut self.controller,
+                        ctx,
+                    );
+                }
             }
             ModalState::DeleteBundle { ref key, ref error } => {
                 delete_bundle(key, error.as_deref(), &mut self.controller, ctx);
@@ -90,7 +98,10 @@ impl App for PlApp {
             }
             ModalState::ChangeLanguage => {
                 change_language(&mut self.v.lang, &mut self.controller, ctx);
-            } // _ => {}
+            }
+            ModalState::GeneratePassword => {
+                configure_password_generation(&mut self.v.generate_pw, &mut self.controller, ctx);
+            }
         }
 
         // show the log
@@ -115,7 +126,7 @@ impl App for PlApp {
             );
         } else {
             let is_first_start = self.pl_file.update_counter().peek() == Some(0);
-            ask_for_password(is_first_start, &mut self.v, &mut self.controller, ctx);
+            ask_for_password_to_open(is_first_start, &mut self.v, &mut self.controller, ctx);
         }
     }
 }

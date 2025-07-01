@@ -66,6 +66,6 @@ pub fn delete_document(key: &Key, error: Option<&str>, controller: &mut Controll
         );
     });
     if modal_response.should_close() {
-        controller.set_action(Action::Cancel);
+        controller.set_action(Action::CloseModal);
     }
 }

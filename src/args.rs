@@ -125,17 +125,17 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic = "called `Result::unwrap()` on an `Err` value"]
     fn test_bad_command_line1() {
         args_from(vec!["prolock", "--use_file"]);
     }
     #[test]
-    #[should_panic]
+    #[should_panic = "called `Result::unwrap()` on an `Err` value"]
     fn test_bad_command_line2() {
         args_from(vec!["prolock", "--forget_file"]);
     }
     #[test]
-    #[should_panic]
+    #[should_panic = "called `Result::unwrap()` on an `Err` value"]
     fn test_bad_command_line3() {
         args_from(vec!["prolock", "-f", "my_file0", "--use_file", "my_file1"]);
     }

@@ -17,7 +17,7 @@ impl Secrets {
     }
 
     #[must_use]
-    pub fn keys(&self) -> Keys<u64, String> {
+    pub fn keys(&self) -> Keys<'_, u64, String> {
         self.content.keys()
     }
 

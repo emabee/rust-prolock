@@ -79,14 +79,14 @@ mod test {
 
     fn test_config(config: &VGeneratePassword) {
         for _ in 0..100 {
-            let pw = generate_password(&config);
+            let pw = generate_password(config);
             assert_eq!(pw.chars().count(), config.length, "{pw} from {config:?}");
             assert!(
-                pw.chars().any(|c| c.is_uppercase()) == config.include_uppercase,
+                pw.chars().any(char::is_uppercase) == config.include_uppercase,
                 "{pw} from {config:?}"
             );
             assert!(
-                pw.chars().any(|c| c.is_digit(10)) == config.include_numbers,
+                pw.chars().any(|c| c.is_ascii_digit()) == config.include_numbers,
                 "{pw} from {config:?}"
             );
             assert!(

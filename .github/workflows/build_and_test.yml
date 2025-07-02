@@ -25,6 +25,8 @@ jobs:
     - name: Run tests
       run: cargo +stable test --verbose
 
+  # Precondition:
+  # Github repo -> Settings -> Actions -> General -> Workflow permissions -> Read and write permissions for Actions
   clippy_check:
       runs-on: ubuntu-latest
 

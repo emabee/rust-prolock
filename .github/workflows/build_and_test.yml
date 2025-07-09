@@ -22,14 +22,6 @@ jobs:
         - name: checkout the repo
           uses: actions/checkout@v4
 
-        # - name: install nightly rust toolchain with clippy
-        #   uses: actions-rs/toolchain@v1
-        #   with:
-        #       toolchain: nightly
-        #       components: clippy
-        #       override: true
-
-
         - name: install nightly rust toolchain with clippy
           run: rustup component add --toolchain nightly-x86_64-unknown-linux-gnu clippy
 
@@ -48,24 +40,11 @@ jobs:
         - name: checkout the repo
           uses: actions/checkout@v4
       
-        - name: install stable rust toolchain
-          uses: actions-rs/toolchain@v1
-          with:
-            toolchain: stable
-
         - name: check fmt
-          uses: actions-rs/cargo@v1
-          with:
-            command: fmt
-            args: --check
+          run: cargo fmt --check
 
         - name: debug build
-          uses: actions-rs/cargo@v1
-          with:
-            command: build
-            args: --verbose
+          run: cargo build --verbose
 
         - name: run tests
-          uses: actions-rs/cargo@v1
-          with:
-            command: test
+          run: cargo test

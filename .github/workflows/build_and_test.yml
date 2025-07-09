@@ -22,12 +22,12 @@ jobs:
         - name: checkout the repo
           uses: actions/checkout@v4
 
-        - name: install nightly rust toolchain with clippy
-          uses: actions-rs/toolchain@v1
-          with:
-              toolchain: nightly
-              components: clippy
-              override: true
+        # - name: install nightly rust toolchain with clippy
+        #   uses: actions-rs/toolchain@v1
+        #   with:
+        #       toolchain: nightly
+        #       components: clippy
+        #       override: true
 
         - name: run clippy
           run: cargo +nightly clippy --all-targets --all-features

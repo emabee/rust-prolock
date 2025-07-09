@@ -18,7 +18,16 @@ name = "ProLock"
 identifier = "com.github.emabee.prolock"
 icon = ["resources/logo.icns"]
 copyright = "Copyright (c) Meinolf Block 2025. All rights reserved."
+category = "Security"
 short_description = "a tool for securely storing secrets"
+long_description = """
+A tool for conveniently storing secrets well encrypted into a file in the local file system.
+There is no interaction with any cloud service, nor with the browser or any other application.
+It is a simple, but effective way to keep your secrets safe.
+It is written in Rust and uses the `egui` framework for the GUI.
+It is cross-platform and works on Linux, macOS, and Windows.
+It is open source and licensed under the MIT or Apache-2.0 license.
+"""
 
 [dependencies]
 anyhow = "1.0"

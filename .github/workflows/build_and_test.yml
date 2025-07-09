@@ -29,6 +29,10 @@ jobs:
         #       components: clippy
         #       override: true
 
+
+        - name: install nightly rust toolchain with clippy
+          run: rustup component add --toolchain nightly-x86_64-unknown-linux-gnu clippy
+
         - name: run clippy
           run: cargo +nightly clippy --all-targets --all-features
 

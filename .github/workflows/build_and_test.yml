@@ -10,49 +10,61 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # (jobs are run in parallel by default)
+
   clippy_check:
       # Precondition:
       # Github repo -> Settings -> Actions -> General -> Workflow permissions -> Read and write permissions for Actions
+      name: Run Clippy
       runs-on: ubuntu-latest
 
       steps:
-        - uses: actions/checkout@v4
-        - uses: actions-rs/toolchain@v1
+        - name: checkout the repo
+          uses: actions/checkout@v4
+
+        - name: install nightly rust toolchain with clippy
+          uses: actions-rs/toolchain@v1
           with:
               toolchain: nightly
               components: clippy
               override: true
 
-        - uses: actions-rs/clippy-check@v1
+        - name: run clippy
+          uses: actions-rs/clippy-check@v1
           with:
             token: ${{ secrets.GITHUB_TOKEN }}
             args: --all-features
 
 
   build_and_test:
-    name: Check fmt, build and test
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest, macOS-13]
+      name: fmt, build, test
+      runs-on: ${{matrix.os}}
+      strategy:
+        matrix:
+          os: [ubuntu-latest, windows-latest, macOS-latest, macOS-13]
 
-    steps:
-      - uses: actions/checkout@v4
+      steps:
+        - name: checkout the repo
+          uses: actions/checkout@v4
       
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+        - name: install stable rust toolchain
+          uses: actions-rs/toolchain@v1
+          with:
+            toolchain: stable
 
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --check
+        - name: check fmt
+          uses: actions-rs/cargo@v1
+          with:
+            command: fmt
+            args: --check
 
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --verbose
+        - name: debug build
+          uses: actions-rs/cargo@v1
+          with:
+            command: build
+            args: --verbose
 
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
+        - name: run tests
+          uses: actions-rs/cargo@v1
+          with:
+            command: test

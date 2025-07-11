@@ -181,19 +181,25 @@ jobs:
 
     - name: Use Cross
       if: matrix.os == 'ubuntu-latest' && matrix.target != ''
-      shell: bash
+      #   shell: bash
+      #   run: |
+      # # In the past, new releases of 'cross' have broken CI. So for now, we
+      # # pin it. We also use their pre-compiled binary releases because cross
+      # # has over 100 dependencies and takes a bit to compile.
+      # dir="$RUNNER_TEMP/cross-download"
+      # mkdir "$dir"
+      # echo "$dir" >> $GITHUB_PATH
+      # cd "$dir"
+      # curl -LO "https://github.com/cross-rs/cross/releases/download/$CROSS_VERSION/cross-x86_64-unknown-linux-musl.tar.gz"
+      # tar xf cross-x86_64-unknown-linux-musl.tar.gz
       run: |
-        # In the past, new releases of 'cross' have broken CI. So for now, we
-        # pin it. We also use their pre-compiled binary releases because cross
-        # has over 100 dependencies and takes a bit to compile.
-        dir="$RUNNER_TEMP/cross-download"
-        mkdir "$dir"
-        echo "$dir" >> $GITHUB_PATH
-        cd "$dir"
-        curl -LO "https://github.com/cross-rs/cross/releases/download/$CROSS_VERSION/cross-x86_64-unknown-linux-musl.tar.gz"
-        tar xf cross-x86_64-unknown-linux-musl.tar.gz
+        cargo install cross
         echo "CARGO=cross" >> $GITHUB_ENV
 
+    - name: install cargo-bundle
+      run: |
+        cargo install cargo-bundle 
+      
     - name: Set target variables
       shell: bash
       run: |
@@ -207,36 +213,22 @@ jobs:
         echo "target flag is: ${{ env.TARGET_FLAGS }}"
         echo "target dir is: ${{ env.TARGET_DIR }}"
 
+    # FIXME Here we should use `cargo bundle` -> no need to determine bin, whole archive to be uploaded
     - name: Build release binary
       shell: bash
       run: |
-        ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
-        if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          bin="target/${{ matrix.target }}/release/prolock.exe"
+        ${{ env.CARGO }} bundle --verbose --release ${{ env.TARGET_FLAGS }}
+        echo "BUNDLE=$bundle_dir/ProLock.app" >> $GITHUB_ENV
+        
+        if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            bundle_dir="target/${{ matrix.target }}/release/bundle/osx/ProLock.app"
+        elif [ "${{ matrix.os }}" = "macos-13" ]; then
+            bundle_dir="target/${{ matrix.target }}/release/bundle/macos/ProLock.app"
         else
-          bin="target/${{ matrix.target }}/release/prolock"
+            bundle_dir="target/${{ matrix.target }}/release/bundle"
         fi
-        echo "BIN=$bin" >> $GITHUB_ENV
 
-    - name: Strip release binary (macos old)
-      if: matrix.os == 'macos-13'
-      shell: bash
-      run: strip "$BIN"
-
-    - name: Strip release binary (macos new)
-      if: matrix.os == 'macos-latest'
-      shell: bash
-      run: strip "$BIN"
-
-    - name: Strip release binary (cross)
-      if: env.CARGO == 'cross'
-      shell: bash
-      run: |
-        docker run --rm -v \
-          "$PWD/target:/target:Z" \
-          "ghcr.io/cross-rs/${{ matrix.target }}:main" \
-          "${{ matrix.strip }}" \
-          "/$BIN"
+        echo "BUNDLE_DIR=$bundle_dir" >> $GITHUB_ENV
 
     - name: Determine archive name
       shell: bash
@@ -247,64 +239,20 @@ jobs:
     - name: Creating directory for archive
       shell: bash
       run: |
-        mkdir -p "$ARCHIVE"/{complete,doc}
-        cp "$BIN" "$ARCHIVE"/
+        mkdir -p "$ARCHIVE"/doc
+        cp -R "$BUNDLE" "$ARCHIVE"/
         cp {README.md,LICENSE-APACHE,LICENSE-MIT} "$ARCHIVE"/
         cp CHANGELOG.md "$ARCHIVE"/doc/
 
-    # - name: Generate man page and completions (no emulation)
-    #   if: matrix.qemu == ''
-    #   shell: bash
-    #   run: |
-    #     "$BIN" --version
-    #     "$BIN" --generate complete-bash > "$ARCHIVE/complete/rg.bash"
-    #     "$BIN" --generate complete-fish > "$ARCHIVE/complete/rg.fish"
-    #     "$BIN" --generate complete-powershell > "$ARCHIVE/complete/_rg.ps1"
-    #     "$BIN" --generate complete-zsh > "$ARCHIVE/complete/_rg"
-    #     "$BIN" --generate man > "$ARCHIVE/doc/rg.1"
 
-    # - name: Generate man page and completions (emulation)
-    #   if: matrix.qemu != ''
+    # - name: Build archive (Windows)
     #   shell: bash
+    #   if: matrix.os == 'windows-latest'
     #   run: |
-    #     docker run --rm -v \
-    #       "$PWD/target:/target:Z" \
-    #       "ghcr.io/cross-rs/${{ matrix.target }}:main" \
-    #       "${{ matrix.qemu }}" "/$BIN" --version
-    #     docker run --rm -v \
-    #       "$PWD/target:/target:Z" \
-    #       "ghcr.io/cross-rs/${{ matrix.target }}:main" \
-    #       "${{ matrix.qemu }}" "/$BIN" \
-    #         --generate complete-bash > "$ARCHIVE/complete/rg.bash"
-    #     docker run --rm -v \
-    #       "$PWD/target:/target:Z" \
-    #       "ghcr.io/cross-rs/${{ matrix.target }}:main" \
-    #       "${{ matrix.qemu }}" "/$BIN" \
-    #         --generate complete-fish > "$ARCHIVE/complete/rg.fish"
-    #     docker run --rm -v \
-    #       "$PWD/target:/target:Z" \
-    #       "ghcr.io/cross-rs/${{ matrix.target }}:main" \
-    #       "${{ matrix.qemu }}" "/$BIN" \
-    #         --generate complete-powershell > "$ARCHIVE/complete/_rg.ps1"
-    #     docker run --rm -v \
-    #       "$PWD/target:/target:Z" \
-    #       "ghcr.io/cross-rs/${{ matrix.target }}:main" \
-    #       "${{ matrix.qemu }}" "/$BIN" \
-    #         --generate complete-zsh > "$ARCHIVE/complete/_rg"
-    #     docker run --rm -v \
-    #       "$PWD/target:/target:Z" \
-    #       "ghcr.io/cross-rs/${{ matrix.target }}:main" \
-    #       "${{ matrix.qemu }}" "/$BIN" \
-    #         --generate man > "$ARCHIVE/doc/rg.1"
-
-    - name: Build archive (Windows)
-      shell: bash
-      if: matrix.os == 'windows-latest'
-      run: |
-        7z a "$ARCHIVE.zip" "$ARCHIVE"
-        certutil -hashfile "$ARCHIVE.zip" SHA256 > "$ARCHIVE.zip.sha256"
-        echo "ASSET=$ARCHIVE.zip" >> $GITHUB_ENV
-        echo "ASSET_SUM=$ARCHIVE.zip.sha256" >> $GITHUB_ENV
+    #     7z a "$ARCHIVE.zip" "$ARCHIVE"
+    #     certutil -hashfile "$ARCHIVE.zip" SHA256 > "$ARCHIVE.zip.sha256"
+    #     echo "ASSET=$ARCHIVE.zip" >> $GITHUB_ENV
+    #     echo "ASSET_SUM=$ARCHIVE.zip.sha256" >> $GITHUB_ENV
 
     - name: Build archive (Unix)
       shell: bash
@@ -323,90 +271,3 @@ jobs:
         version="${{ needs.create-release.outputs.version }}"
         gh release upload "$version" ${{ env.ASSET }} ${{ env.ASSET_SUM }}
 
-#   build-release-deb:
-#     name: build-release-deb
-#     needs: ['create-release']
-#     runs-on: ubuntu-latest
-#     env:
-#       TARGET: x86_64-unknown-linux-musl
-#       # Emit backtraces on panics.
-#       RUST_BACKTRACE: 1
-#       # Since we're distributing the dpkg, we don't know whether the user will
-#       # have PCRE2 installed, so just do a static build.
-#       PCRE2_SYS_STATIC: 1
-
-#     steps:
-#     - name: Checkout repository
-#       uses: actions/checkout@v4
-
-#     - name: Install packages (Ubuntu)
-#       shell: bash
-#       run: |
-#         ci/ubuntu-install-packages
-
-#     - name: Install Rust
-#       uses: dtolnay/rust-toolchain@master
-#       with:
-#         toolchain: nightly
-#         target: ${{ env.TARGET }}
-
-#     - name: Install cargo-deb
-#       shell: bash
-#       run: |
-#         cargo install cargo-deb
-
-#     # 'cargo deb' does not seem to provide a way to specify an asset that is
-#     # created at build time, such as ripgrep's man page. To work around this,
-#     # we force a debug build, copy out the man page (and shell completions)
-#     # produced from that build, put it into a predictable location and then
-#     # build the deb, which knows where to look.
-#     - name: Build debug binary to create release assets
-#       shell: bash
-#       run: |
-#         cargo build --target ${{ env.TARGET }}
-#         bin="target/${{ env.TARGET }}/debug/rg"
-#         echo "BIN=$bin" >> $GITHUB_ENV
-
-#     - name: Create deployment directory
-#       shell: bash
-#       run: |
-#         dir=deployment/deb
-#         mkdir -p "$dir"
-#         echo "DEPLOY_DIR=$dir" >> $GITHUB_ENV
-
-#     - name: Generate man page
-#       shell: bash
-#       run: |
-#         "$BIN" --generate man > "$DEPLOY_DIR/rg.1"
-
-#     - name: Generate shell completions
-#       shell: bash
-#       run: |
-#         "$BIN" --generate complete-bash > "$DEPLOY_DIR/rg.bash"
-#         "$BIN" --generate complete-fish > "$DEPLOY_DIR/rg.fish"
-#         "$BIN" --generate complete-zsh > "$DEPLOY_DIR/_rg"
-
-#     - name: Build release binary
-#       shell: bash
-#       run: |
-#         cargo deb --profile deb --target ${{ env.TARGET }}
-#         version="${{ needs.create-release.outputs.version }}"
-#         echo "DEB_DIR=target/${{ env.TARGET }}/debian" >> $GITHUB_ENV
-#         echo "DEB_NAME=ripgrep_$version-1_amd64.deb" >> $GITHUB_ENV
-
-#     - name: Create sha256 sum of deb file
-#       shell: bash
-#       run: |
-#         cd "$DEB_DIR"
-#         sum="$DEB_NAME.sha256"
-#         shasum -a 256 "$DEB_NAME" > "$sum"
-#         echo "SUM=$sum" >> $GITHUB_ENV
-
-#     - name: Upload release archive
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       shell: bash
-#       run: |
-#         cd "$DEB_DIR"
-#         version="${{ needs.create-release.outputs.version }}"
-#         gh release upload "$version" "$DEB_NAME" "$SUM"

@@ -218,7 +218,6 @@ jobs:
       shell: bash
       run: |
         ${{ env.CARGO }} bundle --release ${{ env.TARGET_FLAGS }}
-        echo "BUNDLE=$bundle_dir/ProLock.app" >> $GITHUB_ENV
         
         if [ "${{ matrix.os }}" = "macos-latest" ]; then
             bundle_dir="target/${{ matrix.target }}/release/bundle/osx/ProLock.app"
@@ -240,7 +239,7 @@ jobs:
       shell: bash
       run: |
         mkdir -p "$ARCHIVE"/doc
-        cp -R "$BUNDLE" "$ARCHIVE"/
+        cp -R "$BUNDLE_DIR" "$ARCHIVE"/
         cp {README.md,LICENSE-APACHE,LICENSE-MIT} "$ARCHIVE"/
         cp CHANGELOG.md "$ARCHIVE"/doc/
 

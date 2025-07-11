@@ -3,10 +3,10 @@ name: Release new version of ProLock
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"
-#     - 'v*.*.*'
-    branches:
-      - main
+      - "[0-9]+.[0-9]+.[0-9]+*"
+#     - '*.*.*'
+    # branches:
+    #   - main
 
 
 # jobs:

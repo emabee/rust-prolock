@@ -249,8 +249,8 @@ jobs:
       run: |
         mkdir -p "$ARCHIVE"/{complete,doc}
         cp "$BIN" "$ARCHIVE"/
-        cp {README.md,COPYING,UNLICENSE,LICENSE-MIT} "$ARCHIVE"/
-        cp {CHANGELOG.md,FAQ.md,GUIDE.md} "$ARCHIVE"/doc/
+        cp {README.md,LICENSE-APACHE,LICENSE-MIT} "$ARCHIVE"/
+        cp {CHANGELOG.md} "$ARCHIVE"/doc/
 
     # - name: Generate man page and completions (no emulation)
     #   if: matrix.qemu == ''

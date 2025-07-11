@@ -160,7 +160,7 @@ jobs:
         - build: macos_m
           os: macos-latest
           rust: stable
-          target: arm64-apple-darwin
+          target: aarch64-apple-darwin
 
 
     steps:
@@ -210,7 +210,7 @@ jobs:
     - name: Build release binary
       shell: bash
       run: |
-        ${{ env.CARGO }} build --verbose --release --features pcre2 ${{ env.TARGET_FLAGS }}
+        ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
         if [ "${{ matrix.os }}" = "windows-latest" ]; then
           bin="target/${{ matrix.target }}/release/prolock.exe"
         else

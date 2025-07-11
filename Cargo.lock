@@ -3245,7 +3245,7 @@ dependencies = [
 
 [[package]]
 name = "prolock"
-version = "1.1.2"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "clap",

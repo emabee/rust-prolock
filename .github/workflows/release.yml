@@ -250,7 +250,7 @@ jobs:
         mkdir -p "$ARCHIVE"/{complete,doc}
         cp "$BIN" "$ARCHIVE"/
         cp {README.md,LICENSE-APACHE,LICENSE-MIT} "$ARCHIVE"/
-        cp {CHANGELOG.md} "$ARCHIVE"/doc/
+        cp CHANGELOG.md "$ARCHIVE"/doc/
 
     # - name: Generate man page and completions (no emulation)
     #   if: matrix.qemu == ''

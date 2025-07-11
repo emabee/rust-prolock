@@ -217,7 +217,7 @@ jobs:
     - name: Build release binary
       shell: bash
       run: |
-        ${{ env.CARGO }} bundle --verbose --release ${{ env.TARGET_FLAGS }}
+        ${{ env.CARGO }} bundle --release ${{ env.TARGET_FLAGS }}
         echo "BUNDLE=$bundle_dir/ProLock.app" >> $GITHUB_ENV
         
         if [ "${{ matrix.os }}" = "macos-latest" ]; then

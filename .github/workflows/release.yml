@@ -1,20 +1,17 @@
-name: Release new version of ProLock
+name: |
+  Release a new version of ProLock 
 
 on:
   push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 
-# We need this to be able to create releases.
+# We need this to be able to create releases:
 permissions:
   contents: write
 
 jobs:
-  # The create-release job runs purely to initialize the GitHub release itself,
-  # and names the release after the `x.y.z` tag that was pushed. It's separate
-  # from building the release so that we only create the release once.
-  create-release:
-    name: create-release
+  setup_github_release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,188 +35,73 @@ jobs:
     outputs:
       version: ${{ env.VERSION }}
 
-  build-release:
-    name: build-release
-    needs: ['create-release']
-    runs-on: ${{ matrix.os }}
-    env:
-      CARGO: cargo
-      # When CARGO is set to CROSS, this is set to `--target matrix.target`.
-      TARGET_FLAGS:
-      # When CARGO is set to CROSS, TARGET_DIR includes matrix.target.
-      TARGET_DIR: ./target
-      # Bump this as appropriate. We pin to a version to make sure CI
-      # continues to work as cross releases in the past have broken things
-      # in subtle ways.
-      CROSS_VERSION: v0.2.5
-      # Emit backtraces on panics.
-      RUST_BACKTRACE: 1
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        # - build: macos_x86
-        #   os: macos-13
-        #   rust: stable
-        #   target: x86_64-apple-darwin
-
-        - build: macos_m
-          os: macos-latest
-          rust: stable
-          target: aarch64-apple-darwin
-
-          # - build: linux
-          #   os: ubuntu-latest
-          #   rust: nightly
-          #   target: x86_64-unknown-linux-musl
-          #   strip: x86_64-linux-musl-strip
-          # - build: stable-x86
-          #   os: ubuntu-latest
-          #   rust: stable
-          #   target: i686-unknown-linux-gnu
-          #   strip: x86_64-linux-gnu-strip
-          #   qemu: i386
-          # - build: stable-aarch64
-          #   os: ubuntu-latest
-          #   rust: stable
-          #   target: aarch64-unknown-linux-gnu
-          #   strip: aarch64-linux-gnu-strip
-          #   qemu: qemu-aarch64
-          # - build: stable-arm-gnueabihf
-          #   os: ubuntu-latest
-          #   rust: stable
-          #   target: armv7-unknown-linux-gnueabihf
-          #   strip: arm-linux-gnueabihf-strip
-          #   qemu: qemu-arm
-          # - build: stable-arm-musleabihf
-          #   os: ubuntu-latest
-          #   rust: stable
-          #   target: armv7-unknown-linux-musleabihf
-          #   strip: arm-linux-musleabihf-strip
-          #   qemu: qemu-arm
-          # - build: stable-arm-musleabi
-          #   os: ubuntu-latest
-          #   rust: stable
-          #   target: armv7-unknown-linux-musleabi
-          #   strip: arm-linux-musleabi-strip
-          #   qemu: qemu-arm
-          # - build: win-msvc
-          #   os: windows-latest
-          #   rust: nightly
-          #   target: x86_64-pc-windows-msvc
-          # - build: win-gnu
-          #   os: windows-latest
-          #   rust: nightly-x86_64-gnu
-          #   target: x86_64-pc-windows-gnu
-          # - build: win32-msvc
-          #   os: windows-latest
-          #   rust: nightly
-          #   target: i686-pc-windows-msvc
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    # - name: Install packages (Ubuntu)
-    #   if: matrix.os == 'ubuntu-latest'
-    #   shell: bash
-    #   run: |
-    #     ci/ubuntu-install-packages
-
-    # - name: Install Rust
-    #   uses: dtolnay/rust-toolchain@master
-    #   with:
-    #     toolchain: ${{ matrix.rust }}
-    #     target: ${{ matrix.target }}
-
-    - name: Use Cross
-    #   if: matrix.os == 'ubuntu-latest' && matrix.target != ''
-      #   shell: bash
-      #   run: |
-      # # In the past, new releases of 'cross' have broken CI. So for now, we
-      # # pin it. We also use their pre-compiled binary releases because cross
-      # # has over 100 dependencies and takes a bit to compile.
-      # dir="$RUNNER_TEMP/cross-download"
-      # mkdir "$dir"
-      # echo "$dir" >> $GITHUB_PATH
-      # cd "$dir"
-      # curl -LO "https://github.com/cross-rs/cross/releases/download/$CROSS_VERSION/cross-x86_64-unknown-linux-musl.tar.gz"
-      # tar xf cross-x86_64-unknown-linux-musl.tar.gz
-      run: |
-        cargo install cross
-        echo "CARGO=cross" >> $GITHUB_ENV
-
-    - name: install cargo-bundle
-      run: |
-        cargo install cargo-bundle 
       
-    - name: Set target variables
-      shell: bash
-      run: |
-        echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
-        echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
+  build_bundle_and_add_to_release:
+    needs: setup_github_release
+    runs-on: [ubuntu-latest, macos-latest, macos-13, windows-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Show command used for Cargo
-      shell: bash
-      run: |
-        echo "cargo command is: ${{ env.CARGO }}"
-        echo "target flag is: ${{ env.TARGET_FLAGS }}"
-        echo "target dir is: ${{ env.TARGET_DIR }}"
-
-    # FIXME Here we should use `cargo bundle` -> no need to determine bin, whole archive to be uploaded
-    - name: Build release binary
-      shell: bash
-      run: |
-        ${{ env.CARGO }} bundle --release ${{ env.TARGET_FLAGS }}
+      - name: install cargo-bundle
+        run: |
+            cargo install cargo-bundle 
         
-        if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            bundle_dir="target/${{ matrix.target }}/release/bundle/osx/ProLock.app"
-        elif [ "${{ matrix.os }}" = "macos-13" ]; then
-            bundle_dir="target/${{ matrix.target }}/release/bundle/macos/ProLock.app"
-        else
-            bundle_dir="target/${{ matrix.target }}/release/bundle"
-        fi
+      - name: Set target variables
+        shell: bash
+        run: |
+            echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+            echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
 
-        echo "BUNDLE_DIR=$bundle_dir" >> $GITHUB_ENV
+      - name: Show command used for Cargo
+        shell: bash
+        run: |
+            echo "cargo command is: ${{ env.CARGO }}"
+            echo "target flag is: ${{ env.TARGET_FLAGS }}"
+            echo "target dir is: ${{ env.TARGET_DIR }}"
 
-    - name: Determine archive name
-      shell: bash
-      run: |
-        version="${{ needs.create-release.outputs.version }}"
-        echo "ARCHIVE=prolock-$version-${{ matrix.target }}" >> $GITHUB_ENV
+      - name: Build release binary
+        shell: bash
+        run: |
+          ${{ env.CARGO }} bundle --release ${{ env.TARGET_FLAGS }}
+        
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+              bundle_dir="target/${{ matrix.target }}/release/bundle/osx/ProLock.app"
+          elif [ "${{ matrix.os }}" = "macos-13" ]; then
+              bundle_dir="target/${{ matrix.target }}/release/bundle/macos/ProLock.app"
+          else
+              bundle_dir="target/${{ matrix.target }}/release/bundle"
+          fi
 
-    - name: Create directory for archive
-      shell: bash
-      run: |
-        mkdir -p "$ARCHIVE"/doc
-        cp -R "$BUNDLE_DIR" "$ARCHIVE"/
-        cp {README.md,LICENSE-APACHE,LICENSE-MIT} "$ARCHIVE"/
-        cp CHANGELOG.md "$ARCHIVE"/doc/
+          echo "BUNDLE_DIR=$bundle_dir" >> $GITHUB_ENV
 
+      - name: Determine archive name
+        shell: bash
+        run: |
+          version="${{ needs.create-release.outputs.version }}"
+          echo "ARCHIVE=prolock-$version-${{ matrix.target }}" >> $GITHUB_ENV
 
-    # - name: Build archive (Windows)
-    #   shell: bash
-    #   if: matrix.os == 'windows-latest'
-    #   run: |
-    #     7z a "$ARCHIVE.zip" "$ARCHIVE"
-    #     certutil -hashfile "$ARCHIVE.zip" SHA256 > "$ARCHIVE.zip.sha256"
-    #     echo "ASSET=$ARCHIVE.zip" >> $GITHUB_ENV
-    #     echo "ASSET_SUM=$ARCHIVE.zip.sha256" >> $GITHUB_ENV
+      - name: Create directory for archive
+        shell: bash
+        run: |
+          mkdir -p "$ARCHIVE"/doc
+          cp -R "$BUNDLE_DIR" "$ARCHIVE"/
+          cp {README.md,LICENSE-APACHE,LICENSE-MIT} "$ARCHIVE"/
+          cp CHANGELOG.md "$ARCHIVE"/doc/
 
-    - name: Build archive (Unix)
-      shell: bash
-      if: matrix.os != 'windows-latest'
-      run: |
-        tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
-        shasum -a 256 "$ARCHIVE.tar.gz" > "$ARCHIVE.tar.gz.sha256"
-        echo "ASSET=$ARCHIVE.tar.gz" >> $GITHUB_ENV
-        echo "ASSET_SUM=$ARCHIVE.tar.gz.sha256" >> $GITHUB_ENV
+      - name: Build archive (Unix)
+        shell: bash
+        if: matrix.os != 'windows-latest'
+        run: |
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          shasum -a 256 "$ARCHIVE.tar.gz" > "$ARCHIVE.tar.gz.sha256"
+          echo "ASSET=$ARCHIVE.tar.gz" >> $GITHUB_ENV
+          echo "ASSET_SUM=$ARCHIVE.tar.gz.sha256" >> $GITHUB_ENV
 
-    - name: Upload release archive
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: bash
-      run: |
-        version="${{ needs.create-release.outputs.version }}"
-        gh release upload "$version" ${{ env.ASSET }} ${{ env.ASSET_SUM }}
-
+      - name: Upload release archive
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          version="${{ needs.create-release.outputs.version }}"
+          gh release upload "$version" ${{ env.ASSET }} ${{ env.ASSET_SUM }}

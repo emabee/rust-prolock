@@ -19,7 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Get the release version from the tag
-        if: env.VERSION == ''
         run: |
           ref_name=${{ github.ref_name }}
           # Remove the 'v' prefix if it exists
@@ -43,8 +42,6 @@ jobs:
     #     run: gh release create $VERSION --draft --verify-tag --title $VERSION
     #
     # FIXME the check is still missing!!
-    #    outputs:
-    #      version: ${{ env.VERSION }}
 
       - name: install cargo-bundle
         run: |
@@ -53,7 +50,7 @@ jobs:
       - name: Build release binary
         shell: bash
         run: |
-          ${{ env.CARGO }} bundle --release ${{ env.TARGET_FLAGS }}
+          cargo bundle --release
         
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
               bundle_dir="target/${{ matrix.target }}/release/bundle/osx/ProLock.app"

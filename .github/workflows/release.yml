@@ -11,8 +11,8 @@ permissions:
   contents: write
 
 jobs:
-  setup_github_release:
-    runs-on: ubuntu-latest
+  verify_github_release_exists:
+    runs-on: [ubuntu-latest, macos-latest, macos-13, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - name: Get the release version from the tag
@@ -28,7 +28,7 @@ jobs:
           echo "version is: $VERSION"
       - name: Check that tag version and Cargo.toml version are the same
         shell: bash
-        # Improve this check as it could confused by versions of dependencies
+        # Improve this check as it could get confused by versions of dependencies
         run: |
           if ! grep -q "version = \"$VERSION\"" Cargo.toml; then
             echo "version does not match Cargo.toml" >&2
@@ -38,34 +38,15 @@ jobs:
     #     env:
     #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     #     run: gh release create $VERSION --draft --verify-tag --title $VERSION
-    outputs:
-      version: ${{ env.VERSION }}
-
-      
-  build_bundle_and_add_to_release:
-    needs: setup_github_release
-    runs-on: [ubuntu-latest, macos-latest, macos-13, windows-latest]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    #
+    # FIXME the check is still missing!!
+    #    outputs:
+    #      version: ${{ env.VERSION }}
 
       - name: install cargo-bundle
         run: |
             cargo install cargo-bundle 
         
-      - name: Set target variables
-        shell: bash
-        run: |
-            echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
-            echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
-
-      - name: Show command used for Cargo
-        shell: bash
-        run: |
-            echo "cargo command is: ${{ env.CARGO }}"
-            echo "target flag is: ${{ env.TARGET_FLAGS }}"
-            echo "target dir is: ${{ env.TARGET_DIR }}"
-
       - name: Build release binary
         shell: bash
         run: |

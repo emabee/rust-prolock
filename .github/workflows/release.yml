@@ -65,7 +65,7 @@ jobs:
       - name: Determine archive name
         shell: bash
         run: |
-          version="${{ needs.create-release.outputs.version }}"
+          #   version="${{ needs.create-release.outputs.version }}"
           echo "ARCHIVE=prolock-$version-${{ matrix.target }}" >> $GITHUB_ENV
 
       - name: Create directory for archive
@@ -90,5 +90,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          version="${{ needs.create-release.outputs.version }}"
+          #  version="${{ needs.create-release.outputs.version }}"
           gh release upload "$version" ${{ env.ASSET }} ${{ env.ASSET_SUM }}

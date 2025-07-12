@@ -120,20 +120,20 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install packages (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      shell: bash
-      run: |
-        ci/ubuntu-install-packages
+    # - name: Install packages (Ubuntu)
+    #   if: matrix.os == 'ubuntu-latest'
+    #   shell: bash
+    #   run: |
+    #     ci/ubuntu-install-packages
 
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: ${{ matrix.rust }}
-        target: ${{ matrix.target }}
+    # - name: Install Rust
+    #   uses: dtolnay/rust-toolchain@master
+    #   with:
+    #     toolchain: ${{ matrix.rust }}
+    #     target: ${{ matrix.target }}
 
     - name: Use Cross
-      if: matrix.os == 'ubuntu-latest' && matrix.target != ''
+    #   if: matrix.os == 'ubuntu-latest' && matrix.target != ''
       #   shell: bash
       #   run: |
       # # In the past, new releases of 'cross' have broken CI. So for now, we
@@ -188,7 +188,7 @@ jobs:
         version="${{ needs.create-release.outputs.version }}"
         echo "ARCHIVE=prolock-$version-${{ matrix.target }}" >> $GITHUB_ENV
 
-    - name: Creating directory for archive
+    - name: Create directory for archive
       shell: bash
       run: |
         mkdir -p "$ARCHIVE"/doc

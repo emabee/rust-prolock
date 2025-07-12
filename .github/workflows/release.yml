@@ -18,9 +18,10 @@ jobs:
       - name: Get the release version from the tag
         if: env.VERSION == ''
         run: |
-          echo "VERSION1=${{ github.ref_name }}" >> $GITHUB_ENV
-            # Remove the 'v' prefix if it exists
-          echo "VERSION= env.VERSION1:startsWith('v') ? ${{ env.VERSION1 }}[1:] : ${{ env.VERSION1 }}" >> $GITHUB_ENV
+          ref_name=${{ github.ref_name }}
+          # Remove the 'v' prefix if it exists
+          version=${ref_name#v}
+          echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: Show the version
         run: |

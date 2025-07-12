@@ -17,31 +17,31 @@ jobs:
         runner: [macos-latest, macos-13] #, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
       - name: Get the release version from the tag
         run: |
           ref_name=${{ github.ref_name }}
+          echo "RELEASE_NAME=$ref_name" >> $GITHUB_ENV
+
           # Remove the 'v' prefix if it exists
-          version=${ref_name#v}
-          echo "VERSION=$version" >> $GITHUB_ENV
+          cargo_version=${ref_name#v}
+          echo "CARGO_VERSION=$cargo_version" >> $GITHUB_ENV
 
       - name: Show the version
         run: |
-          echo "version is: $VERSION"
-      - name: Check that tag version and Cargo.toml version are the same
+          echo "cargo version is: ${{ env.CARGO_VERSION }}"
+          echo "release name is: ${{ env.RELEASE_NAME }}"
+
+      - name: Check that $CARGO_VERSION and version in Cargo.toml are the same
         shell: bash
         # Improve this check as it could get confused by versions of dependencies
         run: |
-          if ! grep -q "version = \"$VERSION\"" Cargo.toml; then
-            echo "version does not match Cargo.toml" >&2
+          if ! grep -q "version = \"${{ env.CARGO_VERSION }}\"" Cargo.toml; then
+            echo "Value of CARGO_VERSION does not match Cargo.toml" >&2
             exit 1
           fi
-    #   - name: Create GitHub release
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #     run: gh release create $VERSION --draft --verify-tag --title $VERSION
-    #
-    # FIXME the check is still missing!!
 
       - name: install cargo-bundle
         run: |
@@ -65,8 +65,7 @@ jobs:
       - name: Determine archive name
         shell: bash
         run: |
-          #   version="${{ needs.create-release.outputs.version }}"
-          echo "ARCHIVE=prolock-$version-${{ matrix.target }}" >> $GITHUB_ENV
+          echo "ARCHIVE=prolock-${{ env.CARGO_VERSION }}-${{ matrix.target }}" >> $GITHUB_ENV
 
       - name: Create directory for archive
         shell: bash
@@ -90,5 +89,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          #  version="${{ needs.create-release.outputs.version }}"
-          gh release upload "$version" ${{ env.ASSET }} ${{ env.ASSET_SUM }}
+          gh release upload ${{ env.VERSION }} ${{ env.ASSET }} ${{ env.ASSET_SUM }}

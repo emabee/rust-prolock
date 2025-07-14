@@ -20,7 +20,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Get the release version from the tag
+      - name: Derive release name and cargo version from the tag
         run: |
           ref_name=${{ github.ref_name }}
           echo "RELEASE_NAME=$ref_name" >> $GITHUB_ENV
@@ -51,13 +51,14 @@ jobs:
         shell: bash
         run: |
           cargo bundle --release
-        
+          ls -l target/release/bundle
+
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-              bundle_dir="target/${{ matrix.target }}/release/bundle/osx/ProLock.app"
+              bundle_dir="target/release/bundle/osx/ProLock.app"
           elif [ "${{ matrix.os }}" = "macos-13" ]; then
-              bundle_dir="target/${{ matrix.target }}/release/bundle/macos/ProLock.app"
+              bundle_dir="target/release/bundle/macos/ProLock.app"
           else
-              bundle_dir="target/${{ matrix.target }}/release/bundle"
+              bundle_dir="target/release/bundle"
           fi
 
           echo "BUNDLE_DIR=$bundle_dir" >> $GITHUB_ENV
@@ -75,6 +76,16 @@ jobs:
           cp {README.md,LICENSE-APACHE,LICENSE-MIT} "$ARCHIVE"/
           cp CHANGELOG.md "$ARCHIVE"/doc/
 
+
+      - name: Build archive (Windows)
+        shell: bash
+        if: matrix.os == 'windows-latest'
+        run: |
+          7z a "$ARCHIVE.zip" "$ARCHIVE"
+          certutil -hashfile "$ARCHIVE.zip" SHA256 > "$ARCHIVE.zip.sha256"
+          echo "ASSET=$ARCHIVE.zip" >> $GITHUB_ENV
+          echo "ASSET_SUM=$ARCHIVE.zip.sha256" >> $GITHUB_ENV
+
       - name: Build archive (Unix)
         shell: bash
         if: matrix.os != 'windows-latest'
@@ -89,4 +100,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          gh release upload ${{ env.VERSION }} ${{ env.ASSET }} ${{ env.ASSET_SUM }}
+          gh release upload ${{ env.RELEASE_NAME }} ${{ env.ASSET }} ${{ env.ASSET_SUM }}

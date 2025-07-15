@@ -49,28 +49,29 @@ jobs:
         
       - name: Build release binary
         shell: bash
-        # see https://doc.rust-lang.org/beta/rustc/platform-support.html for discriminator values
+        # see https://doc.rust-lang.org/beta/rustc/platform-support.html for platform values
         run: |
           cargo bundle --release
           ls -l target/release/bundle
 
           if [ "${{ matrix.runner }}" = "macos-latest" ]; then
               bundle_dir="target/release/bundle/osx/ProLock.app"
-              discriminator="aarch64-apple-darwin"
+              platform="aarch64-apple-darwin"
           elif [ "${{ matrix.runner }}" = "macos-13" ]; then
               bundle_dir="target/release/bundle/osx/ProLock.app"
-              discriminator="x86_64-apple-darwin"
+              platform="x86_64-apple-darwin"
           else
-              echo "Missing decent values for bundle_dir and discriminator for ${{ matrix.runner }}" >&2
+              echo "Missing decent values for bundle_dir and platform for ${{ matrix.runner }}" >&2
               exit 1
           fi
 
           echo "BUNDLE_DIR=$bundle_dir" >> $GITHUB_ENV
+          echo "PLATFORM=$platform" >> $GITHUB_ENV
 
       - name: Determine archive name
         shell: bash
         run: |
-          echo "ARCHIVE=prolock-${{ env.CARGO_VERSION }}-$discriminator" >> $GITHUB_ENV
+          echo "ARCHIVE=prolock-${{ env.CARGO_VERSION }}-${{ env.PLATFORM }}" >> $GITHUB_ENV
 
       - name: Create directory for archive
         shell: bash

@@ -25,7 +25,7 @@ See <https://github.com/emabee/rust-prolock/blob/main/INSTALLATION.md>.
 
 ## Screen shots
 
-See images in <https://github.com/emabee/rust-prolock/tree/main/src/doc/screenshots>.
+See images in <https://github.com/emabee/rust-prolock/tree/main/doc/screenshots>.
 
 ## Encryption
 

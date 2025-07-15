@@ -148,7 +148,7 @@ Encrypted data:
   en: Encrypted data
   de: Verschlüsselte Daten
 Unprotected header:
-  en: Unverschlüsselter Eintragskopf
+  en: Unencrypted header
   de: Unverschlüsselter Eintragskopf
 _about_1:
   en: ProLock is a tool for securely storing secrets (like passwords) in a password-protected file.

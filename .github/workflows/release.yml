@@ -54,14 +54,14 @@ jobs:
           cargo bundle --release
           ls -l target/release/bundle
 
-          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+          if [ "${{ matrix.runner }}" = "macos-latest" ]; then
               bundle_dir="target/release/bundle/osx/ProLock.app"
               discriminator="aarch64-apple-darwin"
-          elif [ "${{ matrix.os }}" = "macos-13" ]; then
+          elif [ "${{ matrix.runner }}" = "macos-13" ]; then
               bundle_dir="target/release/bundle/osx/ProLock.app"
               discriminator="x86_64-apple-darwin"
           else
-              echo "Missing decent values for bundle_dir and discriminator for ${{ matrix.os }}" >&2
+              echo "Missing decent values for bundle_dir and discriminator for ${{ matrix.runner }}" >&2
               exit 1
           fi
 
@@ -83,7 +83,7 @@ jobs:
 
       - name: Build archive (Windows)
         shell: bash
-        if: matrix.os == 'windows-latest'
+        if: matrix.runner == 'windows-latest'
         run: |
           7z a "$ARCHIVE.zip" "$ARCHIVE"
           certutil -hashfile "$ARCHIVE.zip" SHA256 > "$ARCHIVE.zip.sha256"
@@ -92,7 +92,7 @@ jobs:
 
       - name: Build archive (Unix)
         shell: bash
-        if: matrix.os != 'windows-latest'
+        if: matrix.runner != 'windows-latest'
         run: |
           tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
           shasum -a 256 "$ARCHIVE.tar.gz" > "$ARCHIVE.tar.gz.sha256"

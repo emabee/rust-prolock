@@ -7,9 +7,7 @@ use crate::{
         viz::V,
     },
 };
-use egui::{
-    Button, Color32, Context, FontFamily, Image, RichText, TopBottomPanel, menu::menu_custom_button,
-};
+use egui::{Button, Color32, Context, FontFamily, Image, MenuBar, RichText, TopBottomPanel};
 use egui_extras::{Size, StripBuilder};
 
 pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: &Context) {
@@ -59,10 +57,8 @@ pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: 
 }
 
 fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ui: &mut egui::Ui) {
-    menu_custom_button(
-        ui,
-        Button::image(Image::new(IMG_BURGER)).fill(Color32::TRANSPARENT),
-        |ui| {
+    MenuBar::new().ui(ui, |ui| {
+        ui.menu_image_button(Image::new(IMG_BURGER), |ui| {
             if ui
                 .add_enabled(
                     v.modal_state.is_ready_for_modal(),
@@ -74,7 +70,6 @@ fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, 
                 .clicked()
             {
                 controller.set_action(Action::ShowAbout);
-                ui.close_menu();
             }
 
             if ui
@@ -85,7 +80,6 @@ fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, 
                 .clicked()
             {
                 controller.set_action(Action::StartChangeLanguage);
-                ui.close_menu();
             }
 
             if ui
@@ -99,7 +93,6 @@ fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, 
                 .clicked()
             {
                 controller.set_action(Action::StartChangeFile);
-                ui.close_menu();
             }
 
             if ui
@@ -110,7 +103,6 @@ fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, 
                 .clicked()
             {
                 controller.set_action(Action::StartChangePassword);
-                ui.close_menu();
             }
 
             if ui
@@ -118,7 +110,6 @@ fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, 
                 .clicked()
             {
                 controller.set_action(Action::ShowLog);
-                ui.close_menu();
             }
 
             if ui
@@ -127,9 +118,7 @@ fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, 
                     Button::new(format!("📄 {}", t!("Show content as printable document"))),
                 )
                 .clicked()
-            {
-                ui.close_menu();
-            }
-        },
-    );
+            {}
+        });
+    });
 }

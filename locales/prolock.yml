@@ -271,9 +271,6 @@ _unique_document_name:
 'internal error: can''t save with empty name':
   en: 'internal error: can''t save with empty name'
   de: 'Interner Fehler: Speichern mit leerem Namen nicht möglich'
-Generate Password:
-  en: Generate Password
-  de: Passwort generieren
 Generate password:
   en: Generate password
   de: Passwort generieren

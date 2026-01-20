@@ -10,13 +10,13 @@ pub fn configure_password_generation(
     ctx: &Context,
 ) {
     Modal::new("generate_password".into()).show(ctx, |ui| {
-        ui.heading(t!("Generate Password"));
+        ui.heading(t!("Generate password"));
         ui.add_space(10.);
 
         ui.horizontal(|ui| {
             ui.label(t!("Length:"));
             ui.add(
-                TextEdit::singleline(&mut generate_pw.length.to_string())
+                TextEdit::singleline(&mut generate_pw.length)
                     .desired_width(50.)
                     .font(FontId::new(12., FontFamily::Monospace)),
             );

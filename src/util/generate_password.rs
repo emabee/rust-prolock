@@ -10,25 +10,25 @@ pub fn generate_password(config: &VGeneratePassword) -> String {
     const NUMBER_OF_DIGITS: usize = 10;
 
     let mut rng = rand::rng();
-
+    let config_length: usize = config.length.parse().unwrap_or(15);
     let num_special: usize = if config.include_special {
-        max(config.length / 8, 1)
+        max(config_length / 8, 1)
     } else {
         0
     };
     let num_digit: usize = if config.include_numbers {
-        config.length / 6
+        config_length / 6
     } else {
         0
     };
     let num_uppercase: usize = if config.include_uppercase {
-        (config.length - num_special - num_digit) / 2
+        (config_length - num_special - num_digit) / 2
     } else {
         0
     };
-    let num_lowercase: usize = config.length - num_special - num_digit - num_uppercase;
+    let num_lowercase: usize = config_length - num_special - num_digit - num_uppercase;
 
-    let mut result = String::with_capacity(config.length * 4);
+    let mut result = String::with_capacity(config_length * 4);
 
     for _ in 0..num_lowercase {
         let idx = rng.next_u32() as usize % NUMBER_OF_LETTERS;
@@ -63,11 +63,11 @@ mod test {
         test_config(&config);
 
         for i in 6..=20 {
-            config.length = i;
+            config.length = i.to_string();
             test_config(&config);
         }
 
-        config.length = 19;
+        config.length = 19.to_string();
         config.specials = "ÄÖÜäöü".to_string();
         test_config(&config);
 
@@ -80,7 +80,11 @@ mod test {
     fn test_config(config: &VGeneratePassword) {
         for _ in 0..100 {
             let pw = generate_password(config);
-            assert_eq!(pw.chars().count(), config.length, "{pw} from {config:?}");
+            assert_eq!(
+                pw.chars().count().to_string(),
+                config.length,
+                "{pw} from {config:?}"
+            );
             assert!(
                 pw.chars().any(char::is_uppercase) == config.include_uppercase,
                 "{pw} from {config:?}"

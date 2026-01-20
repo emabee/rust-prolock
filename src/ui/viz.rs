@@ -411,17 +411,17 @@ pub struct VEditCred {
 
 #[derive(Debug)]
 pub struct VGeneratePassword {
-    pub length: usize,
+    pub length: String,
     pub include_uppercase: bool,
     pub include_numbers: bool,
     pub include_special: bool,
     pub specials: String,
-    pub cred_idx: usize,
+    pub cred_idx: usize, // index of the cred to which the generated PW will be applied
 }
 impl Default for VGeneratePassword {
     fn default() -> Self {
         Self {
-            length: 15,
+            length: 15.to_string(),
             include_uppercase: true,
             include_numbers: true,
             include_special: true,

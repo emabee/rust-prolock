@@ -1,4 +1,4 @@
-# Prolock
+# ProLock
 
 ## Data structures
 

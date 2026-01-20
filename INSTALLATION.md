@@ -1,5 +1,5 @@
 
-# How to Install `Prolock`
+# How to Install `ProLock`
 
 ## Build it yourself
 
@@ -33,7 +33,7 @@ The MSRV of ProLock is currently 1.85.
 
     4.2 Copy this folder `ProLock.app` into your Applications folder (`/Applications`).
 
-    Prolock can now be started with a single click from the Applications folder
+    ProLock can now be started with a single click from the Applications folder
     and pulled permanently into the dock, if you want.
 
 ## Future: Use pre-built releases from github

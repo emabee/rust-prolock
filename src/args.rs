@@ -23,7 +23,7 @@ Authors: {author-with-newline}
         .arg(
             Arg::new("test")
                 .long("test")
-                .help("test-mode for Prolock; uses different file locations.")
+                .help("test-mode for ProLock; uses different file locations.")
                 .required(false)
                 .num_args(0)
                 .action(ArgAction::SetTrue),
@@ -33,7 +33,7 @@ Authors: {author-with-newline}
                 .short('f')
                 .long("use_file")
                 .value_name("file")
-                .help("Prolock file to open; if not given, the last file is opened, or, on first start, a default file is chosen.")
+                .help("ProLock file to open; if not given, the last file is opened, or, on first start, a default file is chosen.")
                 .required(false)
                 .num_args(1)
                 .action(ArgAction::Set),
@@ -42,7 +42,7 @@ Authors: {author-with-newline}
             Arg::new("forget_file")
                 .long("forget_file")
                 .value_name("file")
-                .help("Remove the file from Prolock's list of known files.")
+                .help("Remove the file from ProLock's list of known files.")
                 .required(false)
                 .number_of_values(1)
                 .action(ArgAction::Set),
@@ -51,7 +51,7 @@ Authors: {author-with-newline}
             Arg::new("list_known_files")
                 .long("list_known_files")
                 .short('l')
-                .help("Print Prolock's list of known files.")
+                .help("Print ProLock's list of known files.")
                 .number_of_values(0)
                 .required(false),
         );

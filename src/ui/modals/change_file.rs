@@ -33,7 +33,7 @@ pub fn change_file(
             });
             ui.vertical(|ui| {
                 ui.add_space(50.);
-                ui.label(RichText::new(t!("Switch to another Prolock file")).size(24.));
+                ui.label(RichText::new(t!("switch_to_another_prolock_file")).size(24.));
 
                 ui.add_space(15.);
 

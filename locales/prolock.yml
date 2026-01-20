@@ -10,8 +10,8 @@ password_not_available:
   en: Password is not yet available
   de: Passwort is noch nicht verfügbar
 Creating the prolock file:
-  en: Creating the prolock file
-  de: Erzeugen der Prolock Datei
+  en: Creating the ProLock file
+  de: Erzeugen der ProLock Datei
 'Password:':
   en: 'Password:'
   de: 'Passwort:'
@@ -46,8 +46,8 @@ Password not correct:
   en: Password not correct
   de: Passwort nicht korrekt
 Change the password for the prolock file:
-  en: Change the password for the prolock file
-  de: Passwort für die Prolock Datei ändern
+  en: Change the password for the ProLock file
+  de: Passwort für die ProLock Datei ändern
 'Current password:':
   en: 'Current password:'
   de: 'Aktuelles Passwort:'
@@ -61,8 +61,8 @@ The current password is not correct:
   en: The current password is not correct
   de: Das aktuelle Passwort ist nicht korrekt
 'Specify the password to secure your prolock file:':
-  en: 'Specify the password to secure your prolock file:'
-  de: 'Passwort für die Prolock Datei:'
+  en: 'Specify the password to secure your ProLock file:'
+  de: 'Passwort für die ProLock Datei:'
 _passwords_dont_match:
   en: The entries for the new password are not consistent
   de: Die Eingaben für das neue Passwort stimmen nicht überein
@@ -171,15 +171,15 @@ _no_undo:
 _new:
   en: 'New:'
   de: 'Neu:'
-Switch to another Prolock file:
-  en: Switch to another Prolock file
-  de: Zu anderer Prolock Datei wechseln
+switch_to_another_prolock_file:
+  en: Switch to another ProLock file
+  de: Zu anderer ProLock Datei wechseln
 parsing FileList:
   en: parsing FileList
   de: Lesen der Dateiliste
 parsing PlFile:
-  en: parsing the prolock file
-  de: Lesen der Prolock Datei
+  en: parsing the ProLock file
+  de: Lesen der ProLock Datei
 File path:
   en: File path
   de: Dateipfad
@@ -196,13 +196,13 @@ _choose_other_file:
   en: Choose other file
   de: Andere Datei auswählen
 _opening_the_prolock_file:
-  en: Opening the prolock file
-  de: Prolock-Datei öffnen
+  en: Opening the ProLock file
+  de: ProLock-Datei öffnen
 _specify_pw_to_open:
-  en: 'Specify the password to open the prolock file:'
+  en: 'Specify the password to open the ProLock file:'
   de: 'Geben Sie das Passwort an, um die ProLock Datei zu öffnen:'
 _specify_pw_to_secure:
-  en: 'Specify the password to secure the prolock file:'
+  en: 'Specify the password to secure the ProLock file:'
   de: 'Geben Sie das Passwort an, mit dem die ProLock Datei gesichert werden soll:'
 _decryption_failed:
   en: 'Decryption of the protected data in the file failed.'
@@ -212,7 +212,7 @@ _decryption_failed_note1:
   de: 'Wahrscheinliche Ursache ist ein falsches Passwort - versuchen Sie es bitte erneut mit dem korrekten Passwort.'
 _decryption_failed_note2:
   en: 'Note that decryption will fail inevitably if the ProLock file was manually edited: do not edit the file directly, not even in the unencrypted section.'
-  de: 'Hinweis: die Entschlüsselung schlägt auch dann fehl, wenn die Prolock Datei manuell verändert wurde: auch der unverschlüsselte Bereich darf nicht verändert werden.'
+  de: 'Hinweis: die Entschlüsselung schlägt auch dann fehl, wenn die ProLock Datei manuell verändert wurde: auch der unverschlüsselte Bereich darf nicht verändert werden.'
 File given on commandline:
   en: File given on commandline
   de: Beim Programmstart mitgegebene Datei

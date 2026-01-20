@@ -22,6 +22,8 @@ pub fn configure_password_generation(
             );
         });
 
+        ui.checkbox(&mut generate_pw.include_lowercase, t!("Include lowercase"));
+
         ui.checkbox(&mut generate_pw.include_uppercase, t!("Include uppercase"));
 
         ui.checkbox(&mut generate_pw.include_numbers, t!("Include digits"));

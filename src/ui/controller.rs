@@ -350,10 +350,12 @@ impl Controller {
                 Action::FinalizeGeneratePassword,
             ) => {
                 let pw = generate_password(&v.generate_pw);
-                v_edit_bundle.v_edit_creds[v.generate_pw.cred_idx]
-                    .secret
-                    .clone_from(&pw);
-                v.modal_state.close_modal();
+                if !pw.is_empty() {
+                    v_edit_bundle.v_edit_creds[v.generate_pw.cred_idx]
+                        .secret
+                        .clone_from(&pw);
+                    v.modal_state.close_modal();
+                }
             }
 
             (
@@ -374,11 +376,13 @@ impl Controller {
                 },
                 Action::FinalizeGeneratePassword,
             ) => {
-                *generate_pw = false;
                 let pw = generate_password(&v.generate_pw);
-                v_edit_bundle.v_edit_creds[v.generate_pw.cred_idx]
-                    .secret
-                    .clone_from(&pw);
+                if !pw.is_empty() {
+                    *generate_pw = false;
+                    v_edit_bundle.v_edit_creds[v.generate_pw.cred_idx]
+                        .secret
+                        .clone_from(&pw);
+                }
             }
 
             (_, _, Action::CloseModal) => {

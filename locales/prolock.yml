@@ -280,6 +280,9 @@ Include digits:
 Include special characters:
   en: Include special characters
   de: Mit Sonderzeichen
+Include lowercase:
+  en: Include lowercase
+  de: Mit Kleinbuchstaben
 Include uppercase:
   en: Include uppercase
   de: Mit Großbuchstaben

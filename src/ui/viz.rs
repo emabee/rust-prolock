@@ -409,9 +409,11 @@ pub struct VEditCred {
     pub secret: String,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug)]
 pub struct VGeneratePassword {
     pub length: String,
+    pub include_lowercase: bool,
     pub include_uppercase: bool,
     pub include_numbers: bool,
     pub include_special: bool,
@@ -422,6 +424,7 @@ impl Default for VGeneratePassword {
     fn default() -> Self {
         Self {
             length: 15.to_string(),
+            include_lowercase: true,
             include_uppercase: true,
             include_numbers: true,
             include_special: true,

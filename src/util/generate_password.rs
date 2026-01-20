@@ -2,6 +2,8 @@ use crate::ui::viz::VGeneratePassword;
 use rand::{RngCore, seq::SliceRandom};
 use std::cmp::max;
 
+// returns a generated password according to the given configuration;
+// returns an empty string if the configuration is invalid
 pub fn generate_password(config: &VGeneratePassword) -> String {
     const LOWERCASE: &str = "abcdefghijklmnopqrstuvwxyz";
     const UPPERCASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -10,26 +12,48 @@ pub fn generate_password(config: &VGeneratePassword) -> String {
     const NUMBER_OF_DIGITS: usize = 10;
 
     let mut rng = rand::rng();
-    let config_length: usize = config.length.parse().unwrap_or(15);
-    let num_special: usize = if config.include_special {
-        max(config_length / 8, 1)
-    } else {
-        0
-    };
-    let num_digit: usize = if config.include_numbers {
-        config_length / 6
-    } else {
-        0
-    };
-    let num_uppercase: usize = if config.include_uppercase {
-        (config_length - num_special - num_digit) / 2
-    } else {
-        0
-    };
-    let num_lowercase: usize = config_length - num_special - num_digit - num_uppercase;
+    let pw_length: usize = config.length.parse().unwrap_or(15);
 
-    let mut result = String::with_capacity(config_length * 4);
+    let mut num_special: usize = if config.include_special {
+        max(pw_length / 6, 1)
+    } else {
+        0
+    };
+    let mut num_digit: usize = if config.include_numbers {
+        pw_length / 4
+    } else {
+        0
+    };
 
+    let remainder = pw_length - num_special - num_digit;
+    let (num_uppercase, num_lowercase) = match (config.include_lowercase, config.include_uppercase)
+    {
+        (true, true) => (remainder / 2, remainder - (remainder / 2)),
+        (false, true) => (remainder, 0),
+        (true, false) => (0, remainder),
+        (false, false) => {
+            match (config.include_numbers, config.include_special) {
+                (true, true) => {
+                    num_digit = pw_length / 2;
+                    num_special = pw_length - num_digit;
+                    (0, 0)
+                }
+                (true, false) => {
+                    num_digit = pw_length;
+                    (0, 0)
+                }
+                (false, true) => {
+                    num_special = pw_length;
+                    (0, 0)
+                }
+                (false, false) => {
+                    return String::new(); // invalid configuration
+                }
+            }
+        }
+    };
+
+    let mut result = String::with_capacity(pw_length * 4);
     for _ in 0..num_lowercase {
         let idx = rng.next_u32() as usize % NUMBER_OF_LETTERS;
         result.push(LOWERCASE.chars().nth(idx).unwrap());

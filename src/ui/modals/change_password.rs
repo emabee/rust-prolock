@@ -1,6 +1,5 @@
 use crate::ui::{
-    controller::{Action, Controller},
-    show_error,
+    Action, Controller, show_error,
     sizes::MODAL_WIDTH,
     viz::{Pw, PwFocus},
 };

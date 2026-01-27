@@ -1,9 +1,4 @@
-use crate::ui::{
-    IMG_CANCEL, IMG_SAVE,
-    controller::{Action, Controller},
-    show_error,
-    viz::VEditDocument,
-};
+use crate::ui::{Action, Controller, IMG_CANCEL, IMG_SAVE, show_error, viz::VEditDocument};
 use egui::{
     Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, Sides, TextEdit,
 };

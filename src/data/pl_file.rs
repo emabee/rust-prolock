@@ -21,7 +21,16 @@ const PREFACE: &str = "\
 
 ";
 
-// Describes the status and content of the prolock file
+// The data we need to manage the prolock file
+// file_path: path to the file
+// stored: the file content as is;
+//   it consists of a readable section and an encrypted section
+//   the readable section contains the public information of bundles and documents,
+//   and a reference number for each secret and name
+//   the encrypted section
+// o_transient: transient data
+//   is instantiated from the encrypted section with the user-provided password
+//   most importantly, it contains a map of the reference numbers to the actual values;
 #[derive(Clone, Debug)]
 pub(crate) struct PlFile {
     file_path: PathBuf,

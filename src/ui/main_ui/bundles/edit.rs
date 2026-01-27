@@ -1,7 +1,7 @@
 use crate::ui::{
+    Action, Controller,
     assets::IMG_WIZARD,
     colors::{COLOR_SECRET, COLOR_USER},
-    controller::{Action, Controller},
     show_error,
     viz::{VEditBundle, VEditCred},
 };

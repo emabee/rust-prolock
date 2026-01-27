@@ -1,10 +1,7 @@
 use crate::{
     data::Settings,
     ui::{
-        assets::IMG_CHANGE_FILE,
-        controller::{Action, Controller},
-        show_error,
-        sizes::MODAL_WIDTH,
+        Action, Controller, assets::IMG_CHANGE_FILE, show_error, sizes::MODAL_WIDTH,
         viz::FileSelection,
     },
 };

@@ -1,8 +1,7 @@
 use crate::{
     data::Documents,
     ui::{
-        IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_ERASE,
-        controller::{Action, Controller},
+        Action, Controller, IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_ERASE,
         sizes::SEARCH_TEXT_WIDTH,
         viz::{BundleState, DocumentState, MainState, V},
     },

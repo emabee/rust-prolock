@@ -1,8 +1,8 @@
 use crate::{
     data::Key,
     ui::{
-        IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT, IMG_EDIT_INACTIVE, IMG_OK,
-        controller::{Action, Controller},
+        Action, Controller, IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE, IMG_EDIT,
+        IMG_EDIT_INACTIVE, IMG_OK,
     },
 };
 use egui::{Button, Color32, Image, Ui};

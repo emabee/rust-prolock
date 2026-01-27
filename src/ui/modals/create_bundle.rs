@@ -1,8 +1,7 @@
 use crate::ui::{
-    IMG_CANCEL, IMG_SAVE,
+    Action, Controller, IMG_CANCEL, IMG_SAVE,
     assets::IMG_WIZARD,
     colors::{COLOR_SECRET, COLOR_USER},
-    controller::{Action, Controller},
     show_error,
     sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
     viz::{VEditBundle, VEditCred},

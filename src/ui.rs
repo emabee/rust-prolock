@@ -1,3 +1,4 @@
+mod action;
 mod assets;
 pub mod colors;
 mod controller;
@@ -12,6 +13,8 @@ use crate::ui::assets::{
     IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_BURGER, IMG_CANCEL, IMG_DELETE, IMG_DELETE_INACTIVE,
     IMG_EDIT, IMG_EDIT_INACTIVE, IMG_ERASE, IMG_LOGO, IMG_OK, IMG_RUST_LOGO, IMG_SAVE,
 };
+pub(crate) use action::Action;
+pub(crate) use controller::Controller;
 use egui::{Color32, RichText};
 
 pub const LIGHT_GRAY: Color32 = Color32::from_rgb(230, 230, 230);

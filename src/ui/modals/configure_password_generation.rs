@@ -1,7 +1,4 @@
-use crate::ui::{
-    controller::{Action, Controller},
-    viz::VGeneratePassword,
-};
+use crate::ui::{Action, Controller, viz::VGeneratePassword};
 use egui::{Color32, Context, FontFamily, FontId, Modal, RichText, Sides, TextEdit};
 
 pub fn configure_password_generation(

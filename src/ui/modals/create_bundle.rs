@@ -1,10 +1,13 @@
-use crate::ui::{
-    Action, Controller, IMG_CANCEL, IMG_SAVE,
-    assets::IMG_WIZARD,
-    colors::{COLOR_SECRET, COLOR_USER},
-    show_error,
-    sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
-    viz::{VEditBundle, VEditCred},
+use crate::{
+    Controller,
+    ui::{
+        Action, IMG_CANCEL, IMG_SAVE,
+        assets::IMG_WIZARD,
+        colors::{COLOR_SECRET, COLOR_USER},
+        show_error,
+        sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
+        viz::{VEditBundle, VEditCred},
+    },
 };
 use egui::{
     Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, ScrollArea, Sides,

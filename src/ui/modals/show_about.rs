@@ -1,6 +1,7 @@
 use crate::{
     PROG_NAME, PROG_VERSION,
-    ui::{Action, Controller, IMG_LOGO, IMG_RUST_LOGO, sizes::MODAL_WIDTH},
+    Controller,
+    ui::{Action, IMG_LOGO, IMG_RUST_LOGO, sizes::MODAL_WIDTH},
 };
 use egui::{Color32, Context, FontFamily, FontId, Image, Modal, RichText, Sides, Vec2};
 

@@ -1,8 +1,8 @@
 use super::buttons::active_buttons_save_and_cancel;
 use crate::{
+    Controller,
     data::{Document, Key},
     ui::{
-        controller::Controller,
         main_ui::documents::buttons::{
             active_buttons_edit_and_delete, inactive_buttons_edit_and_delete,
         },

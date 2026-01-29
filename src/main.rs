@@ -11,11 +11,13 @@ extern crate rust_i18n;
 i18n!("locales", fallback = "en");
 
 mod args;
+mod ctrl;
 mod data;
 mod ui;
 mod util;
 
 use crate::{
+    ctrl::Controller,
     data::PlFile,
     ui::{
         pl_app::PlApp,

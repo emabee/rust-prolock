@@ -163,6 +163,9 @@ impl Default for MainState {
     }
 }
 impl ModalState {
+    pub fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
     pub fn close_modal(&mut self) {
         *self = Self::None;
     }

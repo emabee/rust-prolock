@@ -1,9 +1,12 @@
-use crate::ui::{
-    Action, Controller,
-    assets::IMG_WIZARD,
-    colors::{COLOR_SECRET, COLOR_USER},
-    show_error,
-    viz::{VEditBundle, VEditCred},
+use crate::{
+    Controller,
+    ui::{
+        Action,
+        assets::IMG_WIZARD,
+        colors::{COLOR_SECRET, COLOR_USER},
+        show_error,
+        viz::{VEditBundle, VEditCred},
+    },
 };
 use egui::{Button, Color32, FontFamily, FontId, Image, ScrollArea, TextEdit};
 use egui_extras::{Size, Strip, StripBuilder};

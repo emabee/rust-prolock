@@ -3,8 +3,9 @@ mod documents;
 mod top_panels;
 
 use crate::{
+    Controller,
     data::{Bundles, Documents, Transient},
-    ui::{controller::Controller, viz::V},
+    ui::viz::V,
 };
 use egui::Context;
 

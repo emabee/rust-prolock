@@ -1,7 +1,7 @@
 use crate::{
+    Controller,
     data::{Bundle, Bundles, Key, Transient},
     ui::{
-        controller::Controller,
         main_ui::bundles::{
             active_buttons_edit_and_delete, active_buttons_save_and_cancel,
             inactive_buttons_edit_and_delete,

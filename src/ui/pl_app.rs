@@ -1,7 +1,7 @@
 use crate::{
+    Controller,
     data::{PlFile, Settings},
     ui::{
-        controller::Controller,
         main_ui::main_ui,
         modals::{
             ask_for_password_to_open, change_file, change_language, change_password,

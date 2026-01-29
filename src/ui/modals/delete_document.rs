@@ -1,6 +1,7 @@
 use crate::{
+    Controller,
     data::Key,
-    ui::{Action, Controller, IMG_DELETE, show_error, sizes::MODAL_WIDTH},
+    ui::{Action, IMG_DELETE, show_error, sizes::MODAL_WIDTH},
 };
 use egui::{Color32, Context, FontId, Image, Modal, RichText, Sides};
 

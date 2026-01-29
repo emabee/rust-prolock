@@ -1,7 +1,7 @@
 use crate::{
+    Controller,
     data::{Documents, Key, Transient},
     ui::{
-        controller::Controller,
         main_ui::documents::{doc_content, doc_header},
         sizes::DOCUMENT_NAME_HEIGHT,
         viz::{MainState, V, VDocument},

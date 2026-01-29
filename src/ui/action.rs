@@ -80,6 +80,10 @@ impl Action {
             | Action::FinalizeDeleteDocument
             | Action::StartGeneratePassword(_)
             | Action::FinalizeGeneratePassword
+            | Action::StartExportData
+            | Action::FinalizeExportData
+            | Action::StartImportData
+            | Action::FinalizeImportData
             | Action::Cancel
             | Action::FinalizeChangePassword { .. } => {
                 log::info!("[Action::{self:?}] [{main_state:?}] [{modal_state:?}]");

@@ -1,9 +1,7 @@
 use crate::{
+    Controller,
     data::Settings,
-    ui::{
-        Action, Controller, assets::IMG_CHANGE_FILE, show_error, sizes::MODAL_WIDTH,
-        viz::FileSelection,
-    },
+    ui::{Action, assets::IMG_CHANGE_FILE, show_error, sizes::MODAL_WIDTH, viz::FileSelection},
 };
 use egui::{Color32, Context, Image, Modal, RichText, Sides, TextEdit, TextStyle};
 

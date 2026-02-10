@@ -40,6 +40,7 @@ use std::{
 };
 
 pub const PROG_NAME: &str = env!("CARGO_PKG_NAME");
+pub const PROG_TITLE: &str = "ProLock";
 pub const PROG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type Language = (&'static str, &'static str);
@@ -105,13 +106,13 @@ fn run() -> Result<()> {
     }
 
     run_native(
-        PROG_NAME,
+        PROG_TITLE,
         NativeOptions {
             // viewport = native OS window
             viewport: ViewportBuilder::default()
                 .with_inner_size([WIN_WIDTH, WIN_HEIGHT])
                 .with_min_inner_size([WIN_WIDTH, WIN_MIN_HEIGHT])
-                .with_app_id(PROG_NAME)
+                .with_app_id(PROG_TITLE)
                 .with_icon(pl_load_icon()),
             ..Default::default()
         },

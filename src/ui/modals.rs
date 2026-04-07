@@ -7,6 +7,8 @@ mod create_bundle;
 mod create_document;
 mod delete_bundle;
 mod delete_document;
+mod export_data;
+mod import_data;
 mod show_about;
 mod show_log;
 
@@ -19,5 +21,9 @@ pub use create_bundle::create_bundle;
 pub use create_document::create_document;
 pub use delete_bundle::delete_bundle;
 pub use delete_document::delete_document;
+pub use export_data::export_data;
+pub use import_data::import_data;
 pub use show_about::show_about;
 pub use show_log::show_log;
+
+mod button;

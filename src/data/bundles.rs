@@ -24,6 +24,10 @@ impl Bundles {
         self.0.len()
     }
 
+    pub fn keys(&self) -> impl Iterator<Item = &Key> {
+        self.0.keys()
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (&Key, &Bundle)> {
         self.0.iter()
     }
@@ -84,5 +88,14 @@ impl Bundles {
                 Ok(())
             }
         }
+    }
+
+    pub fn remove_bundle_keep_refs<S>(&mut self, key: S) -> Option<Bundle>
+    where
+        S: AsRef<str>,
+    {
+        self.0
+            .remove_entry(&Key::new(key.as_ref()))
+            .map(|(_k, v)| v)
     }
 }

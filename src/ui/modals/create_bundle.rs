@@ -54,7 +54,7 @@ pub fn create_bundle(
                     .add(
                         Button::image_and_text(
                             Image::new(IMG_SAVE),
-                            RichText::new(t!("Save")).color(Color32::DARK_GREEN),
+                            RichText::new(t!("_save")).color(Color32::DARK_GREEN),
                         )
                         .fill(Color32::TRANSPARENT),
                     )
@@ -69,7 +69,7 @@ pub fn create_bundle(
                             Image::new(IMG_CANCEL)
                                 .maintain_aspect_ratio(true)
                                 .fit_to_original_size(0.22),
-                            t!("Cancel"),
+                            t!("_cancel"),
                         )
                         .fill(Color32::TRANSPARENT),
                     )

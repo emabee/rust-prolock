@@ -6,7 +6,7 @@ use crate::{
         modals::{
             ask_for_password_to_open, change_file, change_language, change_password,
             configure_password_generation, create_bundle, create_document, delete_bundle,
-            delete_document, show_about, show_log,
+            delete_document, export_data, import_data, show_about, show_log,
         },
         top_panel::top_panel,
         viz::{ModalState, V},
@@ -43,7 +43,7 @@ impl PlApp {
 
 impl App for PlApp {
     fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
-        // execute actions
+        // execute action, if any
         self.controller
             .act(&mut self.pl_file, &mut self.v, &mut self.settings);
 
@@ -101,6 +101,15 @@ impl App for PlApp {
             }
             ModalState::GeneratePassword => {
                 configure_password_generation(&mut self.v.generate_pw, &mut self.controller, ctx);
+            }
+            ModalState::ExportData => {
+                export_data(&mut self.v.export_data, &mut self.controller, ctx);
+            }
+            ModalState::ImportData {
+                ref mut step,
+                ref mut error,
+            } => {
+                import_data(&self.pl_file, step, error, &mut self.controller, ctx);
             }
         }
 

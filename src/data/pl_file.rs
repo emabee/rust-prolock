@@ -1,6 +1,6 @@
 use crate::{
     data::{Bundle, Bundles, Document, Documents, Key, Secrets, Settings, Transient},
-    ui::viz::{VEditBundle, VEditDocument},
+    ui::viz::{VEditBundle, VEditDocument, VExportData},
 };
 use anyhow::{Context, Result, anyhow};
 use fd_lock::RwLock as FdRwLock;
@@ -68,32 +68,39 @@ struct FileHeader {
 impl PlFile {
     pub fn read_or_create(file_path: &Path) -> Result<Self> {
         if file_path.exists() {
-            let result = Self::lock_and_read(file_path).context("lock_and_read")?.1;
-            Ok(result)
+            PlFile::read(file_path)
         } else {
-            // first start: ensure the folder exists, and start with initial PlFile
-            create_dir_all(
-                file_path
-                    .parent()
-                    .context("cannot determine folder for storage")?,
-            )?;
-
-            Ok(Self {
-                file_path: file_path.to_path_buf(),
-                o_transient: None,
-                stored: Stored {
-                    readable: Readable {
-                        header: FileHeader {
-                            update_counter: Sequence::new(),
-                            format_version: CURRENT_FORMAT_VERSION,
-                        },
-                        bundles: Bundles::new(),
-                        documents: Documents::new(),
-                    },
-                    cipher: String::new(),
-                },
-            })
+            PlFile::create(file_path)
         }
+    }
+
+    pub fn read(file_path: &Path) -> Result<Self> {
+        Ok(Self::lock_and_read(file_path).context("lock_and_read")?.1)
+    }
+
+    // first start: ensure the folder exists, and start with initial PlFile
+    fn create(file_path: &Path) -> Result<Self> {
+        if file_path.exists() {
+            return Err(anyhow!(t!("file_already_exists")));
+        }
+
+        create_dir_all(file_path.parent().context(t!("cannot_determine_folder"))?)?;
+
+        Ok(Self {
+            file_path: file_path.to_path_buf(),
+            o_transient: None,
+            stored: Stored {
+                readable: Readable {
+                    header: FileHeader {
+                        update_counter: Sequence::new(),
+                        format_version: CURRENT_FORMAT_VERSION,
+                    },
+                    bundles: Bundles::new(),
+                    documents: Documents::new(),
+                },
+                cipher: String::new(),
+            },
+        })
     }
 
     fn lock_and_create_empty(file_path: &Path) -> Result<FdRwLock<File>> {
@@ -108,13 +115,24 @@ impl PlFile {
 
     fn lock_and_read(file_path: &Path) -> Result<(FdRwLock<File>, PlFile)> {
         {
-            let file = File::open(file_path).context(t!("opening file"))?;
+            let resulting_path: PathBuf = if file_path.starts_with("~") {
+                if let Some(home_dir) = dirs::home_dir() {
+                    home_dir.join(file_path.strip_prefix("~").unwrap())
+                } else {
+                    file_path.into()
+                }
+            } else {
+                file_path.into()
+            };
+
+            let file = File::open(&resulting_path).context(t!("opening file"))?;
             let mut file_lock = FdRwLock::new(file);
-            let stored = Self::read_stored(&mut file_lock, file_path).context("read_stored")?;
+            let stored =
+                Self::read_stored(&mut file_lock, &resulting_path).context("read_stored")?;
             Ok((
                 file_lock,
                 Self {
-                    file_path: file_path.to_path_buf(),
+                    file_path: resulting_path.clone(),
                     o_transient: None,
                     stored,
                 },
@@ -262,6 +280,9 @@ impl PlFile {
         } else {
             Err(anyhow!(t!("delete_bundle: bundle '%{key}' does not exist")))
         }
+    }
+    fn remove_bundle_keep_refs(&mut self, key: &Key) -> Option<Bundle> {
+        self.stored.readable.bundles.remove_bundle_keep_refs(key)
     }
 
     fn delete_document(&mut self, key: &Key) -> Result<()> {
@@ -425,7 +446,7 @@ impl PlFile {
         }
         if self.has_bundle(&Key::from(edit_bundle.key.as_str())) {
             return Err(anyhow!(t!(
-                "add_bundle: bundle %{name} exists already",
+                "save_with_added_bundle: bundle %{name} exists already",
                 name = &edit_bundle.key
             )));
         }
@@ -498,6 +519,22 @@ impl PlFile {
         self.save(lock)
     }
 
+    pub fn rename_bundle(&mut self, old_key: &Key, new_key: &Key) -> Result<bool> {
+        let lock = self.lock_for_save()?;
+
+        if self.has_bundle(new_key) {
+            return Ok(false);
+        }
+
+        let bundle = self
+            .remove_bundle_keep_refs(old_key)
+            .ok_or(anyhow!("bundle that should be renamed does not exist"))?;
+
+        self.add_bundle(new_key.clone(), bundle)?;
+        self.save(lock)?;
+        Ok(true)
+    }
+
     pub fn save_with_added_document(&mut self, edit_document: &VEditDocument) -> Result<()> {
         if edit_document.key.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));
@@ -565,7 +602,46 @@ impl PlFile {
         self.save(lock)
     }
 
-    ///////////////////
+    pub fn export_data(&self, v_export_data: &mut VExportData) -> Result<()> {
+        let mut path = PathBuf::from(v_export_data.file_path.as_str());
+        if path.starts_with("~") {
+            if let Some(home_dir) = dirs::home_dir() {
+                path = home_dir.join(path.strip_prefix("~").unwrap());
+            }
+        }
+
+        let mut export_pl = PlFile::create(&path).context(t!("context_export_file_open"))?;
+
+        // set the password and store the export file
+        export_pl.set_actionable(v_export_data.pw.pw2.clone())?;
+
+        let lock = export_pl.lock_for_save()?;
+        // copy the selected entries
+        for (selected, key) in &v_export_data.bundles_to_export {
+            let key = Key::from(key.clone());
+            if *selected {
+                if let Some(bundle) = self.bundles().get(&key) {
+                    // convert to VEditBundle first to detach from the original PlFile's Transient
+                    let tmp_edit_bundle =
+                        VEditBundle::from_bundle(&key, bundle, self.transient().unwrap(/*OK*/));
+
+                    // then back to a real Bundle that is connected to the new PlFile's Transient
+                    let (_old_key, new_key, new_bundle) = tmp_edit_bundle
+                        .as_oldkey_newkey_bundle(export_pl.transient_mut().unwrap(/*OK*/));
+
+                    if let Err(e) = export_pl
+                        .add_bundle(new_key, new_bundle)
+                        .context("Error while exporting bundle")
+                    {
+                        v_export_data.pw.error = Some(e.to_string());
+                    }
+                }
+            }
+        }
+        export_pl.save(lock)?;
+
+        Ok(())
+    }
 }
 
 fn skip_over_comments_and_empty_lines(file_content: &str) -> &str {

@@ -40,7 +40,7 @@ fn ask_once(v: &mut V, controller: &mut Controller, ui: &mut egui::Ui) {
     ui.horizontal(|ui| {
         ui.add_space(50.);
         Grid::new("Password once").num_columns(2).show(ui, |ui| {
-            ui.label(t!("Password:"));
+            ui.label(format!("{}:", t!("Password")));
             let response = ui.add(
                 TextEdit::singleline(&mut v.pw.pw1)
                     .desired_width(120.)
@@ -82,7 +82,7 @@ fn ask_twice(v: &mut V, controller: &mut Controller, ui: &mut egui::Ui) {
     ui.horizontal(|ui| {
         ui.add_space(50.);
         Grid::new("Password twice").num_columns(2).show(ui, |ui| {
-            ui.label(t!("Password:"));
+            ui.label(format!("{}:", t!("Password")));
             let response = ui.add(
                 TextEdit::singleline(&mut v.pw.pw1)
                     .desired_width(120.)

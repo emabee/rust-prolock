@@ -1,6 +1,6 @@
 use crate::{
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
-    data::{Bundle, Bundles, Cred, Document, Documents, Key, Secret, Transient},
+    data::{Bundle, Bundles, Cred, Document, Documents, Key, PlFile, Secret, Transient},
 };
 use flexi_logger::Snapshot;
 use fuzzy_matcher::clangd::fuzzy_match;
@@ -21,6 +21,8 @@ pub struct V {
     pub lang: Lang,
 
     pub generate_pw: VGeneratePassword,
+    pub export_data: VExportData,
+    pub import_data: VImportData,
     pub logger_snapshot: Snapshot,
 }
 impl V {
@@ -156,6 +158,14 @@ pub enum ModalState {
     ChangeFile,
     ChangeLanguage,
     GeneratePassword,
+
+    ExportData,
+    ImportData {
+        step: ImportStep,
+        //  scroll_to_row: Option<usize>,
+        //  scroll_to_row_slider: usize,
+        error: Option<String>,
+    },
 }
 impl Default for MainState {
     fn default() -> Self {
@@ -187,6 +197,8 @@ impl ModalState {
             Self::ChangeFile => "ModalState::ChangeFile".to_string(),
             Self::ChangeLanguage => "ModalState::ChangeLanguage".to_string(),
             Self::GeneratePassword => "ModalState::GeneratePassword".to_string(),
+            Self::ExportData => "ModalState::ExportData".to_string(),
+            Self::ImportData { .. } => "ModalState::ImportData".to_string(),
         }
     }
 }
@@ -266,8 +278,22 @@ pub struct VBundle {
 }
 impl VBundle {
     pub fn apply_filter(&mut self, key: &Key, bundle: &Bundle, pattern: &str) {
-        self.suppressed = fuzzy_match(key.as_str(), pattern).is_none()
-            && fuzzy_match(bundle.description(), pattern).is_none();
+        if pattern.is_empty() {
+            self.suppressed = false;
+        } else {
+            match (
+                fuzzy_match(key.as_str(), pattern),
+                fuzzy_match(bundle.description(), pattern),
+            ) {
+                (Some(v1), _) if v1 > 0 => {
+                    self.suppressed = false;
+                }
+                (_, Some(v2)) if v2 > 40 => {
+                    self.suppressed = false;
+                }
+                (_, _) => self.suppressed = true,
+            }
+        }
     }
 }
 
@@ -349,11 +375,17 @@ impl VEditBundle {
                 self.description.clone(),
                 self.v_edit_creds
                     .iter()
-                    .filter_map(|vns| {
-                        if vns.name.trim().is_empty() && vns.secret.trim().is_empty() {
+                    .filter_map(|v_edit_cred| {
+                        if v_edit_cred.name.trim().is_empty()
+                            && v_edit_cred.secret.trim().is_empty()
+                        {
                             None
                         } else {
-                            Some(Cred::new(vns.name.clone(), vns.secret.clone(), transient))
+                            Some(Cred::new(
+                                v_edit_cred.name.clone(),
+                                v_edit_cred.secret.clone(),
+                                transient,
+                            ))
                         }
                     })
                     .collect(),
@@ -436,3 +468,118 @@ impl Default for VGeneratePassword {
         }
     }
 }
+
+#[derive(Default)]
+pub struct VExportData {
+    pub bundles_to_export: Vec<(bool, String)>,
+    pub scroll_to_row: Option<usize>,
+    pub scroll_to_row_slider: usize,
+    pub pw: Pw,
+    pub file_path: String,
+}
+impl VExportData {
+    pub fn reset(&mut self, bundles: &Bundles) {
+        self.bundles_to_export = bundles
+            .keys()
+            .map(|key| (false, key.as_str().to_string()))
+            .collect();
+        self.scroll_to_row = None;
+        self.scroll_to_row_slider = 0;
+        self.pw = Pw::default();
+        self.file_path = format!(
+            "~/export_{}.prolock",
+            whoami::account().unwrap_or_else(|_| String::new())
+        );
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct VImportData {
+    pub error: Option<String>,
+}
+
+pub enum ImportStep {
+    AskForFileAndPassword {
+        file_path: String,
+        pw: String,
+    },
+    ChooseImportActions {
+        file: Box<PlFile>,
+        start_conditions: Vec<ImportStartCondition>,
+        actions: Vec<ImportAction>,
+    },
+}
+impl Default for ImportStep {
+    fn default() -> Self {
+        ImportStep::AskForFileAndPassword {
+            file_path: String::new(),
+            pw: String::new(),
+        }
+    }
+}
+impl std::fmt::Debug for ImportStep {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::AskForFileAndPassword { file_path, pw } => f
+                .debug_struct("AskForFileAndPassword")
+                .field("file_path", file_path)
+                .field("pw", pw)
+                .finish(),
+            Self::ChooseImportActions {
+                file: _,
+                start_conditions: _,
+                actions: _,
+            } => f
+                .debug_struct("ShowBundlesToImport")
+                .field("bundles_to_import", &"<hidden>")
+                .finish(),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum ImportAction {
+    Skip,
+    Add,
+    Overwrite,
+    ImportAfterRename,
+}
+impl std::fmt::Display for ImportAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Self::Skip => f.write_str(&t!("skip")),
+            Self::Add => f.write_str(&t!("add")),
+            Self::Overwrite => f.write_str(&t!("overwrite")),
+            Self::ImportAfterRename => f.write_str(&t!("Umbenennen und importieren")),
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum ImportStartCondition {
+    New = 0,
+    Identical = 1,
+    Modified = 2,
+}
+impl std::fmt::Display for ImportStartCondition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::New => f.write_str(&t!("new_entry")),
+            Self::Identical => f.write_str(&t!("entry_exists_already_identically")),
+            Self::Modified => f.write_str(&t!("entry_exists_and_is_modified")),
+        }
+    }
+}
+
+const IMPORT_ACTIONS_NEW: [ImportAction; 2] = [ImportAction::Add, ImportAction::Skip];
+const IMPORT_ACTIONS_IDENTICAL: [ImportAction; 1] = [ImportAction::Skip];
+const IMPORT_ACTIONS_MODIFIED: [ImportAction; 3] = [
+    ImportAction::Overwrite,
+    ImportAction::ImportAfterRename,
+    ImportAction::Skip,
+];
+pub const IMPORT_ACTIONS: [&[ImportAction]; 3] = [
+    &IMPORT_ACTIONS_NEW,
+    &IMPORT_ACTIONS_IDENTICAL,
+    &IMPORT_ACTIONS_MODIFIED,
+];

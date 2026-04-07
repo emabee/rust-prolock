@@ -1,12 +1,14 @@
 use crate::{
     Controller,
     ui::{
-        Action, show_error,
+        Action,
+        modals::button,
+        show_error,
         sizes::MODAL_WIDTH,
         viz::{Pw, PwFocus},
     },
 };
-use egui::{Color32, Context, FontFamily, FontId, Grid, Key, Modal, RichText, Sides, TextEdit};
+use egui::{Context, FontFamily, FontId, Grid, Key, Modal, RichText, Sides, TextEdit};
 
 #[allow(clippy::too_many_lines)]
 pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) {
@@ -93,16 +95,10 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
             ui,
             |_ui| {},
             |ui| {
-                if ui
-                    .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
-                    .clicked()
-                {
+                if ui.button(button::ok(None)).clicked() {
                     go_for_it = true;
                 }
-                if ui
-                    .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
-                    .clicked()
-                {
+                if ui.button(button::cancel()).clicked() {
                     controller.set_action(Action::CloseModal);
                 }
             },

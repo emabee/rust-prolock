@@ -49,6 +49,12 @@ pub(crate) enum Action {
     StartGeneratePassword(usize),
     FinalizeGeneratePassword,
 
+    StartExportData,
+    FinalizeExportData,
+
+    StartImportData,
+    FinalizeImportData,
+
     Cancel,
     CloseModal,
 }
@@ -86,7 +92,9 @@ impl Action {
             | Action::FinalizeImportData
             | Action::Cancel
             | Action::FinalizeChangePassword { .. } => {
-                log::info!("[Action::{self:?}] [{main_state:?}] [{modal_state:?}]");
+                log::info!(
+                    "Action::{self:?} @ [MainState::{main_state:?}, ModalState::{modal_state:?}]"
+                );
             }
         }
     }

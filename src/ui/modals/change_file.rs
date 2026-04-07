@@ -1,9 +1,12 @@
 use crate::{
     Controller,
     data::Settings,
-    ui::{Action, assets::IMG_CHANGE_FILE, show_error, sizes::MODAL_WIDTH, viz::FileSelection},
+    ui::{
+        Action, assets::IMG_CHANGE_FILE, modals::button, show_error, sizes::MODAL_WIDTH,
+        viz::FileSelection,
+    },
 };
-use egui::{Color32, Context, Image, Modal, RichText, Sides, TextEdit, TextStyle};
+use egui::{Context, Image, Modal, RichText, Sides, TextEdit, TextStyle};
 
 pub fn change_file(
     settings: &mut Settings,
@@ -67,20 +70,14 @@ pub fn change_file(
             ui,
             |_ui| {},
             |ui| {
-                if ui
-                    .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
-                    .clicked()
-                {
+                if ui.button(button::ok(None)).clicked() {
                     if file_selection.current < settings.files.len() {
                         controller.set_action(Action::SwitchToKnownFile(file_selection.current));
                     } else {
                         controller.set_action(Action::SwitchToNewFile(file_selection.new.clone()));
                     }
                 }
-                if ui
-                    .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
-                    .clicked()
-                {
+                if ui.button(button::cancel()).clicked() {
                     controller.set_action(Action::CloseModal);
                 }
             },

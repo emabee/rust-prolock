@@ -1,7 +1,7 @@
 use crate::{
     Controller,
     data::Key,
-    ui::{Action, IMG_DELETE, show_error, sizes::MODAL_WIDTH},
+    ui::{Action, IMG_DELETE, modals::button, show_error, sizes::MODAL_WIDTH},
 };
 use egui::{Color32, Context, FontId, Image, Modal, RichText, Sides};
 
@@ -46,16 +46,10 @@ pub fn delete_document(key: &Key, error: Option<&str>, controller: &mut Controll
             ui,
             |_ui| {},
             |ui| {
-                if ui
-                    .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
-                    .clicked()
-                {
+                if ui.button(button::ok(None)).clicked() {
                     controller.set_action(Action::FinalizeDeleteDocument);
                 }
-                if ui
-                    .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
-                    .clicked()
-                {
+                if ui.button(button::cancel()).clicked() {
                     controller.set_action(Action::Cancel);
                 }
             },

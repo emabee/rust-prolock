@@ -102,6 +102,30 @@ fn burger_menu_button(pl_file: &PlFile, v: &mut V, controller: &mut Controller, 
                 controller.set_action(Action::StartChangePassword);
             }
 
+            ui.separator();
+
+            if ui
+                .add_enabled(
+                    pl_file.is_actionable() && v.modal_state.is_ready_for_modal(),
+                    Button::new(format!("📦 {}…", t!("export_data"))),
+                )
+                .clicked()
+            {
+                controller.set_action(Action::StartExportData);
+            }
+
+            if ui
+                .add_enabled(
+                    pl_file.is_actionable() && v.modal_state.is_ready_for_modal(),
+                    Button::new(format!("📬 {}…", t!("import_data"))),
+                )
+                .clicked()
+            {
+                controller.set_action(Action::StartImportData);
+            }
+
+            ui.separator();
+
             if ui
                 .add(Button::new(format!("📄 {}", t!("Show log"))))
                 .clicked()

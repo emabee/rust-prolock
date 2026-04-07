@@ -1,9 +1,8 @@
 use crate::{
-    SUPPORTED_LANGUAGES,
-    Controller,
-    ui::{Action, sizes::MODAL_WIDTH, viz::Lang},
+    Controller, SUPPORTED_LANGUAGES,
+    ui::{Action, modals::button, sizes::MODAL_WIDTH, viz::Lang},
 };
-use egui::{Color32, ComboBox, Context, FontFamily, FontId, Grid, Modal, RichText, Sides};
+use egui::{ComboBox, Context, FontFamily, FontId, Grid, Modal, RichText, Sides};
 
 pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("change_language".into()).show(ctx, |ui| {
@@ -50,22 +49,10 @@ pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Conte
             ui,
             |_ui| {},
             |ui| {
-                if ui
-                    .button(
-                        RichText::new(t!("_ok_with_icon", locale = lang.selected.0))
-                            .color(Color32::DARK_GREEN),
-                    )
-                    .clicked()
-                {
+                if ui.button(button::ok(None)).clicked() {
                     controller.set_action(Action::FinalizeChangeLanguage);
                 }
-                if ui
-                    .button(
-                        RichText::new(t!("_cancel_with_icon", locale = lang.selected.0))
-                            .color(Color32::DARK_RED),
-                    )
-                    .clicked()
-                {
+                if ui.button(button::cancel()).clicked() {
                     controller.set_action(Action::CloseModal);
                 }
             },

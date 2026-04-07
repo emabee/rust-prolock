@@ -1,4 +1,4 @@
-use crate::data::{Cred, Secret};
+use crate::data::{Cred, Secret, Transient};
 use jiff::Zoned;
 
 // A bundle.
@@ -37,5 +37,24 @@ impl Bundle {
             .flat_map(|t| [&t.name, &t.secret].into_iter())
             .map(Secret::reff)
             .collect::<Vec<u64>>()
+    }
+
+    pub fn equals(
+        &self,
+        other: &Bundle,
+        own_transient: &Transient,
+        other_transient: &Transient,
+    ) -> bool {
+        let mut result =
+            self.description == other.description && self.creds().len() == other.creds().len();
+        if result {
+            for (cred, other_cred) in self.creds().iter().zip(other.creds().iter()) {
+                result = cred.name(own_transient) == other_cred.name(other_transient);
+                if !result {
+                    break;
+                }
+            }
+        }
+        result
     }
 }

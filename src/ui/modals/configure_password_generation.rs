@@ -1,8 +1,8 @@
 use crate::{
     Controller,
-    ui::{Action, viz::VGeneratePassword},
+    ui::{Action, modals::button, viz::VGeneratePassword},
 };
-use egui::{Color32, Context, FontFamily, FontId, Modal, RichText, Sides, TextEdit};
+use egui::{Context, FontFamily, FontId, Modal, Sides, TextEdit};
 
 pub fn configure_password_generation(
     generate_pw: &mut VGeneratePassword,
@@ -48,17 +48,11 @@ pub fn configure_password_generation(
             ui,
             |_ui| {},
             |ui| {
-                if ui
-                    .button(RichText::new(t!("_ok_with_icon")).color(Color32::DARK_GREEN))
-                    .clicked()
-                {
+                if ui.button(button::ok(None)).clicked() {
                     controller.set_action(Action::FinalizeGeneratePassword);
                 }
 
-                if ui
-                    .button(RichText::new(t!("_cancel_with_icon")).color(Color32::DARK_RED))
-                    .clicked()
-                {
+                if ui.button(button::cancel()).clicked() {
                     controller.set_action(Action::CloseModal);
                 }
             },

@@ -99,7 +99,10 @@ pub(super) fn panel_with_create_and_filter(v: &mut V, controller: &mut Controlle
                 }
             }
 
-            ui.add_space(2.);
+            ui.add_space(10.);
+            ui.separator();
+            ui.add_space(10.);
+
             let response = ui.add_enabled(
                 v.main_state.tabs_and_create_ok(),
                 TextEdit::singleline(&mut v.find.pattern)

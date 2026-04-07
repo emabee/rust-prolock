@@ -46,11 +46,7 @@ impl Settings {
         let settings = if std::fs::exists(&my_file).context(context.clone())? {
             Self::lock_and_read(&my_file).context(context.clone())?
         } else {
-            create_dir_all(
-                my_file
-                    .parent()
-                    .context("cannot determine folder for storage")?,
-            )?;
+            create_dir_all(my_file.parent().context(t!("cannot_determine_folder"))?)?;
             let settings = Settings::default(is_test)?;
             settings.save()?;
 

@@ -12,9 +12,9 @@ password_not_available:
 Creating the prolock file:
   en: Creating the ProLock file
   de: Erzeugen der ProLock Datei
-'Password:':
-  en: 'Password:'
-  de: 'Passwort:'
+'Password':
+  en: 'Password'
+  de: 'Passwort'
 'Repeat:':
   en: 'Repeat:'
   de: 'Wiederholen:'
@@ -30,18 +30,15 @@ Show content as printable document:
 Change password:
   en: Change password
   de: Passwort ändern
-_cancel_with_icon:
-  en: ❌ Cancel
-  de: ❌ Abbrechen
-Cancel:
+_cancel:
   en: Cancel
   de: Abbrechen
-Save:
+_save:
   en: Save
   de: Speichern
-_ok_with_icon:
-  en: ✅ Ok
-  de: ✅ Weiter
+_ok:
+  en: Ok
+  de: Weiter
 Password not correct:
   en: Password not correct
   de: Passwort nicht korrekt
@@ -180,9 +177,15 @@ parsing FileList:
 parsing PlFile:
   en: parsing the ProLock file
   de: Lesen der ProLock Datei
+'File':
+  en: 'File'
+  de: 'Datei'
 File path:
-  en: File path
-  de: Dateipfad
+  en: Complete file path
+  de: Vollständiger Dateipfad
+Password:
+  en: Password
+  de: Passwort
 _last_update_at:
   en: 'Last update at:'
   de: 'Letzte Änderung:'
@@ -199,11 +202,11 @@ _opening_the_prolock_file:
   en: Opening the ProLock file
   de: ProLock-Datei öffnen
 _specify_pw_to_open:
-  en: 'Specify the password to open the ProLock file:'
-  de: 'Geben Sie das Passwort an, um die ProLock Datei zu öffnen:'
+  en: 'Specify the password to open the ProLock file'
+  de: 'Geben Sie das Passwort an, um die ProLock Datei zu öffnen'
 _specify_pw_to_secure:
-  en: 'Specify the password to secure the ProLock file:'
-  de: 'Geben Sie das Passwort an, mit dem die ProLock Datei gesichert werden soll:'
+  en: 'Specify the password to secure the ProLock file'
+  de: 'Geben Sie das Passwort an, mit dem die ProLock Datei gesichert werden soll'
 _decryption_failed:
   en: 'Decryption of the protected data in the file failed.'
   de: 'Die Entschlüsselung der geschützten Daten in der Datei ist fehlgeschlagen.'
@@ -289,3 +292,67 @@ Include uppercase:
 'Length:':
   en: 'Length:'
   de: 'Länge:'
+export_data:
+  en: Export data
+  de: Daten exportieren
+selected_data:
+  en: "%{bundle_count} entries and %{docs_count} documents selected"
+  de: "%{bundle_count} Einträge und %{docs_count} Dokumente ausgewählt"
+export_password:
+  en: 'Password for export file'
+  de: 'Passwort für Exportdatei'
+repeat_password:
+  en: 'Repeat password'
+  de: 'Passwort wiederholen'
+import_data:
+  en: Import data
+  de: Daten importieren
+_export_passwords_dont_match:
+  en: The passwords don't match or are empty
+  de: Die Passwörter stimmen nicht überein oder sind leer
+_export_nothing_selected:
+  en: No data selected for export
+  de: Keine Daten zum Export ausgewählt
+cannot_determine_folder:
+  en: cannot determine folder
+  de: Ordner konnte nicht bestimmt werden
+file_already_exists:
+  en: file already exists
+  de: Datei existiert bereits
+context_export_file_open:
+  en: Error when opening the export file
+  de: Fehler beim Öffnen der Exportdatei
+'%{error}, caused by %{source}':
+  en: '%{error}, caused by: %{source}'
+  de: '%{error}, verursacht durch: %{source}'
+'Error: %{error}':
+  en: 'Error: %{error}'
+  de: 'Fehler: %{error}'
+Bitte auswählen:
+  en: Please choose
+  de: Bitte auswählen
+Umbenennen und importieren:
+  en: Rename and import
+  de: Umbenennen und importieren
+entry_exists_already_identically:
+  en: Entry exists already in identical form and will be skipped
+  de: Eintrag existiert bereits identisch und wird übersprungen
+entry_exists_and_is_modified:
+  en: Modified existing entry
+  de: Geänderter vorhandener Eintrag
+new_entry:
+  en: new entry
+  de: Neuer Eintrag
+add:
+  en: Add
+  de: Hinzufügen
+overwrite:
+  en: Overwrite
+  de: Überschreiben
+skip:
+  en: skip
+  de: Überspringen
+import_entries:
+  en: Import entries
+  de: Einträge importieren
+

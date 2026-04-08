@@ -2,7 +2,7 @@ use crate::{
     ctrl::Controller,
     ui::{
         Action,
-        modals::button,
+        modals::buttons,
         show_error,
         sizes::MODAL_WIDTH,
         viz::{PwFocus, VExportData},
@@ -49,7 +49,7 @@ pub fn export_data(v_export_data: &mut VExportData, controller: &mut Controller,
                                 show_error(e, ui);
                             }
 
-                            buttons(v_export_data, controller, go_for_it, ui);
+                            show_buttons(v_export_data, controller, go_for_it, ui);
                         });
                     });
             });
@@ -159,7 +159,7 @@ fn password_and_file(v_export_data: &mut VExportData, mut go_for_it: bool, ui: &
     });
 }
 
-fn buttons(
+fn show_buttons(
     v_export_data: &mut VExportData,
     controller: &mut Controller,
     mut go_for_it: bool,
@@ -172,11 +172,11 @@ fn buttons(
         ui,
         |_ui| {},
         |ui| {
-            if ui.button(button::ok(None)).clicked() {
+            if ui.button(buttons::ok(None)).clicked() {
                 go_for_it = true;
             }
 
-            if ui.button(button::cancel()).clicked() {
+            if ui.button(buttons::cancel()).clicked() {
                 controller.set_action(Action::CloseModal);
             }
         },

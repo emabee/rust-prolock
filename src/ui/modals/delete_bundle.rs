@@ -1,9 +1,9 @@
 use crate::{
     Controller,
     data::Key,
-    ui::{Action, IMG_DELETE, modals::button, show_error, sizes::MODAL_WIDTH},
+    ui::{Action, IMG_DELETE, modals::buttons, show_error, sizes::MODAL_WIDTH},
 };
-use egui::{Color32, Context, FontId, Image, Modal, RichText, Sides};
+use egui::{Color32, Context, FontId, Image, Modal, RichText};
 
 pub fn delete_bundle(key: &Key, error: Option<&str>, controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("delete_bundle".into()).show(ctx, |ui| {
@@ -42,18 +42,7 @@ pub fn delete_bundle(key: &Key, error: Option<&str>, controller: &mut Controller
             show_error(e, ui);
         }
 
-        Sides::new().show(
-            ui,
-            |_ui| {},
-            |ui| {
-                if ui.button(button::ok(None)).clicked() {
-                    controller.set_action(Action::FinalizeDeleteBundle);
-                }
-                if ui.button(button::cancel()).clicked() {
-                    controller.set_action(Action::Cancel);
-                }
-            },
-        );
+        buttons::buttons(ui, controller, None, Action::FinalizeDeleteBundle);
     });
     if modal_response.should_close() {
         controller.set_action(Action::CloseModal);

@@ -1,6 +1,11 @@
+mod ask_for_password_to_open;
 mod bundles;
 mod documents;
+mod show_log;
 mod top_panels;
+
+pub use ask_for_password_to_open::ask_for_password_to_open;
+pub use show_log::show_log;
 
 use crate::{
     Controller,

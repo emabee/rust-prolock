@@ -2,11 +2,11 @@ use crate::{
     Controller,
     data::{PlFile, Settings},
     ui::{
-        main_ui::main_ui,
+        main_ui::{ask_for_password_to_open, main_ui, show_log},
         modals::{
-            ask_for_password_to_open, change_file, change_language, change_password,
-            configure_password_generation, create_bundle, create_document, delete_bundle,
-            delete_document, export_data, import_data, show_about, show_log,
+            change_file, change_language, change_password, configure_password_generation,
+            create_bundle, create_document, delete_bundle, delete_document, export_data,
+            import_data, show_about,
         },
         top_panel::top_panel,
         viz::{ModalState, V},

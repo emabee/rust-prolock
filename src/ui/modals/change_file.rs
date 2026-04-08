@@ -2,11 +2,11 @@ use crate::{
     Controller,
     data::Settings,
     ui::{
-        Action, assets::IMG_CHANGE_FILE, modals::button, show_error, sizes::MODAL_WIDTH,
+        Action, assets::IMG_CHANGE_FILE, modals::buttons, show_error, sizes::MODAL_WIDTH,
         viz::FileSelection,
     },
 };
-use egui::{Context, Image, Modal, RichText, Sides, TextEdit, TextStyle};
+use egui::{Context, Image, Modal, RichText, TextEdit, TextStyle};
 
 pub fn change_file(
     settings: &mut Settings,
@@ -66,20 +66,14 @@ pub fn change_file(
 
         ui.separator();
 
-        Sides::new().show(
+        buttons::buttons(
             ui,
-            |_ui| {},
-            |ui| {
-                if ui.button(button::ok(None)).clicked() {
-                    if file_selection.current < settings.files.len() {
-                        controller.set_action(Action::SwitchToKnownFile(file_selection.current));
-                    } else {
-                        controller.set_action(Action::SwitchToNewFile(file_selection.new.clone()));
-                    }
-                }
-                if ui.button(button::cancel()).clicked() {
-                    controller.set_action(Action::CloseModal);
-                }
+            controller,
+            None,
+            if file_selection.current < settings.files.len() {
+                Action::SwitchToKnownFile(file_selection.current)
+            } else {
+                Action::SwitchToNewFile(file_selection.new.clone())
             },
         );
     });

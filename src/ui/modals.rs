@@ -1,4 +1,4 @@
-mod ask_for_password_to_open;
+mod buttons;
 mod change_file;
 mod change_language;
 mod change_password;
@@ -10,9 +10,8 @@ mod delete_document;
 mod export_data;
 mod import_data;
 mod show_about;
-mod show_log;
 
-pub use ask_for_password_to_open::ask_for_password_to_open;
+pub use buttons::buttons;
 pub use change_file::change_file;
 pub use change_language::change_language;
 pub use change_password::change_password;
@@ -24,6 +23,3 @@ pub use delete_document::delete_document;
 pub use export_data::export_data;
 pub use import_data::import_data;
 pub use show_about::show_about;
-pub use show_log::show_log;
-
-mod button;

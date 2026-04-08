@@ -1,8 +1,10 @@
+use std::borrow::Cow;
+
 use crate::{
     Controller, PROG_TITLE, PROG_VERSION,
-    ui::{Action, IMG_LOGO, IMG_RUST_LOGO, sizes::MODAL_WIDTH},
+    ui::{Action, IMG_LOGO, IMG_RUST_LOGO, modals::buttons, sizes::MODAL_WIDTH},
 };
-use egui::{Color32, Context, FontFamily, FontId, Image, Modal, RichText, Sides, Vec2};
+use egui::{Context, FontFamily, FontId, Image, Modal, RichText, Sides, Vec2};
 
 pub fn show_about(controller: &mut Controller, ctx: &Context) {
     let modal_response = Modal::new("show_about".into()).show(ctx, |ui| {
@@ -54,14 +56,7 @@ pub fn show_about(controller: &mut Controller, ctx: &Context) {
             ui,
             |_ui| {},
             |ui| {
-                if ui
-                    .button(
-                        RichText::new("✅")
-                            .color(Color32::DARK_GREEN)
-                            .font(FontId::new(20., FontFamily::Proportional)),
-                    )
-                    .clicked()
-                {
+                if ui.button(buttons::ok(Some(Cow::Borrowed("")))).clicked() {
                     controller.set_action(Action::CloseModal);
                 }
             },

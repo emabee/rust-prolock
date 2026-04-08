@@ -1,8 +1,8 @@
 use crate::{
     Controller,
-    ui::{Action, modals::button, viz::VGeneratePassword},
+    ui::{Action, modals::buttons, viz::VGeneratePassword},
 };
-use egui::{Context, FontFamily, FontId, Modal, Sides, TextEdit};
+use egui::{Context, FontFamily, FontId, Modal, TextEdit};
 
 pub fn configure_password_generation(
     generate_pw: &mut VGeneratePassword,
@@ -44,18 +44,6 @@ pub fn configure_password_generation(
 
         ui.separator();
 
-        Sides::new().show(
-            ui,
-            |_ui| {},
-            |ui| {
-                if ui.button(button::ok(None)).clicked() {
-                    controller.set_action(Action::FinalizeGeneratePassword);
-                }
-
-                if ui.button(button::cancel()).clicked() {
-                    controller.set_action(Action::CloseModal);
-                }
-            },
-        );
+        buttons::buttons(ui, controller, None, Action::FinalizeGeneratePassword);
     });
 }

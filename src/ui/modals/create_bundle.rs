@@ -1,16 +1,17 @@
 use crate::{
     Controller,
     ui::{
-        Action, IMG_CANCEL, IMG_SAVE,
+        Action,
         assets::IMG_WIZARD,
         colors::{COLOR_SECRET, COLOR_USER},
+        modals::buttons,
         show_error,
         sizes::{BUNDLE_HEIGHT, BUNDLE_WIDTH_LEFT, BUNDLE_WIDTH_RIGHT},
         viz::{VEditBundle, VEditCred},
     },
 };
 use egui::{
-    Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, ScrollArea, Sides,
+    Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, ScrollArea,
     TextEdit,
 };
 use egui_extras::{Size, StripBuilder};
@@ -46,39 +47,7 @@ pub fn create_bundle(
             show_error(e, ui);
         }
 
-        Sides::new().show(
-            ui,
-            |_ui| {},
-            |ui| {
-                if ui
-                    .add(
-                        Button::image_and_text(
-                            Image::new(IMG_SAVE),
-                            RichText::new(t!("_save")).color(Color32::DARK_GREEN),
-                        )
-                        .fill(Color32::TRANSPARENT),
-                    )
-                    .clicked()
-                {
-                    controller.set_action(Action::FinalizeAddBundle);
-                }
-
-                if ui
-                    .add(
-                        Button::image_and_text(
-                            Image::new(IMG_CANCEL)
-                                .maintain_aspect_ratio(true)
-                                .fit_to_original_size(0.22),
-                            t!("_cancel"),
-                        )
-                        .fill(Color32::TRANSPARENT),
-                    )
-                    .clicked()
-                {
-                    controller.set_action(Action::CloseModal);
-                }
-            },
-        );
+        buttons::buttons(ui, controller, Some(t!("_save")), Action::FinalizeAddBundle);
     });
 }
 

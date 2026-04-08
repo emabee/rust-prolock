@@ -1,5 +1,5 @@
 use egui::{
-    Color32, ComboBox, Context, FontFamily, FontId, Grid, Modal, Rgba, RichText, ScrollArea, Sides,
+    Color32, ComboBox, Context, FontFamily, FontId, Grid, Modal, Rgba, RichText, ScrollArea,
     TextEdit, TextStyle, Ui, scroll_area::ScrollBarVisibility,
 };
 use egui_extras::{Size, StripBuilder};
@@ -11,7 +11,7 @@ use crate::{
     ui::{
         Action,
         colors::{COLOR_SECRET, COLOR_USER},
-        modals::button,
+        modals::buttons,
         show_error,
         sizes::{BUNDLE_HEIGHT, MODAL_WIDTH},
         viz::{IMPORT_ACTIONS, ImportAction, ImportStartCondition, ImportStep},
@@ -51,7 +51,12 @@ pub fn import_data(
                 });
                 ui.add_space(15.);
                 ui.separator();
-                buttons(ui, controller, Action::FinalizeImportData);
+                buttons::buttons(
+                    ui,
+                    controller,
+                    Some(t!("import_entries")),
+                    Action::FinalizeImportData,
+                );
             });
             if modal_response.should_close() {
                 controller.set_action(Action::CloseModal);
@@ -88,7 +93,12 @@ pub fn import_data(
                 });
                 ui.add_space(15.);
                 ui.separator();
-                buttons(ui, controller, Action::FinalizeImportData);
+                buttons::buttons(
+                    ui,
+                    controller,
+                    Some(t!("import_entries")),
+                    Action::FinalizeImportData,
+                );
             });
             if modal_response.should_close() {
                 controller.set_action(Action::CloseModal);
@@ -151,7 +161,6 @@ fn bundles_and_docs(
                                             file.transient().unwrap(),
                                             *start_condition,
                                             action,
-                                            pl_file,
                                         );
                                     });
                                 }
@@ -188,7 +197,6 @@ fn show_a_bundle(
     transient: &Transient,
     start_condition: ImportStartCondition,
     action: &mut ImportAction,
-    pl_file: &PlFile,
 ) {
     if matches!(start_condition, ImportStartCondition::Identical) {
         bundle_builder
@@ -388,22 +396,6 @@ fn set_faded_bg_color(ui: &mut Ui, height: f32, color_switch: bool, left: bool) 
             egui::lerp(Rgba::from(Color32::DARK_GRAY)..=Rgba::from(bg_color), t)
         } else {
             egui::lerp(Rgba::from(Color32::DARK_BLUE)..=Rgba::from(bg_color), t)
-        },
-    );
-}
-
-fn buttons(ui: &mut Ui, controller: &mut Controller, ok_action: Action) {
-    Sides::new().show(
-        ui,
-        |_ui| {},
-        |ui| {
-            if ui.button(button::ok(Some(t!("import_entries")))).clicked() {
-                controller.set_action(ok_action);
-            }
-
-            if ui.button(button::cancel()).clicked() {
-                controller.set_action(Action::CloseModal);
-            }
         },
     );
 }

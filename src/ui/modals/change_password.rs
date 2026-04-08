@@ -2,7 +2,7 @@ use crate::{
     Controller,
     ui::{
         Action,
-        modals::button,
+        modals::buttons,
         show_error,
         sizes::MODAL_WIDTH,
         viz::{Pw, PwFocus},
@@ -95,10 +95,10 @@ pub fn change_password(pw: &mut Pw, controller: &mut Controller, ctx: &Context) 
             ui,
             |_ui| {},
             |ui| {
-                if ui.button(button::ok(None)).clicked() {
+                if ui.button(buttons::ok(None)).clicked() {
                     go_for_it = true;
                 }
-                if ui.button(button::cancel()).clicked() {
+                if ui.button(buttons::cancel()).clicked() {
                     controller.set_action(Action::CloseModal);
                 }
             },

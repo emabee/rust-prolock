@@ -599,13 +599,13 @@ fn execute_import(
             ImportAction::Overwrite => {
                 pl_file.save_with_updated_bundle(&v_edit_bundle)?;
             }
-            ImportAction::ImportAfterRename{/*todo we need a name here */} => {
+            ImportAction::ImportAfterRename => {
                 for i in 1.. {
                     if pl_file
-                        .rename_bundle(key, &Key::new([key.0.clone(),(-i).to_string()].concat()))? {
-                            break;
-                        }
-
+                        .rename_bundle(key, &Key::new([key.0.clone(), (-i).to_string()].concat()))?
+                    {
+                        break;
+                    }
                 }
                 pl_file.save_with_added_bundle(&v_edit_bundle)?;
             }

@@ -1,10 +1,8 @@
 use crate::{
     Controller,
-    ui::{Action, IMG_CANCEL, IMG_SAVE, show_error, viz::VEditDocument},
+    ui::{Action, modals::buttons, show_error, viz::VEditDocument},
 };
-use egui::{
-    Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, Sides, TextEdit,
-};
+use egui::{Color32, Context, FontFamily, FontId, Modal, Rgba, TextEdit};
 use egui_extras::{Size, StripBuilder};
 
 pub fn create_document(
@@ -60,38 +58,11 @@ pub fn create_document(
             show_error(e, ui);
         }
 
-        Sides::new().show(
+        buttons::buttons(
             ui,
-            |_ui| {},
-            |ui| {
-                if ui
-                    .add(
-                        Button::image_and_text(
-                            Image::new(IMG_SAVE),
-                            RichText::new(t!("_save")).color(Color32::DARK_GREEN),
-                        )
-                        .fill(Color32::TRANSPARENT),
-                    )
-                    .clicked()
-                {
-                    controller.set_action(Action::FinalizeAddDocument);
-                }
-
-                if ui
-                    .add(
-                        Button::image_and_text(
-                            Image::new(IMG_CANCEL)
-                                .maintain_aspect_ratio(true)
-                                .fit_to_original_size(0.22),
-                            t!("_cancel"),
-                        )
-                        .fill(Color32::TRANSPARENT),
-                    )
-                    .clicked()
-                {
-                    controller.set_action(Action::CloseModal);
-                }
-            },
+            controller,
+            Some(t!("_save")),
+            Action::FinalizeAddDocument,
         );
     });
 }

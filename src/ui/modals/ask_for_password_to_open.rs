@@ -50,9 +50,8 @@ fn ask_once(v: &mut V, controller: &mut Controller, ui: &mut egui::Ui) {
             let mut go_forward = false;
             if matches!(v.pw.focus, PwFocus::Pw1) {
                 response.request_focus();
-                v.pw.focus = PwFocus::None;
             }
-            if response.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter)) {
+            if ui.input(|i| i.key_pressed(Key::Enter)) {
                 go_forward = true;
             }
             if ui.button("OK").clicked() {

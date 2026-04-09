@@ -256,7 +256,6 @@ pub enum PwFocus {
     Pw3,
 }
 
-#[derive(Default)]
 pub struct FileSelection {
     pub error: Option<String>,
     pub current: usize,
@@ -267,6 +266,15 @@ impl FileSelection {
         self.error = None;
         self.current = current;
         self.new.clear();
+    }
+}
+impl Default for FileSelection {
+    fn default() -> Self {
+        Self {
+            error: None,
+            current: 0,
+            new: String::new(),
+        }
     }
 }
 

@@ -47,18 +47,11 @@ fn ask_once(v: &mut V, controller: &mut Controller, ui: &mut egui::Ui) {
                     .password(true),
             );
 
-            let mut go_forward = false;
             if matches!(v.pw.focus, PwFocus::Pw1) {
                 response.request_focus();
+                v.pw.focus = PwFocus::None;
             }
-            if ui.input(|i| i.key_pressed(Key::Enter)) {
-                go_forward = true;
-            }
-            if ui.button("OK").clicked() {
-                go_forward = true;
-            }
-
-            if go_forward {
+            if ui.input(|i| i.key_pressed(Key::Enter)) || ui.button("OK").clicked() {
                 controller.set_action(Action::SwitchToActionable);
             }
             ui.end_row();

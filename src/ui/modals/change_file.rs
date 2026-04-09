@@ -14,7 +14,7 @@ pub fn change_file(
     controller: &mut Controller,
     ctx: &Context,
 ) {
-    Modal::new("change_file".into()).show(ctx, |ui| {
+    let modal_response = Modal::new("change_file".into()).show(ctx, |ui| {
         ui.set_width(MODAL_WIDTH);
 
         ui.horizontal(|ui| {
@@ -55,7 +55,7 @@ pub fn change_file(
                                 .hint_text(t!("File path"))
                                 .font(TextStyle::Monospace),
                         )
-                        .has_focus()
+                        .gained_focus()
                     {
                         file_selection.current = settings.files.len();
                     }
@@ -77,4 +77,8 @@ pub fn change_file(
             },
         );
     });
+
+    if modal_response.should_close() {
+        controller.set_action(Action::CloseModal);
+    }
 }

@@ -47,7 +47,7 @@ pub fn create_bundle(
             show_error(e, ui);
         }
 
-        buttons::buttons(ui, controller, Some(t!("_save")), Action::FinalizeAddBundle);
+        buttons::cancel_and_action(ui, controller, Some(t!("_save")), Action::FinalizeAddBundle);
     });
 }
 

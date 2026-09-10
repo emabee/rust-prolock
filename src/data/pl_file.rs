@@ -285,6 +285,10 @@ impl PlFile {
         self.stored.readable.bundles.remove_bundle_keep_refs(key)
     }
 
+    fn remove_document_keep_ref(&mut self, key: &Key) -> Option<Document> {
+        self.stored.readable.documents.remove_document_keep_ref(key)
+    }
+
     fn delete_document(&mut self, key: &Key) -> Result<()> {
         if self.stored.readable.documents.contains_key(key) {
             match self.o_transient {
@@ -535,6 +539,22 @@ impl PlFile {
         Ok(true)
     }
 
+    pub fn rename_document(&mut self, old_key: &Key, new_key: &Key) -> Result<bool> {
+        let lock = self.lock_for_save()?;
+
+        if self.has_document(new_key) {
+            return Ok(false);
+        }
+
+        let document = self
+            .remove_document_keep_ref(old_key)
+            .ok_or(anyhow!("document that should be renamed does not exist"))?;
+
+        self.add_document(new_key.clone(), document)?;
+        self.save(lock)?;
+        Ok(true)
+    }
+
     pub fn save_with_added_document(&mut self, edit_document: &VEditDocument) -> Result<()> {
         if edit_document.key.is_empty() {
             return Err(anyhow!("internal error: can't save with empty name"));
@@ -616,7 +636,7 @@ impl PlFile {
         export_pl.set_actionable(v_export_data.pw.pw2.clone())?;
 
         let lock = export_pl.lock_for_save()?;
-        // copy the selected entries
+        // copy the selected bundles
         for (selected, key) in &v_export_data.bundles_to_export {
             let key = Key::from(key.clone());
             if *selected {
@@ -638,6 +658,32 @@ impl PlFile {
                 }
             }
         }
+        // copy the selected documents
+        for (selected, key) in &v_export_data.documents_to_export {
+            let key = Key::from(key.clone());
+            if *selected {
+                if let Some(document) = self.documents().get(&key) {
+                    // convert to VEditDocument first to detach from the original PlFile's Transient
+                    let tmp_edit_bundle = VEditDocument::from_document(
+                        &key,
+                        document,
+                        self.transient().unwrap(/*OK*/),
+                    );
+
+                    // then back to a real Document that is connected to the new PlFile's Transient
+                    let (_old_key, new_key, new_document) = tmp_edit_bundle
+                        .as_oldkey_newkey_document(export_pl.transient_mut().unwrap(/*OK*/));
+
+                    if let Err(e) = export_pl
+                        .add_document(new_key, new_document)
+                        .context("Error while exporting bundle")
+                    {
+                        v_export_data.pw.error = Some(e.to_string());
+                    }
+                }
+            }
+        }
+
         export_pl.save(lock)?;
 
         Ok(())

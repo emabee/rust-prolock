@@ -42,7 +42,7 @@ pub fn delete_bundle(key: &Key, error: Option<&str>, controller: &mut Controller
             show_error(e, ui);
         }
 
-        buttons::buttons(ui, controller, None, Action::FinalizeDeleteBundle);
+        buttons::cancel_and_action(ui, controller, None, Action::FinalizeDeleteBundle);
     });
     if modal_response.should_close() {
         controller.set_action(Action::CloseModal);

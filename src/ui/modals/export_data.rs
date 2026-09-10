@@ -4,20 +4,26 @@ use crate::{
         Action,
         modals::buttons,
         show_error,
-        sizes::MODAL_WIDTH,
-        viz::{PwFocus, VExportData},
+        sizes::MODAL_WIDTH_EX_IM,
+        viz::{ExportTab, PwFocus, VExportData},
     },
 };
 use egui::{
-    Context, FontFamily, FontId, Grid, Key, Modal, RichText, ScrollArea, Sides, TextEdit, TextStyle,
+    Button, Color32, Context, FontFamily, FontId, Grid, Key, Modal, RichText, ScrollArea, Sides,
+    TextEdit, TextStyle, Ui,
 };
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
 
-pub fn export_data(v_export_data: &mut VExportData, controller: &mut Controller, ctx: &Context) {
+pub fn modal_export_data(
+    v_export_data: &mut VExportData,
+    export_tab: &mut ExportTab,
+    controller: &mut Controller,
+    ctx: &Context,
+) {
     let go_for_it = false;
 
     let modal_response = Modal::new("change_password".into()).show(ctx, |ui| {
-        ui.set_width(MODAL_WIDTH + 30.);
+        ui.set_width(MODAL_WIDTH_EX_IM);
 
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
@@ -35,11 +41,11 @@ pub fn export_data(v_export_data: &mut VExportData, controller: &mut Controller,
 
                 ui.add_space(30.);
                 StripBuilder::new(ui)
-                    .size(Size::exact(140.))
+                    .size(Size::exact(250.))
                     .size(Size::exact(100.))
                     .vertical(|mut strip| {
                         strip.cell(|ui| {
-                            bundles_and_docs(ui, v_export_data);
+                            bundles_and_docs(ui, export_tab, v_export_data);
                         });
 
                         strip.cell(|ui| {
@@ -60,33 +66,50 @@ pub fn export_data(v_export_data: &mut VExportData, controller: &mut Controller,
     }
 }
 
-fn bundles_and_docs(ui: &mut egui::Ui, v_export_data: &mut VExportData) {
+fn bundles_and_docs(ui: &mut Ui, export_tab: &mut ExportTab, v_export_data: &mut VExportData) {
     let text_height = egui::TextStyle::Body
         .resolve(ui.style())
         .size
         .max(ui.spacing().interact_size.y);
     let available_height = ui.available_height();
 
+    tabs(ui, export_tab);
+
     ScrollArea::horizontal().show(ui, |ui| {
         let table = TableBuilder::new(ui)
             .striped(true)
             .resizable(true)
             .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::exact(350.).clip(true).resizable(false))
+            .column(Column::exact(550.).clip(false).resizable(false))
             .min_scrolled_height(0.0)
             .max_scroll_height(available_height);
-        table.body(|body| {
-            body.rows(
-                text_height,
-                v_export_data.bundles_to_export.len(),
-                |mut row| {
-                    let row_index = row.index();
-                    let x = &mut v_export_data.bundles_to_export[row_index];
-                    row.col(|ui| {
-                        ui.checkbox(&mut x.0, &x.1);
-                    });
-                },
-            );
+        table.body(|body| match export_tab {
+            ExportTab::Bundles => {
+                body.rows(
+                    text_height,
+                    v_export_data.bundles_to_export.len(),
+                    |mut row| {
+                        let row_index = row.index();
+                        let x = &mut v_export_data.bundles_to_export[row_index];
+                        row.col(|ui| {
+                            ui.checkbox(&mut x.0, &x.1);
+                        });
+                    },
+                );
+            }
+            ExportTab::Documents => {
+                body.rows(
+                    text_height,
+                    v_export_data.documents_to_export.len(),
+                    |mut row| {
+                        let row_index = row.index();
+                        let x = &mut v_export_data.documents_to_export[row_index];
+                        row.col(|ui| {
+                            ui.checkbox(&mut x.0, &x.1);
+                        });
+                    },
+                );
+            }
         });
     });
 
@@ -97,12 +120,17 @@ fn bundles_and_docs(ui: &mut egui::Ui, v_export_data: &mut VExportData) {
         .iter()
         .filter(|(selected, _)| *selected)
         .count();
+    let document_count = v_export_data
+        .documents_to_export
+        .iter()
+        .filter(|(selected, _)| *selected)
+        .count();
     ui.horizontal(|ui| {
         ui.label(
             RichText::new(t!(
                 "selected_data",
                 bundle_count = bundle_count,
-                docs_count = 0
+                docs_count = document_count,
             ))
             .italics()
             .font(FontId::proportional(11.0)),
@@ -110,7 +138,47 @@ fn bundles_and_docs(ui: &mut egui::Ui, v_export_data: &mut VExportData) {
     });
 }
 
-fn password_and_file(v_export_data: &mut VExportData, mut go_for_it: bool, ui: &mut egui::Ui) {
+fn tabs(ui: &mut Ui, export_tab: &mut ExportTab) {
+    ui.horizontal(|ui| {
+        ui.add_space(14.);
+        if ui
+            .add(
+                Button::new(
+                    RichText::new(t!("Structured entries")).size(20.), // .line_height(Some(18.)),
+                )
+                .fill(if export_tab.is_bundles() {
+                    Color32::GRAY
+                } else {
+                    Color32::LIGHT_GRAY
+                })
+                .frame(true),
+            )
+            .clicked()
+        {
+            *export_tab = ExportTab::Bundles;
+        }
+        ui.add_space(4.);
+        if ui
+            .add(
+                Button::new(
+                    RichText::new(t!("Documents")).size(20.), // .line_height(Some(18.)),
+                )
+                .fill(if export_tab.is_documents() {
+                    Color32::GRAY
+                } else {
+                    Color32::LIGHT_GRAY
+                })
+                .frame(true),
+            )
+            .clicked()
+        {
+            *export_tab = ExportTab::Documents;
+        }
+    });
+    ui.add_space(5.);
+}
+
+fn password_and_file(v_export_data: &mut VExportData, mut go_for_it: bool, ui: &mut Ui) {
     ui.add_space(20.);
     // TODO: provide some help text about the password, e.g. how important it is
     // to NOT use the same password as for the vault,
@@ -163,7 +231,7 @@ fn show_buttons(
     v_export_data: &mut VExportData,
     controller: &mut Controller,
     mut go_for_it: bool,
-    ui: &mut egui::Ui,
+    ui: &mut Ui,
 ) {
     ui.add_space(15.);
     ui.separator();

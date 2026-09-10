@@ -21,8 +21,6 @@ pub struct V {
     pub lang: Lang,
 
     pub generate_pw: VGeneratePassword,
-    pub export_data: VExportData,
-    pub import_data: VImportData,
     pub logger_snapshot: Snapshot,
 }
 impl V {
@@ -86,6 +84,13 @@ impl V {
             assert_eq!(key1, key2);
             vdoc.apply_filter(key2, &self.find.pattern);
         }
+        if let MainState::Documents(DocumentState::Default(ref mut o_selected)) = self.main_state {
+            if let Some(ref mut selected) = *o_selected {
+                if self.documents.get(selected).is_some_and(|d| d.suppressed) {
+                    *o_selected = None;
+                }
+            }
+        }
     }
 }
 
@@ -104,6 +109,11 @@ impl MainState {
     pub fn tabs_and_create_ok(&self) -> bool {
         matches!(self, MainState::Bundles(BundleState::Default))
             || matches!(self, MainState::Documents(DocumentState::Default(_)))
+    }
+}
+impl Default for MainState {
+    fn default() -> Self {
+        Self::Bundles(BundleState::Default)
     }
 }
 
@@ -159,18 +169,14 @@ pub enum ModalState {
     ChangeLanguage,
     GeneratePassword,
 
-    ExportData,
+    ExportData {
+        export_tab: ExportTab,
+        export_data: VExportData,
+    },
     ImportData {
-        step: ImportStep,
-        //  scroll_to_row: Option<usize>,
-        //  scroll_to_row_slider: usize,
+        step: VImportStep,
         error: Option<String>,
     },
-}
-impl Default for MainState {
-    fn default() -> Self {
-        Self::Bundles(BundleState::Default)
-    }
 }
 impl ModalState {
     pub fn is_none(&self) -> bool {
@@ -197,9 +203,37 @@ impl ModalState {
             Self::ChangeFile => "ModalState::ChangeFile".to_string(),
             Self::ChangeLanguage => "ModalState::ChangeLanguage".to_string(),
             Self::GeneratePassword => "ModalState::GeneratePassword".to_string(),
-            Self::ExportData => "ModalState::ExportData".to_string(),
+            Self::ExportData { .. } => "ModalState::ExportData".to_string(),
             Self::ImportData { .. } => "ModalState::ImportData".to_string(),
         }
+    }
+}
+
+#[derive(Debug)]
+pub enum ExportTab {
+    Bundles,
+    Documents,
+}
+impl ExportTab {
+    pub fn is_bundles(&self) -> bool {
+        matches!(self, Self::Bundles)
+    }
+    pub fn is_documents(&self) -> bool {
+        matches!(self, Self::Documents)
+    }
+}
+
+#[derive(Debug)]
+pub enum ImportTab {
+    Bundles,
+    Documents,
+}
+impl ImportTab {
+    pub fn is_bundles(&self) -> bool {
+        matches!(self, Self::Bundles)
+    }
+    pub fn is_documents(&self) -> bool {
+        matches!(self, Self::Documents)
     }
 }
 
@@ -246,8 +280,16 @@ pub struct Pw {
     pub error: Option<String>,
     pub focus: PwFocus,
 }
+impl std::fmt::Debug for Pw {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Pw")
+            .field("error", &self.error)
+            .field("focus", &self.focus)
+            .finish_non_exhaustive()
+    }
+}
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub enum PwFocus {
     None,
     #[default]
@@ -256,6 +298,7 @@ pub enum PwFocus {
     Pw3,
 }
 
+#[derive(Default)]
 pub struct FileSelection {
     pub error: Option<String>,
     pub current: usize,
@@ -266,15 +309,6 @@ impl FileSelection {
         self.error = None;
         self.current = current;
         self.new.clear();
-    }
-}
-impl Default for FileSelection {
-    fn default() -> Self {
-        Self {
-            error: None,
-            current: 0,
-            new: String::new(),
-        }
     }
 }
 
@@ -477,55 +511,46 @@ impl Default for VGeneratePassword {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct VExportData {
     pub bundles_to_export: Vec<(bool, String)>,
-    pub scroll_to_row: Option<usize>,
-    pub scroll_to_row_slider: usize,
+    pub documents_to_export: Vec<(bool, String)>,
     pub pw: Pw,
     pub file_path: String,
 }
 impl VExportData {
-    pub fn reset(&mut self, bundles: &Bundles) {
-        self.bundles_to_export = bundles
-            .keys()
-            .map(|key| (false, key.as_str().to_string()))
-            .collect();
-        self.scroll_to_row = None;
-        self.scroll_to_row_slider = 0;
-        self.pw = Pw::default();
-        self.file_path = format!(
-            "~/export_{}.prolock",
-            whoami::account().unwrap_or_else(|_| String::new())
-        );
+    pub fn new(bundles: &Bundles, documents: &Documents) -> Self {
+        Self {
+            bundles_to_export: bundles
+                .keys()
+                .map(|key| (false, key.as_str().to_string()))
+                .collect(),
+            documents_to_export: documents
+                .iter_keys()
+                .map(|key| (false, key.as_str().to_string()))
+                .collect(),
+            pw: Pw::default(),
+            file_path: format!(
+                "~/export_{}.prolock",
+                whoami::account().unwrap_or_else(|_| String::new())
+            ),
+        }
     }
 }
 
-#[derive(Debug, Default)]
-pub struct VImportData {
-    pub error: Option<String>,
-}
-
-pub enum ImportStep {
+pub enum VImportStep {
     AskForFileAndPassword {
         file_path: String,
         pw: String,
     },
     ChooseImportActions {
         file: Box<PlFile>,
-        start_conditions: Vec<ImportStartCondition>,
-        actions: Vec<ImportAction>,
+        import_tab: ImportTab,
+        bundle_importcontrols: ImportControls,
+        doc_importcontrols: ImportControls,
     },
 }
-impl Default for ImportStep {
-    fn default() -> Self {
-        ImportStep::AskForFileAndPassword {
-            file_path: String::new(),
-            pw: String::new(),
-        }
-    }
-}
-impl std::fmt::Debug for ImportStep {
+impl std::fmt::Debug for VImportStep {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::AskForFileAndPassword { file_path, pw } => f
@@ -535,18 +560,28 @@ impl std::fmt::Debug for ImportStep {
                 .finish(),
             Self::ChooseImportActions {
                 file: _,
-                start_conditions: _,
-                actions: _,
+                import_tab: _,
+                bundle_importcontrols: _,
+                doc_importcontrols: _,
             } => f
-                .debug_struct("ShowBundlesToImport")
-                .field("bundles_to_import", &"<hidden>")
+                .debug_struct("ShowDataToImport")
+                .field("data_to_import", &"<hidden>")
                 .finish(),
         }
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Default)]
+pub struct ImportControl {
+    pub start_condition: ImportStartCondition,
+    pub action: ImportAction,
+}
+
+pub type ImportControls = Vec<ImportControl>;
+
+#[derive(Copy, Clone, Default, Debug, PartialEq, Eq)]
 pub enum ImportAction {
+    #[default]
     Skip,
     Add,
     Overwrite,
@@ -563,11 +598,13 @@ impl std::fmt::Display for ImportAction {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub enum ImportStartCondition {
     New = 0,
     Identical = 1,
     Modified = 2,
+    #[default]
+    Unknown = 3,
 }
 impl std::fmt::Display for ImportStartCondition {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -575,6 +612,7 @@ impl std::fmt::Display for ImportStartCondition {
             Self::New => f.write_str(&t!("new_entry")),
             Self::Identical => f.write_str(&t!("entry_exists_already_identically")),
             Self::Modified => f.write_str(&t!("entry_exists_and_is_modified")),
+            Self::Unknown => f.write_str(&t!("status is not yet initialized")),
         }
     }
 }

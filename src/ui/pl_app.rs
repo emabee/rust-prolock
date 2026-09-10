@@ -5,8 +5,8 @@ use crate::{
         main_ui::{ask_for_password_to_open, main_ui, show_log},
         modals::{
             change_file, change_language, change_password, configure_password_generation,
-            create_bundle, create_document, delete_bundle, delete_document, export_data,
-            import_data, show_about,
+            create_bundle, create_document, delete_bundle, delete_document, import_data,
+            modal_export_data, show_about,
         },
         top_panel::top_panel,
         viz::{ModalState, V},
@@ -102,14 +102,17 @@ impl App for PlApp {
             ModalState::GeneratePassword => {
                 configure_password_generation(&mut self.v.generate_pw, &mut self.controller, ctx);
             }
-            ModalState::ExportData => {
-                export_data(&mut self.v.export_data, &mut self.controller, ctx);
+            ModalState::ExportData {
+                ref mut export_tab,
+                ref mut export_data,
+            } => {
+                modal_export_data(export_data, export_tab, &mut self.controller, ctx);
             }
             ModalState::ImportData {
                 ref mut step,
                 ref mut error,
             } => {
-                import_data(&self.pl_file, step, error, &mut self.controller, ctx);
+                import_data(step, error, &mut self.controller, ctx);
             }
         }
 

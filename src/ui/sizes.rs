@@ -6,6 +6,7 @@ pub const WIN_HEIGHT: f32 = 700.;
 pub const WIN_MIN_HEIGHT: f32 = 200.;
 
 pub const MODAL_WIDTH: f32 = 500.;
+pub const MODAL_WIDTH_EX_IM: f32 = 730.;
 
 pub const BUNDLE_HEIGHT: f32 = 120.;
 pub const BUNDLE_WIDTH_BUTTONS: f32 = 20.;

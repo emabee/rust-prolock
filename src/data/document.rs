@@ -31,4 +31,13 @@ impl Document {
     pub(super) fn reff(&self) -> u64 {
         self.secret.reff()
     }
+
+    pub fn equals(
+        &self,
+        other: &Document,
+        own_transient: &Transient,
+        other_transient: &Transient,
+    ) -> bool {
+        self.text(own_transient) == other.text(other_transient)
+    }
 }

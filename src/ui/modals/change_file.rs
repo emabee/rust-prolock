@@ -66,7 +66,7 @@ pub fn change_file(
 
         ui.separator();
 
-        buttons::buttons(
+        buttons::cancel_and_action(
             ui,
             controller,
             None,

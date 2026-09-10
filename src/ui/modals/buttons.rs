@@ -11,7 +11,7 @@ pub(super) fn cancel() -> RichText {
     RichText::new(format!("❌ {}", t!("_cancel"))).color(Color32::DARK_RED)
 }
 
-pub fn buttons(
+pub fn cancel_and_action(
     ui: &mut Ui,
     controller: &mut Controller,
     o_text: Option<Cow<'_, str>>,

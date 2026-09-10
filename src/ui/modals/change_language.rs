@@ -45,7 +45,7 @@ pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Conte
 
         ui.separator();
 
-        buttons::buttons(ui, controller, None, Action::FinalizeChangeLanguage);
+        buttons::cancel_and_action(ui, controller, None, Action::FinalizeChangeLanguage);
     });
     if modal_response.should_close() {
         controller.set_action(Action::CloseModal);

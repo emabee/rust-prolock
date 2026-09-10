@@ -11,7 +11,7 @@ impl Documents {
         Documents(BTreeMap::new())
     }
 
-    pub fn _len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.0.len()
     }
 
@@ -61,6 +61,15 @@ impl Documents {
                 Ok(())
             }
         }
+    }
+
+    pub fn remove_document_keep_ref<S>(&mut self, key: S) -> Option<Document>
+    where
+        S: AsRef<str>,
+    {
+        self.0
+            .remove_entry(&Key::new(key.as_ref()))
+            .map(|(_k, v)| v)
     }
 
     pub fn remove_document_with_ref(&mut self, key: &Key, transient: &mut Transient) -> Result<()> {

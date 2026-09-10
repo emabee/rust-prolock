@@ -4,8 +4,9 @@ use crate::{
     ui::{
         Action,
         viz::{
-            BundleState, DocumentState, ImportAction, ImportStartCondition, ImportStep, MainState,
-            ModalState, Pw, PwFocus, V, VEditBundle, VEditDocument,
+            BundleState, DocumentState, ExportTab, ImportAction, ImportControl, ImportControls,
+            ImportStartCondition, ImportTab, MainState, ModalState, Pw, PwFocus, V, VEditBundle,
+            VEditDocument, VExportData, VImportStep,
         },
     },
     util::generate_password,
@@ -43,7 +44,7 @@ impl Controller {
         if !done {
             log::warn!(
                 "Unhandled situation: {:?}, {}, action = {action_s:?}",
-                &v.main_state,
+                v.main_state,
                 v.modal_state.get_id(),
             );
         }
@@ -197,13 +198,18 @@ fn act_on_no_modal(
         }
 
         Action::StartExportData => {
-            v.modal_state = ModalState::ExportData;
-            v.export_data.reset(pl_file.bundles());
+            v.modal_state = ModalState::ExportData {
+                export_tab: ExportTab::Bundles,
+                export_data: VExportData::new(pl_file.bundles(), pl_file.documents()),
+            };
         }
 
         Action::StartImportData => {
             v.modal_state = ModalState::ImportData {
-                step: ImportStep::default(),
+                step: VImportStep::AskForFileAndPassword {
+                    file_path: String::new(),
+                    pw: String::new(),
+                },
                 error: None,
             };
         }
@@ -392,28 +398,33 @@ fn act_on_modal(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings, action
             }
         },
 
-        (Action::FinalizeExportData, ModalState::ExportData, _main_state) => {
-            match pl_file.export_data(&mut v.export_data) {
-                Ok(()) => {
-                    v.modal_state.close_modal();
-                }
-                Err(e) => {
-                    v.export_data.pw.error = Some(match e.source() {
-                        Some(source) => t!(
-                            "%{error}, caused by %{source}",
-                            error = e,
-                            source = format!("{}", source)
-                        )
-                        .to_string(),
-                        None => t!("Error: %{error}", error = e).to_string(),
-                    });
-                }
+        (
+            Action::FinalizeExportData,
+            ModalState::ExportData {
+                export_tab: _,
+                export_data,
+            },
+            _main_state,
+        ) => match pl_file.export_data(export_data) {
+            Ok(()) => {
+                v.modal_state.close_modal();
             }
-        }
+            Err(e) => {
+                export_data.pw.error = Some(match e.source() {
+                    Some(source) => t!(
+                        "%{error}, caused by %{source}",
+                        error = e,
+                        source = format!("{}", source)
+                    )
+                    .to_string(),
+                    None => t!("Error: %{error}", error = e).to_string(),
+                });
+            }
+        },
 
         (Action::FinalizeImportData, ModalState::ImportData { step, error }, _main_state) => {
             match step {
-                ImportStep::AskForFileAndPassword { file_path, pw } => {
+                VImportStep::AskForFileAndPassword { file_path, pw } => {
                     match PlFile::read(&PathBuf::from(&file_path)) {
                         Err(e) => {
                             *error = Some(format!("{file_path}\n{e:?}"));
@@ -424,53 +435,31 @@ fn act_on_modal(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings, action
                                 *error = Some(format!("{e:?}"));
                                 return false;
                             }
-                            let start_conditions: Vec<ImportStartCondition> = file
-                                .bundles()
-                                .iter()
-                                .map(|(key, bundle)| match pl_file.bundles().get(key) {
-                                    None => ImportStartCondition::New,
-                                    Some(old_bundle) => {
-                                        if bundle.equals(
-                                            old_bundle,
-                                            file.transient().unwrap(/*OK*/),
-                                            pl_file.transient().unwrap(/*OK*/),
-                                        ) {
-                                            ImportStartCondition::Identical
-                                        } else {
-                                            ImportStartCondition::Modified
-                                        }
-                                    }
-                                })
-                                .collect();
-
-                            let actions = start_conditions
-                                .iter()
-                                .map(|cond| match cond {
-                                    ImportStartCondition::New => ImportAction::Add,
-                                    ImportStartCondition::Identical => ImportAction::Skip,
-                                    ImportStartCondition::Modified => ImportAction::Overwrite,
-                                })
-                                .collect();
 
                             // switch to next step
-                            *step = ImportStep::ChooseImportActions {
+                            *step = VImportStep::ChooseImportActions {
+                                import_tab: ImportTab::Bundles,
+                                bundle_importcontrols: analyze_bundles_for_import(pl_file, &file),
+                                doc_importcontrols: analyze_docs_for_import(pl_file, &file),
                                 file: Box::new(file),
-                                start_conditions,
-                                actions,
                             }
                         }
                     }
                 }
-                ImportStep::ChooseImportActions {
+                VImportStep::ChooseImportActions {
                     file,
-                    start_conditions: _,
-                    actions,
+                    import_tab: _,
+                    bundle_importcontrols,
+                    doc_importcontrols,
                 } => {
-                    if let Err(e) = execute_import(pl_file, file, actions) {
-                        v.import_data.error =
-                            Some(format!("Error: {}, caused by {:?}", e, e.source()));
+                    if let Err(e) =
+                        execute_import(pl_file, file, bundle_importcontrols, doc_importcontrols)
+                    {
+                        *error = Some(format!("Error: {}, caused by {:?}", e, e.source()));
+                        println!("{}", error.as_ref().unwrap());
                     } else {
                         v.reset_bundles(pl_file.bundles(), None);
+                        v.reset_documents(pl_file.documents(), None);
                         v.modal_state.close_modal();
                     }
                 }
@@ -582,15 +571,76 @@ fn act_on_modal(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings, action
     true
 }
 
+fn analyze_bundles_for_import(pl_file: &mut PlFile, file: &PlFile) -> ImportControls {
+    file.bundles()
+        .iter()
+        .map(|(key, bundle)| match pl_file.bundles().get(key) {
+            None => ImportControl {
+                start_condition: ImportStartCondition::New,
+                action: ImportAction::Add,
+            },
+
+            Some(old_bundle) => {
+                if bundle.equals(
+                    old_bundle,
+                    file.transient().unwrap(/*OK*/),
+                    pl_file.transient().unwrap(/*OK*/),
+                ) {
+                    ImportControl {
+                        start_condition: ImportStartCondition::Identical,
+                        action: ImportAction::Skip,
+                    }
+                } else {
+                    ImportControl {
+                        start_condition: ImportStartCondition::Modified,
+                        action: ImportAction::Overwrite,
+                    }
+                }
+            }
+        })
+        .collect()
+}
+
+fn analyze_docs_for_import(pl_file: &mut PlFile, file: &PlFile) -> ImportControls {
+    file.documents()
+        .iter()
+        .map(|(key, document)| match pl_file.documents().get(key) {
+            None => ImportControl {
+                start_condition: ImportStartCondition::New,
+                action: ImportAction::Add,
+            },
+
+            Some(old_document) => {
+                if document.equals(
+                    old_document,
+                    file.transient().unwrap(/*OK*/),
+                    pl_file.transient().unwrap(/*OK*/),
+                ) {
+                    ImportControl {
+                        start_condition: ImportStartCondition::Identical,
+                        action: ImportAction::Skip,
+                    }
+                } else {
+                    ImportControl {
+                        start_condition: ImportStartCondition::Modified,
+                        action: ImportAction::Overwrite,
+                    }
+                }
+            }
+        })
+        .collect()
+}
+
 fn execute_import(
     pl_file: &mut PlFile,
     file: &mut PlFile,
-    actions: &mut Vec<ImportAction>,
+    bundle_importcontrols: &mut ImportControls,
+    doc_importcontrols: &mut ImportControls,
 ) -> Result<()> {
-    for ((key, bundle), action) in file.bundles().iter().zip(actions) {
+    for ((key, bundle), import_control) in file.bundles().iter().zip(bundle_importcontrols) {
         // convert bundle into a VEditBundle, to get rid of reffs (which would not be valid in the new pl_file)
         let v_edit_bundle = VEditBundle::from_bundle(key, bundle, file.transient().unwrap(/*Ok*/));
-        match action {
+        match import_control.action {
             ImportAction::Skip => {}
             ImportAction::Add => {
                 // then update pl_file
@@ -608,6 +658,32 @@ fn execute_import(
                     }
                 }
                 pl_file.save_with_added_bundle(&v_edit_bundle)?;
+            }
+        }
+    }
+
+    for ((key, doc), import_control) in file.documents().iter().zip(doc_importcontrols) {
+        // convert bundle into a VEditDocument, to get rid of reffs (which would not be valid in the new pl_file)
+        let v_edit_doc = VEditDocument::from_document(key, doc, file.transient().unwrap(/*Ok*/));
+        match import_control.action {
+            ImportAction::Skip => {}
+            ImportAction::Add => {
+                // then update pl_file
+                pl_file.save_with_added_document(&v_edit_doc)?;
+            }
+            ImportAction::Overwrite => {
+                pl_file.save_with_updated_document(&v_edit_doc)?;
+            }
+            ImportAction::ImportAfterRename => {
+                for i in 1.. {
+                    if pl_file.rename_document(
+                        key,
+                        &Key::new([key.0.clone(), (-i).to_string()].concat()),
+                    )? {
+                        break;
+                    }
+                }
+                pl_file.save_with_added_document(&v_edit_doc)?;
             }
         }
     }

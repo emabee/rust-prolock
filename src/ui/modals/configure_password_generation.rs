@@ -44,6 +44,6 @@ pub fn configure_password_generation(
 
         ui.separator();
 
-        buttons::buttons(ui, controller, None, Action::FinalizeGeneratePassword);
+        buttons::cancel_and_action(ui, controller, None, Action::FinalizeGeneratePassword);
     });
 }

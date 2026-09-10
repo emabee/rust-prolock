@@ -11,7 +11,6 @@ mod export_data;
 mod import_data;
 mod show_about;
 
-pub use buttons::buttons;
 pub use change_file::change_file;
 pub use change_language::change_language;
 pub use change_password::change_password;
@@ -20,6 +19,6 @@ pub use create_bundle::create_bundle;
 pub use create_document::create_document;
 pub use delete_bundle::delete_bundle;
 pub use delete_document::delete_document;
-pub use export_data::export_data;
+pub use export_data::modal_export_data;
 pub use import_data::import_data;
 pub use show_about::show_about;

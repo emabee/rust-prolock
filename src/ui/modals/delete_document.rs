@@ -42,7 +42,7 @@ pub fn delete_document(key: &Key, error: Option<&str>, controller: &mut Controll
             show_error(e, ui);
         }
 
-        buttons::buttons(ui, controller, None, Action::FinalizeDeleteDocument);
+        buttons::cancel_and_action(ui, controller, None, Action::FinalizeDeleteDocument);
     });
     if modal_response.should_close() {
         controller.set_action(Action::CloseModal);

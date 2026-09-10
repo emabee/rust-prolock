@@ -58,7 +58,7 @@ pub fn create_document(
             show_error(e, ui);
         }
 
-        buttons::buttons(
+        buttons::cancel_and_action(
             ui,
             controller,
             Some(t!("_save")),

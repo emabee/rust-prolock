@@ -13,8 +13,8 @@ use crate::{
     },
 };
 use anyhow::{Context as _, Result};
-use eframe::{App, Frame};
-use egui::Context;
+use eframe::App;
+use egui::Ui;
 use flexi_logger::LoggerHandle;
 
 pub struct PlApp {
@@ -42,13 +42,13 @@ impl PlApp {
 }
 
 impl App for PlApp {
-    fn update(&mut self, ctx: &Context, _frame: &mut Frame) {
+    fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         // execute action, if any
         self.controller
             .act(&mut self.pl_file, &mut self.v, &mut self.settings);
 
         // render the UI
-        top_panel(&self.pl_file, &mut self.v, &mut self.controller, ctx);
+        top_panel(&self.pl_file, &mut self.v, &mut self.controller, ui);
 
         // show modal if desired
         match self.v.modal_state {
@@ -59,60 +59,60 @@ impl App for PlApp {
                 generate_pw,
                 ref error,
             } => {
-                create_bundle(bundle, error.as_deref(), &mut self.controller, ctx);
+                create_bundle(bundle, error.as_deref(), &mut self.controller, ui);
                 if generate_pw {
                     configure_password_generation(
                         &mut self.v.generate_pw,
                         &mut self.controller,
-                        ctx,
+                        ui,
                     );
                 }
             }
             ModalState::DeleteBundle { ref key, ref error } => {
-                delete_bundle(key, error.as_deref(), &mut self.controller, ctx);
+                delete_bundle(key, error.as_deref(), &mut self.controller, ui);
             }
 
             ModalState::AddDocument {
                 ref mut v_edit_document,
                 ref mut error,
             } => {
-                create_document(v_edit_document, error, &mut self.controller, ctx);
+                create_document(v_edit_document, error, &mut self.controller, ui);
             }
             ModalState::DeleteDocument { ref key, ref error } => {
-                delete_document(key, error.as_deref(), &mut self.controller, ctx);
+                delete_document(key, error.as_deref(), &mut self.controller, ui);
             }
 
             ModalState::About => {
-                show_about(&mut self.controller, ctx);
+                show_about(&mut self.controller, ui);
             }
             ModalState::ChangePassword => {
-                change_password(&mut self.v.pw, &mut self.controller, ctx);
+                change_password(&mut self.v.pw, &mut self.controller, ui);
             }
             ModalState::ChangeFile => {
                 change_file(
                     &mut self.settings,
                     &mut self.v.file_selection,
                     &mut self.controller,
-                    ctx,
+                    ui,
                 );
             }
             ModalState::ChangeLanguage => {
-                change_language(&mut self.v.lang, &mut self.controller, ctx);
+                change_language(&mut self.v.lang, &mut self.controller, ui);
             }
             ModalState::GeneratePassword => {
-                configure_password_generation(&mut self.v.generate_pw, &mut self.controller, ctx);
+                configure_password_generation(&mut self.v.generate_pw, &mut self.controller, ui);
             }
             ModalState::ExportData {
                 ref mut export_tab,
                 ref mut export_data,
             } => {
-                modal_export_data(export_data, export_tab, &mut self.controller, ctx);
+                modal_export_data(export_data, export_tab, &mut self.controller, ui);
             }
             ModalState::ImportData {
                 ref mut step,
                 ref mut error,
             } => {
-                import_data(step, error, &mut self.controller, ctx);
+                import_data(step, error, &mut self.controller, ui);
             }
         }
 
@@ -122,7 +122,7 @@ impl App for PlApp {
                 &self.logger_handle,
                 &mut self.v.logger_snapshot,
                 &mut self.v.show_log,
-                ctx,
+                ui,
             );
         }
 
@@ -134,11 +134,11 @@ impl App for PlApp {
                 transient,
                 &mut self.v,
                 &mut self.controller,
-                ctx,
+                ui,
             );
         } else {
             let is_first_start = self.pl_file.update_counter().peek() == Some(0);
-            ask_for_password_to_open(is_first_start, &mut self.v, &mut self.controller, ctx);
+            ask_for_password_to_open(is_first_start, &mut self.v, &mut self.controller, ui);
         }
     }
 }

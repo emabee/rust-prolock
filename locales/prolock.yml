@@ -12,7 +12,7 @@ password_not_available:
 Creating the prolock file:
   en: Creating the ProLock file
   de: Erzeugen der ProLock Datei
-'Password':
+Password:
   en: 'Password'
   de: 'Passwort'
 'Repeat:':
@@ -183,9 +183,6 @@ parsing PlFile:
 File path:
   en: Complete file path
   de: Vollständiger Dateipfad
-Password:
-  en: Password
-  de: Passwort
 _last_update_at:
   en: 'Last update at:'
   de: 'Letzte Änderung:'

@@ -4,11 +4,11 @@ use crate::{
         Action, IMG_BURGER, IMG_LOGO, LIGHT_GRAY, VERY_LIGHT_GRAY, assets::IMG_CHANGE_FILE, viz::V,
     },
 };
-use egui::{Button, Color32, Context, FontFamily, Image, MenuBar, RichText, TopBottomPanel};
+use egui::{Button, Color32, FontFamily, Image, MenuBar, Panel, RichText, Ui};
 use egui_extras::{Size, StripBuilder};
 
-pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ctx: &Context) {
-    TopBottomPanel::top("file").show(ctx, |ui| {
+pub fn top_panel(pl_file: &PlFile, v: &mut V, controller: &mut Controller, ui: &mut Ui) {
+    Panel::top("file").show(ui, |ui| {
         ui.add_space(2.);
         ui.horizontal(|ui| {
             StripBuilder::new(ui)

@@ -1,4 +1,4 @@
-use rand::{Rng, distr::StandardUniform, rng};
+use rand::{RngExt, distr::StandardUniform, rng};
 use std::collections::{HashMap, hash_map::Keys};
 
 // A map from u64 to String, containing the secret values, keyed by some number.

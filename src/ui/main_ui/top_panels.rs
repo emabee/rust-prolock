@@ -7,16 +7,16 @@ use crate::{
         viz::{BundleState, DocumentState, MainState, V},
     },
 };
-use egui::{Button, Color32, Context, Image, RichText, TextEdit, TopBottomPanel};
+use egui::{Button, Color32, Image, Panel, RichText, TextEdit, Ui};
 
 pub(super) fn panel_with_tabs(
     v: &mut V,
     documents: &Documents,
     controller: &mut Controller,
-    ctx: &Context,
+    ui: &mut Ui,
 ) {
     // two tabs: Bundles and Documents
-    TopBottomPanel::top("panel_with_tabs").show(ctx, |ui| {
+    Panel::top("panel_with_tabs").show(ui, |ui| {
         ui.add_space(10.);
 
         ui.horizontal(|ui| {
@@ -69,8 +69,8 @@ pub(super) fn panel_with_tabs(
     });
 }
 
-pub(super) fn panel_with_create_and_filter(v: &mut V, controller: &mut Controller, ctx: &Context) {
-    TopBottomPanel::top("header").show(ctx, |ui| {
+pub(super) fn panel_with_create_and_filter(v: &mut V, controller: &mut Controller, ui: &mut Ui) {
+    Panel::top("header").show(ui, |ui| {
         ui.add_space(16.);
         ui.horizontal(|ui| {
             if ui

@@ -5,15 +5,15 @@ use crate::{
         viz::{PwFocus, V},
     },
 };
-use egui::{CentralPanel, Color32, Context, Grid, Key, RichText, TextEdit};
+use egui::{CentralPanel, Color32, Grid, Key, RichText, TextEdit, Ui};
 
 pub fn ask_for_password_to_open(
     is_first_start: bool,
     v: &mut V,
     controller: &mut Controller,
-    ctx: &Context,
+    ui: &mut Ui,
 ) {
-    CentralPanel::default().show(ctx, |ui| {
+    CentralPanel::default().show(ui, |ui| {
         if is_first_start {
             ask_twice(v, controller, ui);
         } else {

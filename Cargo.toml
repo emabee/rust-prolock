@@ -12,7 +12,7 @@ keywords = ["security", "encryption"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/emabee/rust-prolock"
-rust-version = "1.85.0"
+rust-version = "1.98.0"
 
 [package.metadata.bundle]
 name = "ProLock"
@@ -36,10 +36,11 @@ strip = true
 [dependencies]
 anyhow = "1.0"
 clap = { version = "4.5", features = ["cargo"] }
-dirs = "6.0"
-egui = { version = "0.33" }
-egui_extras = { version = "0.33", features = ["file", "image"] }
-eframe = { version = "0.33" }
+dirs = "7.0"
+egui = { version = "0.36" }
+egui_extras = { version = "0.36", features = ["file", "image"] }
+egui-file-dialog = "0.15.0"
+eframe = { version = "0.36" }
 fd-lock = "4.0.2"
 flexi_logger = { version = "0.31", features = ["buffer_writer"] }
 fuzzy-matcher = "0.3"
@@ -47,9 +48,9 @@ image = { version = "0.25", features = ["png"] }
 jiff = { version = "0.2", features = ["serde"] }
 log = "0.4"
 oxilangtag = "0.1"
-pwsec = "0.5"
-rand = "0.9"
-rust-i18n = "3"
+pwsec = "0.6"                                                     # { path = "../pwsec" }
+rand = "0.10"
+rust-i18n = "4.2"
 secstr = "0.5"
 sequential = { version = "0.5", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }

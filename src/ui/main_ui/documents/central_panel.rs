@@ -7,9 +7,7 @@ use crate::{
         viz::{MainState, V, VDocument},
     },
 };
-use egui::{
-    CentralPanel, Color32, Context, RichText, ScrollArea, scroll_area::ScrollBarVisibility,
-};
+use egui::{CentralPanel, Color32, RichText, ScrollArea, Ui, scroll_area::ScrollBarVisibility};
 use egui_extras::{Size, StripBuilder};
 use std::collections::BTreeMap;
 
@@ -18,7 +16,7 @@ pub fn central_panel(
     transient: &Transient,
     v: &mut V,
     controller: &mut Controller,
-    ctx: &Context,
+    ui: &mut Ui,
 ) {
     let MainState::Documents(ref mut doc_state) = v.main_state else {
         unreachable!()
@@ -26,7 +24,7 @@ pub fn central_panel(
     let v_documents = &mut v.documents;
     let show_buttons_active = v.modal_state.no_modal_is_open();
 
-    CentralPanel::default().show(ctx, |ui| {
+    CentralPanel::default().show(ui, |ui| {
         if documents.is_empty() {
             ui.horizontal(|ui| {
                 ui.label(RichText::from("⬆ ").color(Color32::DARK_GRAY).size(22.));

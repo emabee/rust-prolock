@@ -1,5 +1,5 @@
 use crate::ui::viz::VGeneratePassword;
-use rand::{RngCore, seq::SliceRandom};
+use rand::{Rng, seq::SliceRandom};
 use std::cmp::max;
 
 // returns a generated password according to the given configuration;

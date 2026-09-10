@@ -10,9 +10,7 @@ use crate::{
         viz::{BundleState, MainState, V, VBundle, VEditBundle},
     },
 };
-use egui::{
-    CentralPanel, Color32, Context, RichText, ScrollArea, scroll_area::ScrollBarVisibility,
-};
+use egui::{CentralPanel, Color32, RichText, ScrollArea, Ui, scroll_area::ScrollBarVisibility};
 use egui_extras::{Size, StripBuilder};
 
 pub fn central_panel(
@@ -20,9 +18,9 @@ pub fn central_panel(
     transient: &Transient,
     v: &mut V,
     controller: &mut Controller,
-    ctx: &Context,
+    ui: &mut Ui,
 ) {
-    CentralPanel::default().show(ctx, |ui| {
+    CentralPanel::default().show(ui, |ui| {
         if bundles.is_empty() {
             ui.horizontal(|ui| {
                 ui.label(RichText::from("⬆ ").color(Color32::DARK_GRAY).size(22.));
@@ -69,7 +67,6 @@ pub fn central_panel(
                                     if !done {
                                         bundle_strip.strip(|bundle_builder| {
                                             show_a_bundle_with_buttons(
-                                                ctx,
                                                 bundle_builder,
                                                 bundle,
                                                 v_bundle,
@@ -109,7 +106,6 @@ fn edit_a_bundle_with_buttons(
 
 #[allow(clippy::too_many_arguments)]
 fn show_a_bundle_with_buttons(
-    ctx: &Context,
     bundle_builder: StripBuilder<'_>,
     bundle: &Bundle,
     v_bundle: &mut VBundle,
@@ -132,7 +128,6 @@ fn show_a_bundle_with_buttons(
                 }
             });
             super::show_bundle(
-                ctx,
                 bundle,
                 v_bundle,
                 key,

@@ -6,14 +6,12 @@ use crate::{
     },
 };
 use egui::{
-    Align, Button, Color32, Context, FontFamily, FontId, Rgba, RichText, ScrollArea, TextEdit,
-    TextStyle, Ui,
+    Align, Button, Color32, FontFamily, FontId, Rgba, RichText, ScrollArea, TextEdit, TextStyle, Ui,
 };
 use egui_extras::{Size, Strip, StripBuilder};
 use jiff::Zoned;
 
 pub fn show_bundle(
-    ctx: &Context,
     bundle: &Bundle,
     v_bundle: &mut VBundle,
     key: &Key,
@@ -25,7 +23,7 @@ pub fn show_bundle(
         ui_left_part(bundle, key, v_bundle, left_builder, alternate);
     });
     inner_bundle_strip.strip(|right_builder| {
-        ui_right_part(bundle, alternate, transient, v_bundle, right_builder, ctx);
+        ui_right_part(bundle, alternate, transient, v_bundle, right_builder);
     });
 }
 
@@ -91,7 +89,6 @@ fn ui_right_part(
     transient: &Transient,
     v_bundle: &mut VBundle,
     right_builder: StripBuilder<'_>,
-    ctx: &Context,
 ) {
     right_builder
         .sizes(Size::exact(20.), bundle.creds().len())
@@ -99,7 +96,7 @@ fn ui_right_part(
             let mut first = true;
             for (cred, v_cred) in bundle.creds().iter().zip(v_bundle.v_creds.iter_mut()) {
                 right_strip.strip(|cred_builder| {
-                    show_cred(first, alternate, cred, transient, v_cred, cred_builder, ctx);
+                    show_cred(first, alternate, cred, transient, v_cred, cred_builder);
                     first = false;
                 });
             }
@@ -113,7 +110,6 @@ pub fn show_cred(
     transient: &Transient,
     v_cred: &mut VCred,
     cred_builder: StripBuilder<'_>,
-    ctx: &Context,
 ) {
     cred_builder
         .size(Size::exact(210.))
@@ -152,7 +148,7 @@ pub fn show_cred(
                                     .add(Button::new(t!("_copy")).min_size([60., 10.].into()))
                                     .clicked()
                                 {
-                                    ctx.copy_text(cred.secret(transient).to_string());
+                                    ui.copy_text(cred.secret(transient).to_string());
                                     v_cred.copied_at = Some(std::time::Instant::now());
                                 }
                             }

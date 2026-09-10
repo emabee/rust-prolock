@@ -12,7 +12,7 @@ use crate::{
     data::{Bundles, Documents, Transient},
     ui::viz::V,
 };
-use egui::Context;
+use egui::Ui;
 
 pub(super) fn main_ui(
     bundles: &Bundles,
@@ -20,14 +20,14 @@ pub(super) fn main_ui(
     transient: &Transient,
     v: &mut V,
     controller: &mut Controller,
-    ctx: &Context,
+    ui: &mut Ui,
 ) {
-    top_panels::panel_with_tabs(v, documents, controller, ctx);
-    top_panels::panel_with_create_and_filter(v, controller, ctx);
+    top_panels::panel_with_tabs(v, documents, controller, ui);
+    top_panels::panel_with_create_and_filter(v, controller, ui);
 
     if v.main_state.is_bundles() {
-        bundles::central_panel(bundles, transient, v, controller, ctx);
+        bundles::central_panel(bundles, transient, v, controller, ui);
     } else {
-        documents::central_panel(documents, transient, v, controller, ctx);
+        documents::central_panel(documents, transient, v, controller, ui);
     }
 }

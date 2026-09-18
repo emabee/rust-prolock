@@ -51,6 +51,7 @@ impl App for PlApp {
         top_panel(&self.pl_file, &mut self.v, &mut self.controller, ui);
 
         // show modal if desired
+        let ctx = ui.ctx();
         match self.v.modal_state {
             ModalState::None => {}
 
@@ -59,7 +60,7 @@ impl App for PlApp {
                 generate_pw,
                 ref error,
             } => {
-                create_bundle(bundle, error.as_deref(), &mut self.controller, ui);
+                create_bundle(bundle, error.as_deref(), &mut self.controller, ctx);
                 if generate_pw {
                     configure_password_generation(
                         &mut self.v.generate_pw,
@@ -69,24 +70,24 @@ impl App for PlApp {
                 }
             }
             ModalState::DeleteBundle { ref key, ref error } => {
-                delete_bundle(key, error.as_deref(), &mut self.controller, ui);
+                delete_bundle(key, error.as_deref(), &mut self.controller, ctx);
             }
 
             ModalState::AddDocument {
                 ref mut v_edit_document,
                 ref mut error,
             } => {
-                create_document(v_edit_document, error, &mut self.controller, ui);
+                create_document(v_edit_document, error, &mut self.controller, ctx);
             }
             ModalState::DeleteDocument { ref key, ref error } => {
-                delete_document(key, error.as_deref(), &mut self.controller, ui);
+                delete_document(key, error.as_deref(), &mut self.controller, ctx);
             }
 
             ModalState::About => {
-                show_about(&mut self.controller, ui);
+                show_about(&mut self.controller, ctx);
             }
             ModalState::ChangePassword => {
-                change_password(&mut self.v.pw, &mut self.controller, ui);
+                change_password(&mut self.v.pw, &mut self.controller, ctx);
             }
             ModalState::ChangeFile => {
                 change_file(
@@ -97,22 +98,22 @@ impl App for PlApp {
                 );
             }
             ModalState::ChangeLanguage => {
-                change_language(&mut self.v.lang, &mut self.controller, ui);
+                change_language(&mut self.v.lang, &mut self.controller, ctx);
             }
             ModalState::GeneratePassword => {
-                configure_password_generation(&mut self.v.generate_pw, &mut self.controller, ui);
+                configure_password_generation(&mut self.v.generate_pw, &mut self.controller, ctx);
             }
             ModalState::ExportData {
                 ref mut export_tab,
                 ref mut export_data,
             } => {
-                modal_export_data(export_data, export_tab, &mut self.controller, ui);
+                modal_export_data(export_data, export_tab, &mut self.controller, ctx);
             }
             ModalState::ImportData {
                 ref mut step,
                 ref mut error,
             } => {
-                import_data(step, error, &mut self.controller, ui);
+                import_data(step, error, &mut self.controller, ctx);
             }
         }
 
@@ -122,7 +123,7 @@ impl App for PlApp {
                 &self.logger_handle,
                 &mut self.v.logger_snapshot,
                 &mut self.v.show_log,
-                ui,
+                ctx,
             );
         }
 

@@ -59,7 +59,7 @@ pub fn show_about(controller: &mut Controller, ctx: &Context) {
             },
         );
     });
-    if modal_response.should_close() {
+    if modal_response.should_close() || modal_response.inner.1 {
         controller.set_action(Action::CloseModal);
     }
 }

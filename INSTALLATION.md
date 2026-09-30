@@ -7,7 +7,6 @@ If you're working with rust yourself, then it might be the easiest for you to
 download this repo and build the program yourself:
 
 1. Ensure you have a recent [rust compiler](https://www.rust-lang.org/) installed.
-The MSRV of ProLock is currently 1.85.
 
 2. Clone the project to you local disk.
 

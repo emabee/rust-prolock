@@ -13,6 +13,9 @@ i18n!("locales", fallback = "en");
 mod args;
 mod ctrl;
 mod data;
+#[allow(clippy::all)]
+#[allow(clippy::pedantic)]
+mod file_dialog;
 mod ui;
 mod util;
 
@@ -118,11 +121,7 @@ fn run() -> Result<()> {
         },
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);
-            Ok(Box::new(
-                // build PlApp (which implements egui::App) and hand it over to eframe::run_native,
-                // which will then call its method `update()` in an endless loop
-                PlApp::new(logger_handle, settings)?,
-            ))
+            Ok(Box::new(PlApp::new(logger_handle, settings)?))
         }),
     )
     .map_err(|e| anyhow!("Couldn't start GUI, caused by {e:?}"))

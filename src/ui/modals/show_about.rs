@@ -4,25 +4,22 @@ use crate::{
     Controller, PROG_TITLE, PROG_VERSION,
     ui::{Action, IMG_LOGO, IMG_RUST_LOGO, modals::buttons, sizes::MODAL_WIDTH},
 };
-use egui::{Context, FontFamily, FontId, Image, Modal, RichText, Sides, Vec2};
+use egui::{Context, FontFamily, FontId, Image, RichText, Sides, Vec2};
+use egui_modal_with_titlebar::ModalWithTitlebar;
 
 pub fn show_about(controller: &mut Controller, ctx: &Context) {
-    let modal_response = Modal::new("show_about".into()).show(ctx, |ui| {
+    let modal_response = ModalWithTitlebar::new("show_about", PROG_TITLE, true).show(ctx, |ui| {
         ui.set_width(MODAL_WIDTH);
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
                 ui.set_width(220.);
                 ui.set_height(280.);
-                ui.add_space(50.);
+                ui.add_space(35.);
                 ui.add(Image::new(IMG_LOGO));
             });
 
             ui.vertical(|ui| {
-                ui.add_space(50.);
-                ui.label(
-                    RichText::new(PROG_TITLE).font(FontId::new(24., FontFamily::Proportional)),
-                );
-                ui.add_space(15.);
+                ui.add_space(35.);
                 ui.label(format!(
                     "{}\n\n{}: {}",
                     t!("_about_1"),

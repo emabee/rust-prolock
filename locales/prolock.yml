@@ -349,7 +349,21 @@ overwrite:
 skip:
   en: skip
   de: Überspringen
+inspect_entries:
+  en: Inspect entries
+  de: Einträge prüfen
 import_entries:
   en: Import entries
   de: Einträge importieren
-
+_select:
+  en: Select
+  de: Auswählen
+_save_as:
+  en: ""
+  de: ""
+create_bundle:
+  en: Create structured entry
+  de: Strukturierten Eintrag anlegen
+create_document:
+  en: Create document
+  de: Dokument anlegen

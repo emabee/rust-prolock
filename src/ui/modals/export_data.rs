@@ -1,5 +1,6 @@
 use crate::{
     ctrl::Controller,
+    file_dialog::FileDialog,
     ui::{
         Action,
         modals::buttons,
@@ -9,65 +10,68 @@ use crate::{
     },
 };
 use egui::{
-    Button, Color32, Context, FontFamily, FontId, Grid, Key, Modal, RichText, ScrollArea, Sides,
-    TextEdit, TextStyle, Ui,
+    Button, Color32, Context, FontFamily, FontId, Grid, Key, RichText, ScrollArea, Sides, TextEdit,
+    TextStyle, Ui,
 };
 use egui_extras::{Column, Size, StripBuilder, TableBuilder};
+use egui_modal_with_titlebar::ModalWithTitlebar;
 
 pub fn modal_export_data(
     v_export_data: &mut VExportData,
     export_tab: &mut ExportTab,
+    file_dialog: &mut FileDialog,
     controller: &mut Controller,
     ctx: &Context,
 ) {
     let go_for_it = false;
 
-    let modal_response = Modal::new("change_password".into()).show(ctx, |ui| {
-        ui.set_width(MODAL_WIDTH_EX_IM);
+    let modal_response =
+        ModalWithTitlebar::new("change_password", t!("export_data"), true).show(ctx, |ui| {
+            ui.set_width(MODAL_WIDTH_EX_IM);
 
-        ui.horizontal(|ui| {
-            ui.vertical(|ui| {
-                ui.set_width(140.);
-                ui.set_height(300.);
-                ui.add_space(50.);
-                ui.label(
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    ui.set_width(140.);
+                    ui.set_height(300.);
+                    ui.add_space(50.);
+                    ui.label(
                     RichText::new("📦") // or 🚚?
                         .font(FontId::new(128., FontFamily::Proportional)),
                 );
-            });
-            ui.vertical(|ui| {
-                ui.add_space(50.);
-                ui.label(RichText::new(t!("export_data")).size(24.));
+                });
+                ui.vertical(|ui| {
+                    // ui.add_space(50.);
+                    // ui.label(RichText::new(t!("export_data")).size(24.));
 
-                ui.add_space(30.);
-                StripBuilder::new(ui)
-                    .size(Size::exact(250.))
-                    .size(Size::exact(100.))
-                    .vertical(|mut strip| {
-                        strip.cell(|ui| {
-                            bundles_and_docs(ui, export_tab, v_export_data);
+                    ui.add_space(35.);
+                    StripBuilder::new(ui)
+                        .size(Size::exact(250.))
+                        .size(Size::exact(100.))
+                        .vertical(|mut strip| {
+                            strip.cell(|ui| {
+                                bundles_and_docs(ui, export_tab, v_export_data);
+                            });
+
+                            strip.cell(|ui| {
+                                password_and_file(v_export_data, file_dialog, go_for_it, ui);
+
+                                if let Some(e) = &v_export_data.pw.error {
+                                    show_error(e, ui);
+                                }
+
+                                show_buttons(v_export_data, controller, go_for_it, ui);
+                            });
                         });
-
-                        strip.cell(|ui| {
-                            password_and_file(v_export_data, go_for_it, ui);
-
-                            if let Some(e) = &v_export_data.pw.error {
-                                show_error(e, ui);
-                            }
-
-                            show_buttons(v_export_data, controller, go_for_it, ui);
-                        });
-                    });
+                });
             });
         });
-    });
-    if modal_response.should_close() {
+    if modal_response.should_close() || modal_response.inner.1 {
         controller.set_action(Action::CloseModal);
     }
 }
 
 fn bundles_and_docs(ui: &mut Ui, export_tab: &mut ExportTab, v_export_data: &mut VExportData) {
-    let text_height = egui::TextStyle::Body
+    let text_height = TextStyle::Body
         .resolve(ui.style())
         .size
         .max(ui.spacing().interact_size.y);
@@ -178,21 +182,38 @@ fn tabs(ui: &mut Ui, export_tab: &mut ExportTab) {
     ui.add_space(5.);
 }
 
-fn password_and_file(v_export_data: &mut VExportData, mut go_for_it: bool, ui: &mut Ui) {
+fn password_and_file(
+    v_export_data: &mut VExportData,
+    file_dialog: &mut FileDialog,
+    mut go_for_it: bool,
+    ui: &mut Ui,
+) {
     ui.add_space(20.);
-    // TODO: provide some help text about the password, e.g. how important it is
-    // to NOT use the same password as for the vault,
-    // and that the password is required to import the data.
-    ui.label("Exportdatei:");
-    ui.add(
-        TextEdit::singleline(&mut v_export_data.file_path)
-            .hint_text(t!("File path"))
-            .font(TextStyle::Monospace),
-    );
-
-    ui.add_space(15.);
-
     Grid::new("ExportPassword").num_columns(2).show(ui, |ui| {
+        // TODO: provide some help text about the password, e.g. how important it is
+        // to NOT use the same password as for the vault,
+        // and that the password is required to import the data.
+        ui.label("Exportdatei:");
+        ui.horizontal(|ui| {
+            ui.add(
+                TextEdit::singleline(&mut v_export_data.file_path)
+                    .hint_text(t!("File path"))
+                    .font(FontId::new(12., FontFamily::Monospace)),
+            );
+
+            if ui.button(format!("📂 {}...", t!("_save_as"))).clicked() {
+                file_dialog.save_file();
+            }
+
+            file_dialog.update(ui.ctx());
+
+            if let Some(path) = file_dialog.take_picked() {
+                v_export_data.file_path = path.display().to_string();
+            }
+        });
+
+        ui.end_row();
+
         ui.label(format!("{}:", t!("export_password")));
         let response = ui.add(
             TextEdit::singleline(&mut v_export_data.pw.pw2)

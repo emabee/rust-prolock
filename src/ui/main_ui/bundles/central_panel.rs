@@ -47,6 +47,7 @@ pub fn central_panel(
                                 let v_bundle = v.bundles.get_mut(key).unwrap();
                                 if !v_bundle.suppressed {
                                     let mut done = false;
+
                                     if let MainState::Bundles(BundleState::ModifyBundle {
                                         ref mut v_edit_bundle,
                                         ref error,

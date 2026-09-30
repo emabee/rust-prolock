@@ -11,10 +11,10 @@ use crate::{
     },
 };
 use egui::{
-    Button, Color32, Context, FontFamily, FontId, Image, Modal, Rgba, RichText, ScrollArea,
-    TextEdit,
+    Button, Color32, Context, FontFamily, FontId, Image, Rgba, RichText, ScrollArea, TextEdit,
 };
 use egui_extras::{Size, StripBuilder};
+use egui_modal_with_titlebar::ModalWithTitlebar;
 
 pub fn create_bundle(
     bundle: &mut VEditBundle,
@@ -22,33 +22,45 @@ pub fn create_bundle(
     controller: &mut Controller,
     ctx: &Context,
 ) {
-    Modal::new("create_bundle".into()).show(ctx, |ui| {
-        ui.vertical(|ui| {
-            StripBuilder::new(ui)
-                .sizes(Size::exact(BUNDLE_HEIGHT), 1)
-                .vertical(|mut bundle_strip| {
-                    bundle_strip.strip(|bundle_builder| {
-                        bundle_builder
-                            .size(Size::exact(BUNDLE_WIDTH_LEFT))
-                            .size(Size::exact(BUNDLE_WIDTH_RIGHT))
-                            .horizontal(|mut inner_bundle_strip| {
-                                inner_bundle_strip.strip(|left_builder| {
-                                    left_part(bundle, left_builder);
+    let modal_response =
+        ModalWithTitlebar::new("create_bundle", t!("create_bundle"), true).show(ctx, |ui| {
+            ui.vertical(|ui| {
+                ui.add_space(20.);
+                StripBuilder::new(ui)
+                    .sizes(Size::exact(BUNDLE_HEIGHT), 1)
+                    .vertical(|mut bundle_strip| {
+                        bundle_strip.strip(|bundle_builder| {
+                            bundle_builder
+                                .size(Size::exact(BUNDLE_WIDTH_LEFT))
+                                .size(Size::exact(BUNDLE_WIDTH_RIGHT))
+                                .horizontal(|mut inner_bundle_strip| {
+                                    inner_bundle_strip.strip(|left_builder| {
+                                        left_part(bundle, left_builder);
+                                    });
+                                    inner_bundle_strip.strip(|right_builder| {
+                                        right_part(bundle, right_builder, controller);
+                                    });
                                 });
-                                inner_bundle_strip.strip(|right_builder| {
-                                    right_part(bundle, right_builder, controller);
-                                });
-                            });
+                        });
                     });
-                });
+                ui.add_space(20.);
+            });
+
+            if let Some(e) = error {
+                show_error(e, ui);
+            }
+
+            buttons::cancel_and_action(
+                ui,
+                controller,
+                Some(t!("_save")),
+                Action::FinalizeAddBundle,
+            );
         });
 
-        if let Some(e) = error {
-            show_error(e, ui);
-        }
-
-        buttons::cancel_and_action(ui, controller, Some(t!("_save")), Action::FinalizeAddBundle);
-    });
+    if modal_response.inner.1 {
+        controller.set_action(Action::CloseModal);
+    }
 }
 
 fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
@@ -61,7 +73,11 @@ fn left_part(edit_bundle: &mut VEditBundle, left_builder: StripBuilder<'_>) {
             //header
             left_strip.cell(|ui| {
                 ui.centered_and_justified(|ui| {
-                    ui.label(RichText::new(t!("Unprotected header")).color(Color32::GRAY));
+                    ui.label(
+                        RichText::new(t!("Unprotected header"))
+                            .color(Color32::GRAY)
+                            .italics(),
+                    );
                     ui.add_space(3.);
                 });
             });
@@ -125,13 +141,13 @@ fn right_part(
             right_strip.cell(|ui| {
                 ui.centered_and_justified(|ui| {
                     ui.label(
-                        RichText::new(t!("Encrypted data")).color(Into::<Color32>::into(
-                            egui::lerp(
+                        RichText::new(t!("Encrypted data"))
+                            .color(Into::<Color32>::into(egui::lerp(
                                 Rgba::from(Color32::DARK_BLUE)
                                     ..=Rgba::from(ui.visuals().window_fill()),
                                 0.5,
-                            ),
-                        )),
+                            )))
+                            .italics(),
                     );
                 });
                 ui.add_space(3.);

@@ -37,9 +37,23 @@ strip = true
 anyhow = "1.0"
 clap = { version = "4.5", features = ["cargo"] }
 dirs = "7.0"
+#### vvvv only temporarily, for embedded file_dialog
+# fetch user folders
+directories = "6.0"
+# canonicalize paths
+dunce = "1.0.5"
+# fetch disks
+sysinfo = { version = "0.39", default-features = false, features = ["disk"] }
+# meta-data storage
+indexmap = { version = "2.7.0", features = ["serde"] }
+# info panel meta-data display
+image-meta = { version = "0.1.2" }
+chrono = { version = "0.4.39" }
+#### ^^^^
 egui = { version = "0.36" }
 egui_extras = { version = "0.36", features = ["file", "image"] }
-egui-file-dialog = "0.15.0"
+egui_modal_with_titlebar = "0.10"
+# egui-file-dialog = { path = "../egui-file-dialog-modal" }
 eframe = { version = "0.36" }
 fd-lock = "4.0.2"
 flexi_logger = { version = "0.31", features = ["buffer_writer"] }
@@ -58,3 +72,6 @@ serde_json = "1.0"
 sys-locale = "0.3"
 tempfile = "3.15"
 whoami = "2.1.1"
+
+[dev-dependencies]
+tempdir = "0.3"

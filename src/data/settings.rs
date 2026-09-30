@@ -7,16 +7,20 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const PROD_DOC_FOLDER: &str = ".prolock";
-const TEST_DOC_FOLDER: &str = ".prolock_test";
-const SETTINGS_FILE: &str = "settings";
-const DEFAULT_DATA_FILE: &str = "secrets";
+use crate::file_dialog::FileDialogLabels;
+
+const PROD_PROLOCK_FOLDER: &str = ".prolock";
+const TEST_PROLOCK_FOLDER: &str = ".prolock_test";
+const SETTINGS_FILENAME: &str = "settings";
+const DEFAULT_DOCUMENT_FILENAME: &str = "secrets";
 const TEMP_DATA_FILE_SUFFIX: &str = "_temp_file_for_secure_storing_780987z543w";
 
 const DEFAULT_LOCALE: &str = "en";
 
 #[derive(Deserialize, Serialize)]
 pub struct Settings {
+    #[serde(skip)]
+    pub prolock_folder: PathBuf,
     pub files: Vec<PathBuf>,
     pub current_file: usize,
     pub language: String,
@@ -24,30 +28,36 @@ pub struct Settings {
     is_test: bool,
 }
 
-fn default_language() -> String {
-    let locale = sys_locale::get_locale().unwrap_or(DEFAULT_LOCALE.to_string());
-    LanguageTag::parse(locale)
-        .unwrap_or_else(|_e| LanguageTag::parse(DEFAULT_LOCALE.to_string()).unwrap(/*OK*/))
-        .primary_language()
-        .to_string()
-}
 impl Settings {
-    pub fn default(is_test: bool) -> Result<Self> {
+    //
+    pub fn new(is_test: bool) -> Result<Self> {
+        let prolock_folder = Self::prolock_folder(is_test)?;
         Ok(Self {
-            files: vec![Self::default_document_file(is_test)?],
+            prolock_folder: prolock_folder.clone(),
+            files: vec![Self::default_document_file(prolock_folder)],
             current_file: 0,
-            language: default_language(),
+            language: {
+                let locale = sys_locale::get_locale().unwrap_or(DEFAULT_LOCALE.to_string());
+                LanguageTag::parse(locale)
+                    .unwrap_or_else(
+                        |_e| LanguageTag::parse(DEFAULT_LOCALE.to_string()).unwrap(/*OK*/),
+                    )
+                    .primary_language()
+                    .to_string()
+            },
             is_test,
         })
     }
+
     pub fn read_or_create(is_test: bool) -> Result<Self> {
-        let my_file = Self::settings_file(is_test)?;
+        let prolock_folder = Self::prolock_folder(is_test)?;
+        let my_file = Self::settings_file(prolock_folder.clone());
         let context = format!("reading {}", my_file.display());
-        let settings = if std::fs::exists(&my_file).context(context.clone())? {
+        let mut settings = if std::fs::exists(&my_file).context(context.clone())? {
             Self::lock_and_read(&my_file).context(context.clone())?
         } else {
             create_dir_all(my_file.parent().context(t!("cannot_determine_folder"))?)?;
-            let settings = Settings::default(is_test)?;
+            let settings = Settings::new(is_test)?;
             settings.save()?;
 
             settings
@@ -55,9 +65,24 @@ impl Settings {
 
         rust_i18n::set_locale(&settings.language);
         rust_i18n::i18n!("locales", fallback = "en");
+        settings.prolock_folder = prolock_folder;
         Ok(settings)
     }
 
+    fn prolock_folder(is_test: bool) -> Result<PathBuf> {
+        {
+            let mut file_path = Self::home_dir()?;
+            file_path.push(if is_test || cfg!(test) {
+                TEST_PROLOCK_FOLDER
+            } else {
+                PROD_PROLOCK_FOLDER
+            });
+            Ok(file_path)
+        }
+    }
+    fn home_dir() -> Result<PathBuf> {
+        dirs::home_dir().context("Can't find home directory")
+    }
     fn lock_for_write(file_path: &Path) -> Result<FdRwLock<File>> {
         Ok(FdRwLock::new(
             OpenOptions::new()
@@ -69,7 +94,7 @@ impl Settings {
         ))
     }
     fn save(&self) -> Result<()> {
-        let my_file = Self::settings_file(self.is_test)?;
+        let my_file = Self::settings_file(self.prolock_folder.clone());
         let mut file_guard = Settings::lock_for_write(&my_file)?;
         let mut locked_file = file_guard.write()?;
         locked_file.write_all(serde_json::ser::to_string_pretty(&self)?.as_bytes())?;
@@ -164,26 +189,14 @@ impl Settings {
         Ok(())
     }
 
-    fn document_folder(is_test: bool) -> Result<PathBuf> {
-        let mut file_path = dirs::home_dir().context("Can't find home directory")?;
-        file_path.push(if is_test || cfg!(test) {
-            TEST_DOC_FOLDER
-        } else {
-            PROD_DOC_FOLDER
-        });
-        Ok(file_path)
+    fn settings_file(mut prolock_folder: PathBuf) -> PathBuf {
+        prolock_folder.push(SETTINGS_FILENAME);
+        prolock_folder
     }
 
-    fn settings_file(is_test: bool) -> Result<PathBuf> {
-        let mut file_path = Self::document_folder(is_test)?;
-        file_path.push(SETTINGS_FILE);
-        Ok(file_path)
-    }
-
-    fn default_document_file(is_test: bool) -> Result<PathBuf> {
-        let mut file_path = Self::document_folder(is_test)?;
-        file_path.push(DEFAULT_DATA_FILE);
-        Ok(file_path)
+    fn default_document_file(mut prolock_folder: PathBuf) -> PathBuf {
+        prolock_folder.push(DEFAULT_DOCUMENT_FILENAME);
+        prolock_folder
     }
 
     pub fn temp_document_file(path: &Path) -> Result<PathBuf> {
@@ -192,6 +205,86 @@ impl Settings {
         name.push(TEMP_DATA_FILE_SUFFIX);
         file_path.set_file_name(name);
         Ok(file_path)
+    }
+
+    pub fn default_export_file_path(&self) -> String {
+        format!(
+            "{home_dir}/{filename}",
+            home_dir = self.prolock_folder.parent().unwrap(/*OK*/).display(),
+            filename = Self::default_export_file_name()
+        )
+    }
+
+    pub fn default_export_file_name() -> String {
+        format!(
+            "export_{infix}.prolock",
+            infix = whoami::username().unwrap_or_else(|_| "0".to_string())
+        )
+    }
+
+    pub fn get_file_dialog_labels(&self) -> FileDialogLabels {
+        if &self.language == "de" {
+            Self::get_german_file_dialog_labels()
+        } else {
+            Self::get_english_file_dialog_labels()
+        }
+    }
+
+    fn get_english_file_dialog_labels() -> FileDialogLabels {
+        FileDialogLabels::default()
+    }
+
+    fn get_german_file_dialog_labels() -> FileDialogLabels {
+        FileDialogLabels {
+            title_select_directory: "📁 Ordner auswählen".to_string(),
+            title_select_file: "📂 Datei öffnen".to_string(),
+            title_select_multiple: " Dateien auswählen".to_string(),
+            title_save_file: "📥 Datei sichern".to_string(),
+
+            cancel: "Abbrechen".to_string(),
+            overwrite: "Überschreiben".to_string(),
+
+            reload: "⟲  Neu laden".to_string(),
+            working_directory: "↗  Zum Arbeitsordner wechseln".to_string(),
+            select_all: "Alle auswählen".to_string(),
+            show_hidden: "Versteckte Dateien anzeigen".to_string(),
+            show_system_files: "System-Dateien anzeigen".to_string(),
+
+            heading_pinned: "Befestigt".to_string(),
+            heading_places: "Orte".to_string(),
+            heading_devices: "Geräte".to_string(),
+            heading_removable_devices: "Entfernbare Geräte".to_string(),
+
+            home_dir: "🏠  Home".to_string(),
+            desktop_dir: "🖵  Desktop".to_string(),
+            documents_dir: "🗐  Dokumente".to_string(),
+            downloads_dir: "📥  Downloads".to_string(),
+            audio_dir: "🎵  Audio".to_string(),
+            pictures_dir: "🖼  Bilder".to_string(),
+            videos_dir: "🎞  Videos".to_string(),
+
+            pin_folder: "📌 Befestigen".to_string(),
+            unpin_folder: "✖ Lösen".to_string(),
+            rename_pinned_folder: "✏ Umbenennen".to_string(),
+
+            selected_directory: "Ausgewählter Ordner:".to_string(),
+            selected_file: "Ausgewählte Datei:".to_string(),
+            selected_items: "Ausgewählte Objekte:".to_string(),
+            file_name: "Dateiname:".to_string(),
+            file_filter_all_files: "Alle Dateien".to_string(),
+            save_extension_any: "Alle".to_string(),
+
+            open_button: "🗀  Öffnen".to_string(),
+            save_button: "📥  Speichern".to_string(),
+            cancel_button: "🚫 Abbrechen".to_string(),
+
+            overwrite_file_modal_text: "existiert bereits. Überschreiben?".to_string(),
+
+            err_empty_folder_name: "Der Ordnername darf nicht leer sein".to_string(),
+            err_empty_file_name: "Der Dateiname darf nicht leer sein".to_string(),
+            err_directory_exists: "Ein Ordner mit diesem Namen existiert bereits".to_string(),
+            err_file_exists: "Eine Datei mit diesem Namen existiert bereits".to_string(),
+        }
     }
 }
 

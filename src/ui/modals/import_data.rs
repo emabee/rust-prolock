@@ -1,8 +1,10 @@
+use crate::file_dialog::FileDialog;
 use egui::{
-    Button, Color32, ComboBox, Context, FontFamily, FontId, Frame, Grid, Modal, Rgba, RichText,
+    Button, Color32, ComboBox, Context, FontFamily, FontId, Frame, Grid, Rgba, RichText,
     ScrollArea, Stroke, TextEdit, TextStyle, Ui, scroll_area::ScrollBarVisibility,
 };
 use egui_extras::{Size, StripBuilder};
+use egui_modal_with_titlebar::ModalWithTitlebar;
 use jiff::Zoned;
 
 use crate::{
@@ -21,7 +23,7 @@ use crate::{
     },
 };
 
-const FRAME_COLOR: Color32 = Color32::DARK_BLUE;
+const FRAME_COLOR: Color32 = Color32::DARK_GREEN;
 
 pub fn import_data(
     step: &mut VImportStep,
@@ -30,39 +32,45 @@ pub fn import_data(
     ctx: &Context,
 ) {
     match step {
-        VImportStep::AskForFileAndPassword { file_path, pw } => {
-            let modal_response = Modal::new("import_data_1".into()).show(ctx, |ui| {
-                ui.set_width(MODAL_WIDTH_EX_IM);
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        ui.set_width(140.);
-                        ui.set_height(140.);
-                        ui.add_space(50.);
-                        ui.label(
-                            RichText::new("📦").font(FontId::new(128., FontFamily::Proportional)),
-                        );
+        VImportStep::AskForFileAndPassword {
+            file_path,
+            pw,
+            file_dialog,
+        } => {
+            let modal_response = ModalWithTitlebar::new("import_data_1", t!("import_data"), true)
+                .show(ctx, |ui| {
+                    ui.set_width(MODAL_WIDTH_EX_IM);
+                    ui.horizontal(|ui| {
+                        ui.vertical(|ui| {
+                            ui.set_width(140.);
+                            ui.set_height(140.);
+                            ui.add_space(20.);
+                            ui.label(
+                                RichText::new("📦")
+                                    .font(FontId::new(128., FontFamily::Proportional)),
+                            );
+                        });
+                        ui.add_space(9.);
+                        ui.vertical(|ui| {
+                            ui.add_space(35.);
+
+                            file_and_pw(file_path, pw, file_dialog, ui);
+
+                            if let Some(ref e) = *error {
+                                show_error(e, ui);
+                            }
+                        });
                     });
-                    ui.add_space(9.);
-                    ui.vertical(|ui| {
-                        ui.add_space(50.);
-                        ui.label(RichText::new(t!("import_data")).size(24.));
-                        ui.add_space(15.);
-                        file_and_pw(file_path, pw, ui);
-                        if let Some(ref e) = *error {
-                            show_error(e, ui);
-                        }
-                    });
+                    ui.add_space(5.);
+                    ui.separator();
+                    buttons::cancel_and_action(
+                        ui,
+                        controller,
+                        Some(format!("{} ...", t!("inspect_entries")).into()),
+                        Action::FinalizeImportData,
+                    );
                 });
-                ui.add_space(15.);
-                ui.separator();
-                buttons::cancel_and_action(
-                    ui,
-                    controller,
-                    Some(format!("{} ...", t!("import_entries")).into()),
-                    Action::FinalizeImportData,
-                );
-            });
-            if modal_response.should_close() {
+            if modal_response.should_close() || modal_response.inner.1 {
                 controller.set_action(Action::CloseModal);
             }
         }
@@ -73,59 +81,73 @@ pub fn import_data(
             bundle_importcontrols,
             doc_importcontrols,
         } => {
-            let modal_response = Modal::new("import_data_2".into()).show(ctx, |ui| {
-                ui.set_width(MODAL_WIDTH_EX_IM);
-                ui.horizontal(|ui| {
-                    ui.vertical(|ui| {
-                        ui.set_width(140.);
-                        ui.set_height(140.);
-                        ui.add_space(50.);
-                        ui.label(
-                            RichText::new("📦").font(FontId::new(128., FontFamily::Proportional)),
-                        );
-                    });
-                    ui.add_space(9.);
-                    ui.vertical(|ui| {
-                        ui.add_space(50.);
-                        ui.label(RichText::new(t!("import_data")).size(24.));
-                        ui.add_space(10.);
-                        ui.label(RichText::new(file.file_path()).monospace());
+            let modal_response = ModalWithTitlebar::new("import_data_2", t!("import_data"), true)
+                .show(ctx, |ui| {
+                    ui.set_width(MODAL_WIDTH_EX_IM);
+                    ui.horizontal(|ui| {
+                        ui.vertical(|ui| {
+                            ui.set_width(140.);
+                            ui.set_height(140.);
+                            ui.add_space(50.);
+                            ui.label(
+                                RichText::new("📦")
+                                    .font(FontId::new(128., FontFamily::Proportional)),
+                            );
+                        });
+                        ui.add_space(9.);
+                        ui.vertical(|ui| {
+                            ui.add_space(35.);
+                            ui.label(RichText::new(file.file_path()).monospace());
 
-                        ui.add_space(15.);
-                        // show what to import
-                        bundles_and_docs(
-                            ui,
-                            import_tab,
-                            file,
-                            bundle_importcontrols,
-                            doc_importcontrols,
-                        );
+                            ui.add_space(15.);
+                            // show what to import
+                            bundles_and_docs(
+                                ui,
+                                import_tab,
+                                file,
+                                bundle_importcontrols,
+                                doc_importcontrols,
+                            );
+                        });
                     });
+                    ui.add_space(15.);
+                    ui.separator();
+                    buttons::cancel_and_action(
+                        ui,
+                        controller,
+                        Some(t!("import_entries")),
+                        Action::FinalizeImportData,
+                    );
                 });
-                ui.add_space(15.);
-                ui.separator();
-                buttons::cancel_and_action(
-                    ui,
-                    controller,
-                    Some(t!("import_entries")),
-                    Action::FinalizeImportData,
-                );
-            });
-            if modal_response.should_close() {
+            if modal_response.should_close() || modal_response.inner.1 {
                 controller.set_action(Action::CloseModal);
             }
         }
     }
 }
 
-fn file_and_pw(file_path: &mut String, pw: &mut String, ui: &mut Ui) {
+fn file_and_pw(file_path: &mut String, pw: &mut String, file_dialog: &mut FileDialog, ui: &mut Ui) {
     Grid::new("Open import file").num_columns(2).show(ui, |ui| {
         ui.label(format!("{}:", t!("File")));
-        ui.add(
-            TextEdit::singleline(file_path)
-                .hint_text(t!("File path"))
-                .desired_width(200.),
-        );
+        ui.horizontal(|ui| {
+            ui.add(
+                TextEdit::singleline(file_path)
+                    .hint_text(t!("File path"))
+                    .font(FontId::new(12., FontFamily::Monospace))
+                    .desired_width(400.),
+            );
+
+            if ui.button(format!("📂 {}...", t!("_select"))).clicked() {
+                file_dialog.pick_file();
+            }
+
+            file_dialog.update(ui.ctx());
+
+            if let Some(path) = file_dialog.take_picked() {
+                *file_path = path.display().to_string();
+            }
+        });
+
         ui.end_row();
 
         ui.label(format!("{}:", t!("Password")));
@@ -148,11 +170,11 @@ fn bundles_and_docs(
 ) {
     tabs(ui, import_tab);
 
-    ui.add_space(20.);
+    // ui.add_space(20.);
     match import_tab {
         ImportTab::Bundles => {
             StripBuilder::new(ui)
-                .size(Size::exact(250.))
+                .size(Size::exact(350.))
                 .vertical(|mut strip| {
                     strip.cell(|ui| {
                         ScrollArea::vertical()
@@ -167,7 +189,7 @@ fn bundles_and_docs(
                                             bundle_strip.cell(|ui| {
                                                 Frame::default()
                                                     .stroke(Stroke::new(2_f32, FRAME_COLOR))
-                                                    .inner_margin(2.0)
+                                                    .inner_margin(6.0)
                                                     .show(ui, |ui| {
                                                         show_a_bundle(
                                                             StripBuilder::new(ui),
@@ -230,7 +252,7 @@ fn bundles_and_docs(
 
 fn tabs(ui: &mut Ui, import_tab: &mut ImportTab) {
     ui.horizontal(|ui| {
-        ui.add_space(14.);
+        // ui.add_space(14.);
         if ui
             .add(
                 Button::new(
@@ -306,7 +328,6 @@ fn show_a_bundle(
                     bundle_description_part(descr_builder, alternate, bundle, key, false);
                 });
                 inner_bundle_strip.cell(|ui| {
-                    ui.separator();
                     ui_action_selection(ui, import_control);
                 });
             });
@@ -323,7 +344,6 @@ fn show_a_bundle(
                     cred_part(cred_builder, alternate, bundle, transient);
                 });
                 inner_bundle_strip.cell(|ui| {
-                    ui.separator();
                     ui_action_selection(ui, import_control);
                 });
             });
@@ -352,51 +372,63 @@ fn show_a_doc(
 }
 
 fn ui_action_selection(ui: &mut Ui, import_control: &mut ImportControl) {
-    ui.horizontal(|ui| {
-        if matches!(
-            import_control.start_condition,
-            ImportStartCondition::Identical
-        ) {
-            ui.label(
-                RichText::new(format!("{}.", import_control.start_condition))
-                    .italics()
-                    .monospace()
-                    .size(15.)
-                    .color(FRAME_COLOR),
-            );
-        } else {
-            ui.label(
-                RichText::new(format!("{}:", import_control.start_condition))
-                    .italics()
-                    .monospace()
-                    .size(15.)
-                    .strong()
-                    .color(FRAME_COLOR),
-            );
-            ComboBox::from_id_salt("choose_action")
-                .selected_text(
-                    RichText::new(format!("{}", import_control.action))
-                        .italics()
-                        .monospace()
-                        .size(15.)
-                        .strong()
-                        .color(Color32::DARK_GREEN),
-                )
-                .show_ui(ui, |ui| {
-                    for act in IMPORT_ACTIONS[import_control.start_condition as usize] {
-                        ui.selectable_value(
-                            &mut import_control.action,
-                            *act,
-                            RichText::new(format!("{act}"))
+    ui.separator();
+    //ui.add_space(-2.);
+    Frame::default()
+        .stroke(Stroke {
+            width: 2.,
+            color: FRAME_COLOR.gamma_multiply(0.3),
+        })
+        .fill(FRAME_COLOR.gamma_multiply(0.5))
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                if matches!(
+                    import_control.start_condition,
+                    ImportStartCondition::Identical
+                ) {
+                    ui.label(
+                        RichText::new(format!("{}.", import_control.start_condition))
+                            .italics()
+                            .monospace()
+                            .size(15.)
+                            .color(Color32::WHITE),
+                    );
+                } else {
+                    ui.label(
+                        RichText::new(format!("{}:", import_control.start_condition))
+                            .italics()
+                            .monospace()
+                            .size(15.)
+                            .strong()
+                            .color(Color32::WHITE),
+                    );
+                    ComboBox::from_id_salt("choose_action")
+                        .selected_text(
+                            RichText::new(format!("{}", import_control.action))
                                 .italics()
                                 .monospace()
                                 .size(15.)
+                                .strong()
                                 .color(Color32::DARK_GREEN),
-                        );
-                    }
-                });
-        }
-    });
+                        )
+                        .show_ui(ui, |ui| {
+                            // ui.style_mut().visuals.panel_fill()
+                            for act in IMPORT_ACTIONS[import_control.start_condition as usize] {
+                                ui.selectable_value(
+                                    &mut import_control.action,
+                                    *act,
+                                    RichText::new(format!("{act}"))
+                                        .italics()
+                                        .monospace()
+                                        .size(15.)
+                                        .color(Color32::DARK_GREEN),
+                                );
+                            }
+                        });
+                }
+                ui.take_available_space();
+            })
+        });
 }
 
 fn bundle_description_part(
@@ -413,7 +445,6 @@ fn bundle_description_part(
     descr_builder.vertical(|mut strip| {
         //name
         strip.cell(|ui| {
-            ui.separator();
             set_faded_bg_color(ui, if full { 90. } else { 23. }, alternate, true);
             ui.add(
                 TextEdit::singleline(&mut key.as_str())

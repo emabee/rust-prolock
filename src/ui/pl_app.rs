@@ -14,7 +14,12 @@ use crate::{
 };
 use anyhow::{Context as _, Result};
 use eframe::App;
-use egui::Ui;
+use egui::{
+    FontFamily::Proportional,
+    FontId,
+    TextStyle::{Body, Button, Heading, Monospace, Name, Small},
+    Ui,
+};
 use flexi_logger::LoggerHandle;
 
 pub struct PlApp {
@@ -39,18 +44,8 @@ impl PlApp {
             logger_handle,
         })
     }
-}
 
-impl App for PlApp {
-    fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
-        // execute action, if any
-        self.controller
-            .act(&mut self.pl_file, &mut self.v, &mut self.settings);
-
-        // render the UI
-        top_panel(&self.pl_file, &mut self.v, &mut self.controller, ui);
-
-        // show modal if desired
+    fn show_modal_if_required(&mut self, ui: &mut Ui) {
         let ctx = ui.ctx();
         match self.v.modal_state {
             ModalState::None => {}
@@ -89,8 +84,11 @@ impl App for PlApp {
             ModalState::ChangePassword => {
                 change_password(&mut self.v.pw, &mut self.controller, ctx);
             }
-            ModalState::ChangeFile => {
+            ModalState::ChangeFile {
+                ref mut file_dialog,
+            } => {
                 change_file(
+                    file_dialog,
                     &mut self.settings,
                     &mut self.v.file_selection,
                     &mut self.controller,
@@ -106,8 +104,15 @@ impl App for PlApp {
             ModalState::ExportData {
                 ref mut export_tab,
                 ref mut export_data,
+                ref mut file_dialog,
             } => {
-                modal_export_data(export_data, export_tab, &mut self.controller, ctx);
+                modal_export_data(
+                    export_data,
+                    export_tab,
+                    file_dialog,
+                    &mut self.controller,
+                    ctx,
+                );
             }
             ModalState::ImportData {
                 ref mut step,
@@ -116,18 +121,20 @@ impl App for PlApp {
                 import_data(step, error, &mut self.controller, ctx);
             }
         }
+    }
+}
 
-        // show the log
-        if self.v.show_log {
-            show_log(
-                &self.logger_handle,
-                &mut self.v.logger_snapshot,
-                &mut self.v.show_log,
-                ctx,
-            );
-        }
+impl App for PlApp {
+    fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
+        set_basic_styles(ui);
 
-        // show the main UI
+        // execute action, if any
+        self.controller
+            .act(&mut self.pl_file, &mut self.v, &mut self.settings);
+
+        // render the UI
+        top_panel(&self.pl_file, &mut self.v, &mut self.controller, ui);
+
         if let Some(transient) = self.pl_file.transient() {
             main_ui(
                 self.pl_file.bundles(),
@@ -141,5 +148,34 @@ impl App for PlApp {
             let is_first_start = self.pl_file.update_counter().peek() == Some(0);
             ask_for_password_to_open(is_first_start, &mut self.v, &mut self.controller, ui);
         }
+
+        // show the log
+        if self.v.show_log {
+            show_log(
+                &self.logger_handle,
+                &mut self.v.logger_snapshot,
+                &mut self.v.show_log,
+                ui.ctx(),
+            );
+        }
+
+        // show modal if desired
+        self.show_modal_if_required(ui);
     }
+}
+
+fn set_basic_styles(ui: &mut Ui) {
+    ui.ctx().all_styles_mut(move |style| {
+        style.text_styles = [
+            (Heading, FontId::new(20.0, Proportional)),
+            (Name("Heading2".into()), FontId::new(18.0, Proportional)),
+            (Name("Context".into()), FontId::new(16.0, Proportional)),
+            (Body, FontId::new(14.0, Proportional)),
+            (Monospace, FontId::new(12.0, Proportional)),
+            (Button, FontId::new(12.0, Proportional)),
+            (Small, FontId::new(9.0, Proportional)),
+        ]
+        .into();
+    });
+    ui.visuals_mut().button_frame = true;
 }

@@ -2,24 +2,27 @@ use crate::{
     Controller, SUPPORTED_LANGUAGES,
     ui::{Action, modals::buttons, sizes::MODAL_WIDTH, viz::Lang},
 };
-use egui::{ComboBox, Context, FontFamily, FontId, Grid, Modal, RichText};
+use egui::{ComboBox, Context, FontFamily, FontId, Grid, RichText};
+use egui_modal_with_titlebar::ModalWithTitlebar;
 
 pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Context) {
-    let modal_response = Modal::new("change_language".into()).show(ctx, |ui| {
+    let modal_response = ModalWithTitlebar::new(
+        "change_language",
+        t!("Change language", locale = lang.selected.0),
+        true,
+    )
+    .show(ctx, |ui| {
         ui.set_width(MODAL_WIDTH);
         ui.horizontal(|ui| {
             ui.vertical(|ui| {
                 ui.set_width(140.);
                 ui.set_height(140.);
-                ui.add_space(50.);
+                ui.add_space(20.);
                 ui.label(RichText::new("🌐").font(FontId::new(128., FontFamily::Proportional)));
             });
 
             ui.vertical(|ui| {
-                ui.add_space(50.);
-                ui.label(RichText::new(t!("Change language", locale = lang.selected.0)).size(24.));
-
-                ui.add_space(15.);
+                ui.add_space(35.);
 
                 Grid::new("Change Password").num_columns(2).show(ui, |ui| {
                     ui.label(t!("Current language:", locale = lang.selected.0));
@@ -47,7 +50,7 @@ pub fn change_language(lang: &mut Lang, controller: &mut Controller, ctx: &Conte
 
         buttons::cancel_and_action(ui, controller, None, Action::FinalizeChangeLanguage);
     });
-    if modal_response.should_close() {
+    if modal_response.should_close() || modal_response.inner.1 {
         controller.set_action(Action::CloseModal);
     }
 }

@@ -1,6 +1,7 @@
 use crate::{
     PlFile, Settings,
     data::Key,
+    file_dialog::{FileDialog, FileDialogConfig},
     ui::{
         Action,
         viz::{
@@ -12,6 +13,7 @@ use crate::{
     util::generate_password,
 };
 use anyhow::{Context, Result};
+use egui::Vec2;
 use std::path::PathBuf;
 
 // The controller is responsible for managing the state of the application and the UI,
@@ -164,8 +166,21 @@ fn act_on_no_modal(
         }
 
         Action::StartChangeFile => {
+            let initial_directory: PathBuf = settings.files[settings.current_file]
+                .parent()
+                .unwrap()
+                .to_path_buf();
             v.file_selection.reset(settings.current_file);
-            v.modal_state = ModalState::ChangeFile;
+            v.modal_state = ModalState::ChangeFile {
+                file_dialog: {
+                    let mut fd = get_file_dialog(settings)
+                        .initial_directory(initial_directory)
+                        .default_file_name("secret")
+                        .allow_path_edit_to_save_file_without_extension(true);
+                    fd.storage_mut().show_hidden = true;
+                    fd
+                },
+            };
         }
 
         Action::StartChangeLanguage => {
@@ -199,8 +214,15 @@ fn act_on_no_modal(
 
         Action::StartExportData => {
             v.modal_state = ModalState::ExportData {
+                export_data: VExportData::new(pl_file.bundles(), pl_file.documents(), settings),
                 export_tab: ExportTab::Bundles,
-                export_data: VExportData::new(pl_file.bundles(), pl_file.documents()),
+                file_dialog: get_file_dialog(settings)
+                    .use_egui_modal(true)
+                    .labels(settings.get_file_dialog_labels())
+                    .initial_directory(directories::UserDirs::new().unwrap().home_dir().into())
+                    .add_save_extension("Prolock", "prolock")
+                    .default_save_extension("Prolock")
+                    .default_file_name(&Settings::default_export_file_name()),
             };
         }
 
@@ -209,6 +231,10 @@ fn act_on_no_modal(
                 step: VImportStep::AskForFileAndPassword {
                     file_path: String::new(),
                     pw: String::new(),
+                    file_dialog: get_file_dialog(settings)
+                        .initial_directory(directories::UserDirs::new().unwrap().home_dir().into())
+                        .add_file_filter_extensions("Prolock", vec!["prolock"])
+                        .default_file_filter("Prolock"),
                 },
                 error: None,
             };
@@ -289,6 +315,17 @@ fn act_on_no_modal(
         }
     }
     true
+}
+
+fn get_file_dialog(settings: &Settings) -> FileDialog {
+    FileDialog::with_config(FileDialogConfig {
+        default_size: Vec2::new(800., 800.),
+        ..Default::default()
+    })
+    // FileDialog::new()
+    .use_egui_modal(true)
+    .show_hidden_option(false)
+    .labels(settings.get_file_dialog_labels())
 }
 
 #[allow(clippy::too_many_lines)]
@@ -401,8 +438,9 @@ fn act_on_modal(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings, action
         (
             Action::FinalizeExportData,
             ModalState::ExportData {
-                export_tab: _,
                 export_data,
+                export_tab: _,
+                file_dialog: _,
             },
             _main_state,
         ) => match pl_file.export_data(export_data) {
@@ -424,7 +462,11 @@ fn act_on_modal(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings, action
 
         (Action::FinalizeImportData, ModalState::ImportData { step, error }, _main_state) => {
             match step {
-                VImportStep::AskForFileAndPassword { file_path, pw } => {
+                VImportStep::AskForFileAndPassword {
+                    file_path,
+                    pw,
+                    file_dialog: _,
+                } => {
                     match PlFile::read(&PathBuf::from(&file_path)) {
                         Err(e) => {
                             *error = Some(format!("{file_path}\n{e:?}"));
@@ -507,7 +549,7 @@ fn act_on_modal(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings, action
             v.generate_pw.cred_idx = o_cred;
         }
 
-        (Action::SwitchToKnownFile(idx), ModalState::ChangeFile, _) => {
+        (Action::SwitchToKnownFile(idx), ModalState::ChangeFile { file_dialog: _ }, _) => {
             match settings.set_current_file(idx) {
                 Ok(()) => match switch_to_current_file(pl_file, v, settings) {
                     Ok(()) => {
@@ -524,7 +566,7 @@ fn act_on_modal(pl_file: &mut PlFile, v: &mut V, settings: &mut Settings, action
                 }
             }
         }
-        (Action::SwitchToNewFile(path), ModalState::ChangeFile, _) => {
+        (Action::SwitchToNewFile(path), ModalState::ChangeFile { file_dialog: _ }, _) => {
             match settings.add_and_set_file(&PathBuf::from(path)) {
                 Ok(()) => match switch_to_current_file(pl_file, v, settings) {
                     Ok(()) => {

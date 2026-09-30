@@ -2,16 +2,16 @@ use crate::{
     Controller,
     ui::{Action, modals::buttons, viz::VGeneratePassword},
 };
-use egui::{Context, FontFamily, FontId, Modal, TextEdit};
+use egui::{Context, FontFamily, FontId, TextEdit};
+use egui_modal_with_titlebar::ModalWithTitlebar;
 
 pub fn configure_password_generation(
     generate_pw: &mut VGeneratePassword,
     controller: &mut Controller,
     ctx: &Context,
 ) {
-    Modal::new("generate_password".into()).show(ctx, |ui| {
-        ui.heading(t!("Generate password"));
-        ui.add_space(10.);
+    ModalWithTitlebar::new("generate_password", t!("Generate password"), true).show(ctx, |ui| {
+        ui.add_space(20.);
 
         ui.horizontal(|ui| {
             ui.label(t!("Length:"));
@@ -41,7 +41,7 @@ pub fn configure_password_generation(
                 );
             }
         });
-
+        ui.add_space(20.);
         ui.separator();
 
         buttons::cancel_and_action(ui, controller, None, Action::FinalizeGeneratePassword);

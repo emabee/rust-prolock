@@ -1,3 +1,5 @@
+use crate::data::Settings;
+use crate::file_dialog::FileDialog;
 use crate::{
     DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES,
     data::{Bundle, Bundles, Cred, Document, Documents, Key, PlFile, Secret, Transient},
@@ -167,13 +169,16 @@ pub enum ModalState {
     },
     About,
     ChangePassword,
-    ChangeFile,
+    ChangeFile {
+        file_dialog: FileDialog,
+    },
     ChangeLanguage,
     GeneratePassword,
 
     ExportData {
-        export_tab: ExportTab,
         export_data: VExportData,
+        export_tab: ExportTab,
+        file_dialog: FileDialog,
     },
     ImportData {
         step: VImportStep,
@@ -202,7 +207,7 @@ impl ModalState {
             Self::DeleteDocument { .. } => "ModalState::DeleteDocument".to_string(),
             Self::About => "ModalState::About".to_string(),
             Self::ChangePassword => "ModalState::ChangePassword".to_string(),
-            Self::ChangeFile => "ModalState::ChangeFile".to_string(),
+            Self::ChangeFile { .. } => "ModalState::ChangeFile".to_string(),
             Self::ChangeLanguage => "ModalState::ChangeLanguage".to_string(),
             Self::GeneratePassword => "ModalState::GeneratePassword".to_string(),
             Self::ExportData { .. } => "ModalState::ExportData".to_string(),
@@ -552,7 +557,7 @@ pub struct VExportData {
     pub file_path: String,
 }
 impl VExportData {
-    pub fn new(bundles: &Bundles, documents: &Documents) -> Self {
+    pub fn new(bundles: &Bundles, documents: &Documents, settings: &Settings) -> Self {
         Self {
             bundles_to_export: bundles
                 .keys()
@@ -563,18 +568,19 @@ impl VExportData {
                 .map(|key| (false, key.as_str().to_string()))
                 .collect(),
             pw: Pw::default(),
-            file_path: format!(
-                "~/export_{}.prolock",
-                whoami::account().unwrap_or_else(|_| String::new())
-            ),
+            file_path: settings.default_export_file_path(),
         }
     }
 }
 
+// FIXME FileDialog is huge, and it should be possible to have a single central instance that is
+// reused in places like here; we might then need here only some confguration
+#[allow(clippy::large_enum_variant)]
 pub enum VImportStep {
     AskForFileAndPassword {
         file_path: String,
         pw: String,
+        file_dialog: FileDialog,
     },
     ChooseImportActions {
         file: Box<PlFile>,
@@ -586,7 +592,11 @@ pub enum VImportStep {
 impl std::fmt::Debug for VImportStep {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::AskForFileAndPassword { file_path, pw } => f
+            Self::AskForFileAndPassword {
+                file_path,
+                pw,
+                file_dialog: _,
+            } => f
                 .debug_struct("AskForFileAndPassword")
                 .field("file_path", file_path)
                 .field("pw", pw)

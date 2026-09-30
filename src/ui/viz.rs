@@ -3,8 +3,11 @@ use crate::{
     data::{Bundle, Bundles, Cred, Document, Documents, Key, PlFile, Secret, Transient},
 };
 use flexi_logger::Snapshot;
-use fuzzy_matcher::clangd::fuzzy_match;
-use std::{collections::BTreeMap, time::Instant};
+use fuzzy_matcher::{
+    FuzzyMatcher,
+    skim::{SkimMatcherV2, SkimScoreConfig},
+};
+use std::{collections::BTreeMap, sync::OnceLock, time::Instant};
 
 #[derive(Default)]
 pub struct V {
@@ -75,21 +78,20 @@ impl V {
     pub fn apply_filter_to_bundles(&mut self, bundles: &Bundles) {
         for ((key1, vbundle), (key2, bundle)) in self.bundles.iter_mut().zip(bundles.iter()) {
             assert_eq!(key1, key2);
-            vbundle.apply_filter(key2, bundle, &self.find.pattern);
+            vbundle.apply_filter(key2, bundle, &self.find);
         }
     }
 
     pub fn apply_filter_to_documents(&mut self, documents: &Documents) {
         for ((key1, vdoc), key2) in self.documents.iter_mut().zip(documents.iter_keys()) {
             assert_eq!(key1, key2);
-            vdoc.apply_filter(key2, &self.find.pattern);
+            vdoc.apply_filter(key2, &self.find);
         }
-        if let MainState::Documents(DocumentState::Default(ref mut o_selected)) = self.main_state {
-            if let Some(ref mut selected) = *o_selected {
-                if self.documents.get(selected).is_some_and(|d| d.suppressed) {
-                    *o_selected = None;
-                }
-            }
+        if let MainState::Documents(DocumentState::Default(ref mut o_selected)) = self.main_state
+            && let Some(ref mut selected) = *o_selected
+            && self.documents.get(selected).is_some_and(|d| d.suppressed)
+        {
+            *o_selected = None;
         }
     }
 }
@@ -237,10 +239,24 @@ impl ImportTab {
     }
 }
 
-#[derive(Default)]
 pub struct Find {
     pub pattern: String,
+    pub threshold: i64,
     pub request_focus: bool,
+}
+impl Default for Find {
+    fn default() -> Self {
+        Self {
+            pattern: String::new(),
+            threshold: Self::DEFAULT_THRESHOLD,
+            request_focus: false,
+        }
+    }
+}
+impl Find {
+    pub const MIN_THRESHOLD: i64 = 40;
+    pub const MAX_THRESHOLD: i64 = 140;
+    pub const DEFAULT_THRESHOLD: i64 = 80;
 }
 
 pub struct Lang {
@@ -312,6 +328,18 @@ impl FileSelection {
     }
 }
 
+static MATCHER: OnceLock<SkimMatcherV2> = OnceLock::new();
+fn get_matcher() -> &'static SkimMatcherV2 {
+    MATCHER.get_or_init(|| {
+        SkimMatcherV2::default()
+            .ignore_case()
+            .score_config(SkimScoreConfig {
+                bonus_consecutive: 40,
+                ..Default::default()
+            })
+    })
+}
+
 #[derive(Default, Clone)]
 pub struct VBundle {
     pub suppressed: bool,
@@ -319,18 +347,21 @@ pub struct VBundle {
     pub v_creds: Vec<VCred>,
 }
 impl VBundle {
-    pub fn apply_filter(&mut self, key: &Key, bundle: &Bundle, pattern: &str) {
-        if pattern.is_empty() {
+    pub fn apply_filter(&mut self, key: &Key, bundle: &Bundle, find: &Find) {
+        if find.pattern.is_empty()
+            || key.as_str().contains(&find.pattern)
+            || bundle.description().contains(&find.pattern)
+        {
             self.suppressed = false;
         } else {
             match (
-                fuzzy_match(key.as_str(), pattern),
-                fuzzy_match(bundle.description(), pattern),
+                get_matcher().fuzzy_match(key.as_str(), &find.pattern),
+                get_matcher().fuzzy_match(bundle.description(), &find.pattern),
             ) {
-                (Some(v1), _) if v1 > 0 => {
+                (Some(v1), _) if v1 > find.threshold => {
                     self.suppressed = false;
                 }
-                (_, Some(v2)) if v2 > 40 => {
+                (_, Some(v2)) if v2 > find.threshold => {
                     self.suppressed = false;
                 }
                 (_, _) => self.suppressed = true,
@@ -345,8 +376,10 @@ pub struct VDocument {
     pub scroll_to: bool,
 }
 impl VDocument {
-    pub fn apply_filter(&mut self, key: &Key, pattern: &str) {
-        self.suppressed = fuzzy_match(key.as_str(), pattern).is_none();
+    pub fn apply_filter(&mut self, key: &Key, find: &Find) {
+        self.suppressed = get_matcher()
+            .fuzzy_match(key.as_str(), &find.pattern)
+            .is_none();
     }
 }
 

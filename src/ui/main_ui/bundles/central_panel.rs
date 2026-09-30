@@ -51,19 +51,19 @@ pub fn central_panel(
                                         ref mut v_edit_bundle,
                                         ref error,
                                     }) = v.main_state
+                                        && *key == v_edit_bundle.orig_key
                                     {
-                                        if *key == v_edit_bundle.orig_key {
-                                            bundle_strip.strip(|bundle_builder| {
-                                                edit_a_bundle_with_buttons(
-                                                    bundle_builder,
-                                                    v_edit_bundle,
-                                                    error.as_deref(),
-                                                    controller,
-                                                );
-                                            });
-                                            done = true;
-                                        }
+                                        bundle_strip.strip(|bundle_builder| {
+                                            edit_a_bundle_with_buttons(
+                                                bundle_builder,
+                                                v_edit_bundle,
+                                                error.as_deref(),
+                                                controller,
+                                            );
+                                        });
+                                        done = true;
                                     }
+
                                     if !done {
                                         bundle_strip.strip(|bundle_builder| {
                                             show_a_bundle_with_buttons(

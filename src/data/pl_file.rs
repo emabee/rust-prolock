@@ -613,10 +613,10 @@ impl PlFile {
         }
 
         // - remove the redundant old_ref from Secrets
-        if let Some(transient) = &mut self.o_transient {
-            if old_ref != document.reff() {
-                transient.remove_secret(old_ref);
-            }
+        if let Some(transient) = &mut self.o_transient
+            && old_ref != document.reff()
+        {
+            transient.remove_secret(old_ref);
         }
 
         self.save(lock)
@@ -624,10 +624,10 @@ impl PlFile {
 
     pub fn export_data(&self, v_export_data: &mut VExportData) -> Result<()> {
         let mut path = PathBuf::from(v_export_data.file_path.as_str());
-        if path.starts_with("~") {
-            if let Some(home_dir) = dirs::home_dir() {
-                path = home_dir.join(path.strip_prefix("~").unwrap());
-            }
+        if path.starts_with("~")
+            && let Some(home_dir) = dirs::home_dir()
+        {
+            path = home_dir.join(path.strip_prefix("~").unwrap());
         }
 
         let mut export_pl = PlFile::create(&path).context(t!("context_export_file_open"))?;
@@ -639,47 +639,40 @@ impl PlFile {
         // copy the selected bundles
         for (selected, key) in &v_export_data.bundles_to_export {
             let key = Key::from(key.clone());
-            if *selected {
-                if let Some(bundle) = self.bundles().get(&key) {
-                    // convert to VEditBundle first to detach from the original PlFile's Transient
-                    let tmp_edit_bundle =
-                        VEditBundle::from_bundle(&key, bundle, self.transient().unwrap(/*OK*/));
+            if *selected && let Some(bundle) = self.bundles().get(&key) {
+                // convert to VEditBundle first to detach from the original PlFile's Transient
+                let tmp_edit_bundle =
+                    VEditBundle::from_bundle(&key, bundle, self.transient().unwrap(/*OK*/));
 
-                    // then back to a real Bundle that is connected to the new PlFile's Transient
-                    let (_old_key, new_key, new_bundle) = tmp_edit_bundle
-                        .as_oldkey_newkey_bundle(export_pl.transient_mut().unwrap(/*OK*/));
+                // then back to a real Bundle that is connected to the new PlFile's Transient
+                let (_old_key, new_key, new_bundle) = tmp_edit_bundle
+                    .as_oldkey_newkey_bundle(export_pl.transient_mut().unwrap(/*OK*/));
 
-                    if let Err(e) = export_pl
-                        .add_bundle(new_key, new_bundle)
-                        .context("Error while exporting bundle")
-                    {
-                        v_export_data.pw.error = Some(e.to_string());
-                    }
+                if let Err(e) = export_pl
+                    .add_bundle(new_key, new_bundle)
+                    .context("Error while exporting bundle")
+                {
+                    v_export_data.pw.error = Some(e.to_string());
                 }
             }
         }
         // copy the selected documents
         for (selected, key) in &v_export_data.documents_to_export {
             let key = Key::from(key.clone());
-            if *selected {
-                if let Some(document) = self.documents().get(&key) {
-                    // convert to VEditDocument first to detach from the original PlFile's Transient
-                    let tmp_edit_bundle = VEditDocument::from_document(
-                        &key,
-                        document,
-                        self.transient().unwrap(/*OK*/),
-                    );
+            if *selected && let Some(document) = self.documents().get(&key) {
+                // convert to VEditDocument first to detach from the original PlFile's Transient
+                let tmp_edit_bundle =
+                    VEditDocument::from_document(&key, document, self.transient().unwrap(/*OK*/));
 
-                    // then back to a real Document that is connected to the new PlFile's Transient
-                    let (_old_key, new_key, new_document) = tmp_edit_bundle
-                        .as_oldkey_newkey_document(export_pl.transient_mut().unwrap(/*OK*/));
+                // then back to a real Document that is connected to the new PlFile's Transient
+                let (_old_key, new_key, new_document) = tmp_edit_bundle
+                    .as_oldkey_newkey_document(export_pl.transient_mut().unwrap(/*OK*/));
 
-                    if let Err(e) = export_pl
-                        .add_document(new_key, new_document)
-                        .context("Error while exporting bundle")
-                    {
-                        v_export_data.pw.error = Some(e.to_string());
-                    }
+                if let Err(e) = export_pl
+                    .add_document(new_key, new_document)
+                    .context("Error while exporting bundle")
+                {
+                    v_export_data.pw.error = Some(e.to_string());
                 }
             }
         }

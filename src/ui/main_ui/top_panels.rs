@@ -4,10 +4,10 @@ use crate::{
     ui::{
         Action, IMG_ADD_ENTRY, IMG_ADD_ENTRY_INACTIVE, IMG_ERASE,
         sizes::SEARCH_TEXT_WIDTH,
-        viz::{BundleState, DocumentState, MainState, V},
+        viz::{BundleState, DocumentState, Find, MainState, V},
     },
 };
-use egui::{Button, Color32, Image, Panel, RichText, TextEdit, Ui};
+use egui::{Button, Color32, Image, Panel, RichText, Slider, SliderClamping, TextEdit, Ui};
 
 pub(super) fn panel_with_tabs(
     v: &mut V,
@@ -103,17 +103,17 @@ pub(super) fn panel_with_create_and_filter(v: &mut V, controller: &mut Controlle
             ui.separator();
             ui.add_space(10.);
 
-            let response = ui.add_enabled(
+            let search_pattern_response = ui.add_enabled(
                 v.main_state.tabs_and_create_ok(),
                 TextEdit::singleline(&mut v.find.pattern)
                     .desired_width(SEARCH_TEXT_WIDTH)
                     .hint_text(format!("🔍 {}", t!("_find"))),
             );
             if v.find.request_focus {
-                response.request_focus();
+                search_pattern_response.request_focus();
                 v.find.request_focus = false;
             }
-            if response.changed() {
+            if search_pattern_response.changed() {
                 controller.set_action(Action::StartFilter);
             }
 
@@ -131,6 +131,23 @@ pub(super) fn panel_with_create_and_filter(v: &mut V, controller: &mut Controlle
                     v.find.pattern.clear();
                     controller.set_action(Action::StartFilter);
                 }
+
+                if ui
+                    .add(
+                        Slider::new(
+                            &mut v.find.threshold,
+                            Find::MIN_THRESHOLD..=Find::MAX_THRESHOLD,
+                        )
+                        .clamping(SliderClamping::Always)
+                        .show_value(false)
+                        .step_by(10_f64),
+                    )
+                    .changed()
+                {
+                    controller.set_action(Action::StartFilter);
+                }
+
+                ui.label("🔎");
             }
         });
         ui.add_space(4.);

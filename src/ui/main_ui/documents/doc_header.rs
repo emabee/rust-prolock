@@ -30,13 +30,12 @@ pub fn doc_header(
             v_edit_document,
             error,
         } = doc_state
+            && *key == v_edit_document.orig_key
         {
-            if *key == v_edit_document.orig_key {
-                doc_strip.cell(|ui| {
-                    edit_doc_header(v_edit_document, error.as_deref(), controller, ui);
-                });
-                show = false;
-            }
+            doc_strip.cell(|ui| {
+                edit_doc_header(v_edit_document, error.as_deref(), controller, ui);
+            });
+            show = false;
         }
 
         if show {

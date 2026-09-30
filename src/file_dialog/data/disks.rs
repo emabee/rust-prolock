@@ -186,10 +186,10 @@ fn load_disks(canonicalize_paths: bool) -> Vec<Disk> {
     disks
 }
 
-#[cfg(all(windows, any(target_arch = "x86_64", target_arch = "aarch64")))]
-extern "C" {
-    pub fn GetLogicalDrives() -> u32;
-}
+// #[cfg(all(windows, any(target_arch = "x86_64", target_arch = "aarch64")))]
+// extern "C" {
+//     pub fn GetLogicalDrives() -> u32;
+// }
 
 #[cfg(all(not(windows), not(target_os = "macos")))]
 fn load_disks(canonicalize_paths: bool) -> Vec<Disk> {
